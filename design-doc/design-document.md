@@ -1,6 +1,6 @@
 <span style="font-family: 'Roboto', monospace; font-size: 16px;">
 
-# Wireframes
+# Mockup
 
 ### Test page:
 ![Wireframe design for the test page](wireframe-testpage.png "Wireframe design for the test page")
