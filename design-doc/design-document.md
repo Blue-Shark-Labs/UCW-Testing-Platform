@@ -7,7 +7,7 @@
 
 # Logo
 
-Blue shark labs logo:
+Blue Shark Labs logo:
 
 <img src="logo.jpeg" alt="Company logo" width="200"/>
 
