@@ -8,13 +8,14 @@
 # Logo
 
 Blue shark labs logo:
-![Company logo](logo.svg "Company Logo")
+
+<img src="logo.jpeg" alt="Company logo" width="200"/>
 
 # Color Palette
 
 We chose a sea theme, to reflect Weston's coastal history:
 
-![Colour palette for the website](colour-palette.png "Colour palette for the website")
+<img src="colour-palette.png" alt="Colour palette for the website" width="200"/>
 
 The associated Hex Codes for these colours are:
 ```
@@ -24,10 +25,11 @@ The associated Hex Codes for these colours are:
 #6082B6
 #B6D0E2
 ```
+Colours #0047AB, #6082B6, #B6D0E2 have been chosen to match the WCAG 2.2 AA requirements of 4.5:1 contrast ratio when paired with either white text or black text, white text for dark colours, black text for light colours. The other 2 colours are there for variety within the UI, but will not have text on top of them.
 
 # Entity Relationship Diagram (ERD)
 
-![Entity Relationship Diagram](ERD.png "Entity Relationship Diagram")
+<img src="ERD.png" alt="Entity Relationship Diagram" width="1080"/>
 
 # Font
 
