@@ -1,0 +1,1 @@
+# Question entity definition. To be used as a representation of a question within the domain layer.

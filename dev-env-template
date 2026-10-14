@@ -1,0 +1,5 @@
+#Development database env configuration
+DATABASE_URL = nonprod.bluesharklabs.remote.ac
+DATABSE_NAME = WS381566_bluesharklabs_nonprod
+USERNAME = WS381566_nonprod_admin
+PASSWORD = 

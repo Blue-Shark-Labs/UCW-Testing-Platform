@@ -1,0 +1,5 @@
+#Production database env configuration
+DATABASE_URL = prod.bluesharklabs.remote.ac
+DATABSE_NAME = WS381566_bluesharklabs_prod
+USERNAME = WS381566_prod_admin
+PASSWORD = 

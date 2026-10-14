@@ -1,0 +1,1 @@
+# User entity definition. To be used as a representation of a user within the domain layer.
