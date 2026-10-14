@@ -11,7 +11,7 @@ Blue shark labs logo:
 
 <img src="logo.jpeg" alt="Company logo" width="200"/>
 
-# Color Palette
+# Colour Palette
 
 We chose a sea theme, to reflect Weston's coastal history:
 
