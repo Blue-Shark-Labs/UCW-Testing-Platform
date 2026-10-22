@@ -10,8 +10,15 @@
         {% include './partials/navbar.html' %}
 
         <div class="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
-            <h1 class="mb-2 text-2xl font-semibold">Reinforcement Testing Platform</h1>
-            <p class="text-slate-500">Project scaffold — no features implemented yet.</p>
+            <h1 class="mb-2 text-2xl font-semibold">{{ content.product_name }}</h1>
+            <p class="text-slate-500">{{ content.product_description }}</p>
+
+            <div class="mt-8">
+                <h2 class="mb-2 text-lg font-semibold">Contact us</h2>
+                <p>{{ content.contact_email }}</p>
+                <p>{{ content.contact_phone }}</p>
+                <p>{{ content.contact_address }}</p>
+            </div>
         </div>
 
         {% include './partials/footer.html' %}
