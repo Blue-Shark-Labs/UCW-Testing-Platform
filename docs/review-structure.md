@@ -20,7 +20,7 @@ After reviewing, the reviewer reacts directly to the chat with one of the status
 
 The reviewer has left feedback that needs to be addressed before the PR can be approved. (Add reaction -> Search "message")
 
-![Reviewer added comments](img/teams-message.png)
+![Reviewer added comments](img/comment-teams.png)
 
 ### Approved
 
