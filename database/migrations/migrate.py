@@ -92,6 +92,32 @@ SCHEMA_STATEMENTS = [
         points_awarded INT CHECK (points_awarded IN (30, -10, 0))
     );
     """,
+    # Singleton row (company_info_id = 'main') holding the landing page's product
+    # and contact info; TEXT key keeps the seed INSERT's ON CONFLICT target stable.
+    """
+    CREATE TABLE IF NOT EXISTS company_info (
+        company_info_id TEXT PRIMARY KEY DEFAULT 'main',
+        product_name VARCHAR(100) NOT NULL,
+        product_description TEXT NOT NULL,
+        contact_email VARCHAR(100) NOT NULL,
+        contact_phone VARCHAR(30) NOT NULL,
+        contact_address VARCHAR(255) NOT NULL
+    );
+    """,
+    """
+    INSERT INTO company_info (
+        company_info_id, product_name, product_description, contact_email, contact_phone, contact_address
+    )
+    VALUES (
+        'main',
+        'Reinforcement Testing Platform',
+        'An adaptive testing platform that helps students reinforce what they have learned through targeted practice tests.',
+        'contact@bluesharklabs.com',
+        '+44 1234 567890',
+        'Blue Shark Labs, Weston-super-Mare, UK'
+    )
+    ON CONFLICT (company_info_id) DO NOTHING;
+    """,
     # Indexes on foreign key columns (Postgres doesn't create these automatically).
     "CREATE INDEX IF NOT EXISTS idx_tests_subject_id ON tests(subject_id);",
     "CREATE INDEX IF NOT EXISTS idx_tests_created_by ON tests(created_by);",
