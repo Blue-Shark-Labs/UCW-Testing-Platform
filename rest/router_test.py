@@ -22,3 +22,23 @@ class TestCreateApp:
 
         # ASSERT
         assert "/" in rules
+
+    def test_login_route_registered(self):
+        # ARRANGE
+        app = create_app()
+
+        # ACT
+        rules = {rule.rule for rule in app.url_map.iter_rules()}
+
+        # ASSERT
+        assert "/login" in rules
+
+    def test_register_route_registered(self):
+        # ARRANGE
+        app = create_app()
+
+        # ACT
+        rules = {rule.rule for rule in app.url_map.iter_rules()}
+
+        # ASSERT
+        assert "/register" in rules
