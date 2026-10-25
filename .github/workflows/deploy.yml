@@ -1,0 +1,84 @@
+name: Blue-Shark-Labs CI/CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blue-shark-labs-production
+  cancel-in-progress: false
+
+jobs:
+  test-and-build:
+    name: Test and build validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Compile Python source
+        run: python -m compileall -q app.py database domain rest
+
+      - name: Run tests if present
+        shell: bash
+        run: |
+          if find . -type f \( -name 'test_*.py' -o -name '*_test.py' \) \
+            -not -path './.git/*' | grep -q .; then
+            python -m pytest -q
+          else
+            echo "No pytest test files found; tests skipped."
+          fi
+
+      - name: Build Docker image
+        run: docker build --tag blue-shark-labs:ci .
+
+  deploy:
+    name: Deploy to production host
+    needs: test-and-build
+    runs-on: [self-hosted, linux]
+    environment: production
+    steps:
+      - name: Check out approved source
+        uses: actions/checkout@v4
+
+      - name: Verify deployment prerequisites
+        run: |
+          test -d /opt/blue-shark-labs/source
+          test -f /opt/blue-shark-labs/production.env
+          docker version
+          docker compose version
+          command -v rsync
+
+      - name: Synchronize source
+        run: |
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.env' \
+            --exclude='*.env' \
+            --exclude='__pycache__/' \
+            ./ /opt/blue-shark-labs/source/
+
+      - name: Deploy
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          chmod +x /opt/blue-shark-labs/source/scripts/deploy.sh
+          GITHUB_SHA="$GITHUB_SHA" \
+            /opt/blue-shark-labs/source/scripts/deploy.sh
