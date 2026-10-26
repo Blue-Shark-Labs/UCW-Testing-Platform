@@ -22,3 +22,19 @@ class TestCreateApp:
 
         # ASSERT
         assert "/" in rules
+
+    def test_root_route_redirects_to_login(self, client):
+        # ACT
+        response = client.get("/")
+
+        # ASSERT
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/login"
+
+    def test_login_route_renders(self, client):
+        # ACT
+        response = client.get("/login")
+
+        # ASSERT
+        assert response.status_code == 200
+        assert b"Login" in response.data
