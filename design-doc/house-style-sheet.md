@@ -312,25 +312,10 @@ The application should be easy to navigate and allow students to focus on learni
 
 ### General layout
 
-- Use a consistent spacing system based on multiples of 8px.
 - Use consistent border radii, spacing and alignment.
 - Ensure pages work on mobile, tablet and desktop.
 - Avoid overcrowding pages with unnecessary information.
 - Use clear headings and descriptive button labels.
-
-### Recommended design values
-
-| Property | Standard |
-|---|---|
-| Base spacing unit | 8px |
-| Small spacing | 8px |
-| Medium spacing | 16px |
-| Large spacing | 24px |
-| Card border radius | 8px |
-| Button border radius | 6px |
-| Maximum content width | Approximately 1200px |
-
-These values are recommendations and can be adjusted when needed.
 
 ### Quiz-specific standards
 
@@ -402,13 +387,13 @@ Git and GitHub should be used for version control, collaboration and code review
 Use the following format:
 
 ```text
-<ticket-id>/<developer>/<short-description>
+<developer>/<category>/<short-description>
 ```
 
 Example:
 
 ```text
-FR-05/john/design/create-design-document
+john/design/create-design-document
 ```
 
 Use lowercase descriptive words for the branch description, separated by hyphens.
@@ -418,17 +403,8 @@ Use lowercase descriptive words for the branch description, separated by hyphens
 Pull requests must follow the agreed format:
 
 ```text
-[FR-05] john/design/create-design-document
+[FEATURE] [FR-05] Allow students to see completed tests
 ```
-
-The format contains:
-
-- `[FR-05]`: The relevant feature request or task identifier.
-- `john`: The developer's identifier.
-- `design`: The area of work.
-- `create-design-document`: A concise description of the change.
-
-Replace these example values with the appropriate task and developer details.
 
 ### Pull request description template
 
