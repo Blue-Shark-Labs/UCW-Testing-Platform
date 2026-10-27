@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Sign Up — Reinforcement Testing Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans">
@@ -12,6 +15,7 @@
         <div class="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
             <h1 class="mb-2 text-2xl font-semibold">Sign Up</h1>
             <p class="text-slate-500">Sign-up form coming soon.</p>
+            <p class="mt-4 text-sm text-slate-500">Already have an account? <a href="/login" class="font-medium text-brand no-underline">Log In</a></p>
         </div>
 
         {% include './partials/footer.html' %}
