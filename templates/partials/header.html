@@ -11,9 +11,11 @@
         </div>
     </div>
     <div class="flex flex-col items-center justify-center">
-        <h4 class="text-xs font-semibold text-app-primary uppercase mb-1">Blue Shark - Administration</h4>
-        <h4 class="text-text-primary text-lg font-extrabold">Administration Panel</h4>
+        <h4 class="text-xs font-semibold text-app-primary uppercase mb-1">Blue Shark - {% block page_section %}Administration{% endblock %}</h4>
+        <h4 class="text-text-primary text-lg font-extrabold">{% block page_title %}Administration Panel{% endblock %}</h4>
     </div>
+    {% block header_page_specific_content %}
+    {% endblock %}
     <div class="flex items-center gap-3">
         <div class="flex items-center gap-2 border border-app-divider rounded-full px-3 py-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16835D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
