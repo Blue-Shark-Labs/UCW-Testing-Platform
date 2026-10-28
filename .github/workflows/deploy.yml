@@ -55,9 +55,6 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: [self-hosted, linux]
     environment: production
-    concurrency:
-      group: blue-shark-labs-production
-      cancel-in-progress: false
     steps:
       - name: Check out approved source
         uses: actions/checkout@v4
