@@ -52,6 +52,7 @@ jobs:
   deploy:
     name: Deploy to production host
     needs: test-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: [self-hosted, linux]
     environment: production
     steps:
