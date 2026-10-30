@@ -41,23 +41,33 @@ The project should use existing frameworks, dependencies and conventions where p
 | Supporting text | 14px | 400 |
 | Buttons and labels | 16px | 500 |
 
-### Implementation
+### Font Implementation
 
-Roboto should be loaded through the project's chosen font-loading method, such as Google Fonts or a locally hosted font file.
+Roboto is loaded in the base.html file and applied sitewide using the Tailwind configuration file:
 
-Example CSS:
-
-```css
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
-body {
-    font-family: 'Roboto', sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
-}
 ```
-
-When using Tailwind CSS, configure Roboto as the application's default sans-serif font so that it is applied consistently.
+Tailwind config
+theme: {
+extend: {
+colors: {
+app: {
+background: "#F3F8FC",
+divider: "#D9E4EF",
+primary: "#1769E0",
+secondary: "#6495ED",
+ternary: "#89CFF0",
+quaternary: "#6082B6",
+quinary: "#B6D0E2",
+},
+text: {
+primary: "#13213A",
+},
+},
+fontFamily: {
+roboto: ["Roboto", "sans-serif"],
+},
+},
+```
 
 Use font weights consistently: regular for body text, medium for labels and bold for headings.
 
@@ -67,7 +77,7 @@ The application will use a blue-based colour palette to create a consistent, pro
 
 | Colour | Hex code | Intended use |
 |---|---|---|
-| Royal Blue | `#0047AB` | Primary buttons, main actions and prominent headings |
+| Royal Blue | `#1769E0` | Primary buttons, main actions and prominent headings |
 | Cornflower Blue | `#6495ED` | Secondary buttons, links and interactive elements |
 | Light Sky Blue | `#89CFF0` | Highlights and selected elements |
 | Steel Blue | `#6082B6` | Supporting UI elements, borders and secondary components |
@@ -77,25 +87,7 @@ The application will use a blue-based colour palette to create a consistent, pro
 
 ### Colour implementation
 
-Define the palette centrally rather than repeatedly writing hex codes throughout the application.
-
-Example CSS:
-
-```css
-:root {
-    --color-primary: #0047AB;
-    --color-secondary: #6495ED;
-    --color-highlight: #89CFF0;
-    --color-steel-blue: #6082B6;
-    --color-powder-blue: #B6D0E2;
-
-    --color-background: #FFFFFF;
-    --color-text: #1F2937;
-    --color-border: #D1D5DB;
-}
-```
-
-For Tailwind CSS, expose the same colours through the project's theme configuration or theme variables, depending on the installed Tailwind version. Use the defined tokens consistently in utility classes.
+Palette is defined in the base.html, same as the font, in the Tailwind Config File 
 
 ### Colour guidelines
 
