@@ -4,9 +4,14 @@
 and translate HTTP requests into database-layer calls. 
 """
 
-from flask import Flask
+from flask import Flask, redirect, url_for
 
-from rest.home import home_route
+from rest.login.login import login_route
+from rest.pr_block.routes import pr_block
+
+
+def root_route():
+    return redirect(url_for("login_route"))
 
 
 def create_app():
@@ -16,6 +21,8 @@ def create_app():
         static_folder="../static",
     )
 
-    app.add_url_rule("/", view_func=home_route, methods=["GET"])
+    app.add_url_rule("/", view_func=root_route, methods=["GET"])
+    app.add_url_rule("/login", view_func=login_route, methods=["GET"])
+    app.register_blueprint(pr_block)
 
     return app
