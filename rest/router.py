@@ -34,13 +34,24 @@ def create_app():
     # This is just for manual testing, you can remove it when you implement your authentication mechanism.
     @app.before_request
     def set_test_user():
-        g.user = SimpleNamespace(role="student")  # Change this to "lecturer" or "administrator" or "student" to test different roles
+        g.user = SimpleNamespace(role="student", name="Michael James")  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
 
     @app.context_processor
     def inject_sidebar_navigation():
         # g is Flasks global context for the current request, it can be used to store user information
         user = getattr(g, "user", None)
         role = getattr(user, "role", "student")
+        name = getattr(user, "name", "")
+
+        # Extract the first and last initials from the user's name.
+        name_parts = name.split()
+        if len(name_parts) >= 2:
+            profile_initials = (name_parts[0][0] + name_parts[-1][0]).upper()
+        elif len(name_parts) == 1:
+            profile_initials = name_parts[0][:2].upper()
+        else:
+            profile_initials = "?"
+
         items = get_sidebar_navigation(role)
 
         def prepare_item(item):
@@ -51,6 +62,6 @@ def create_app():
             item["active"] = item["active"] or any(child["active"] for child in item["children"])
             return item
 
-             return {"sidebar_items": [prepare_item(item) for item in items], "user_role": role}
+        return {"sidebar_items": [prepare_item(item) for item in items], "user_role": role, "profile_initials": profile_initials}
 
     return app
