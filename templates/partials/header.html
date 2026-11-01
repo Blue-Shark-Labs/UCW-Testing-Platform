@@ -23,7 +23,7 @@
     <div class="flex items-center gap-3">
         <div class="flex items-center gap-2 border border-app-divider rounded-full px-3 py-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16835D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <h4 class="text-slate-500 text-xs font-semibold">Administrator</h4>
+              <h4 class="text-slate-500 text-xs font-semibold">{{ (user_role or "student") | capitalize }}</h4>
         </div>
         <div class="flex items-center justify-center bg-app-primary/20 rounded-full h-8 w-8">
             <h4 class="text-app-primary text-sm font-extrabold">MJ</h4>
