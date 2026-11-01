@@ -51,6 +51,6 @@ def create_app():
             item["active"] = item["active"] or any(child["active"] for child in item["children"])
             return item
 
-        return {"sidebar_items": [prepare_item(item) for item in items]}
+             return {"sidebar_items": [prepare_item(item) for item in items], "user_role": role}
 
     return app
