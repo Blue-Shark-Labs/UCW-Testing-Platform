@@ -1,0 +1,53 @@
+
+{
+    "subjects": [
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440001",
+            "name": "Ocean Science",
+            "description": "Explore ocean systems and marine environments.",
+            "isActive": false
+        },
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440002",
+            "name": "Marine Biology",
+            "description": "Study marine organisms and their ecosystems.",
+            "isActive": true
+        },
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440003",
+            "name": "Coastal Ecology",
+            "description": "Understand coastal habitats and biodiversity.",
+            "isActive": true
+        },
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440004",
+            "name": "Climate Science",
+            "description": "Discover climate systems and global change.",
+            "isActive": true
+        },
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440005",
+            "name": "Conservation",
+            "description": "Protect marine species and natural habitats.",
+            "isActive": true
+        },
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440006",
+            "name": "Earth Systems",
+            "description": "Connect the atmosphere, land and oceans.",
+            "isActive": true
+        },
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440007",
+            "name": "Environmental Chemistry",
+            "description": "Investigate chemical processes in nature.",
+            "isActive": true
+        },
+        {
+            "subjectId": "650e8400-e29b-41d4-a716-446655440008",
+            "name": "Research Methods",
+            "description": "Build practical scientific research skills.",
+            "isActive": true
+        }
+    ]
+}

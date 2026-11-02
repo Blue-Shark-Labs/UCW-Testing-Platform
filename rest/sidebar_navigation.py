@@ -29,9 +29,8 @@ _NAVIGATION_BY_ROLE = {
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
     "administrator": [
-        {"label": "Home", "icon": "home", "endpoint": "pr_block.pr_block_route"},
+        {"label": "Subjects", "icon": "book", "endpoint": "administrator.administrator_view_subjects_route"},
         {"label": "User Management", "icon": "users", "endpoint": "user_management_route"},
-        {"label": "Courses/Subjects", "icon": "book", "endpoint": "courses_subjects_route"},
         {"label": "System Settings", "icon": "sliders", "endpoint": "system_settings_route"},
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
