@@ -1,6 +1,6 @@
 # Use case: assemble the content shown to guests on the landing page.
 
-from database.company_info import get_company_info
+from database.landing_page.company_info import get_company_info
 
 
 def get_landing_page_content(connection_provider):

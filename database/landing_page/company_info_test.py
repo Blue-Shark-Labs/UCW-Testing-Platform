@@ -1,9 +1,9 @@
-# To Run: pytest database/company_info_test.py
+# To Run: pytest database/landing_page/company_info_test.py
 
 from contextlib import contextmanager
 from unittest.mock import MagicMock
 
-from database.company_info import get_company_info
+from database.landing_page.company_info import get_company_info
 from domain.entities.company_info import CompanyInfo
 
 

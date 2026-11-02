@@ -1,6 +1,6 @@
 # To Run: pytest rest/register_test.py
 
-from rest.register import register_route
+from rest.login.register import register_route
 
 
 class TestRegisterRoute:
