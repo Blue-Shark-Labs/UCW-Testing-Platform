@@ -8,6 +8,7 @@ from flask import Flask, redirect, url_for
 
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
+from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 
 
@@ -24,6 +25,7 @@ def create_app():
 
     app.add_url_rule("/", view_func=root_route, methods=["GET"])
     app.add_url_rule("/login", view_func=login_route, methods=["GET"])
+    app.add_url_rule("/register", view_func=register_route, methods=["GET"])
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
 

@@ -2,4 +2,4 @@ from flask import render_template
 
 
 def register_route():
-    return render_template("register.html")
+    return render_template("login/register.html")
