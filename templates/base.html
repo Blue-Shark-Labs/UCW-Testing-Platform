@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Reinforcement Testing Platform{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-app-background text-slate-900 font-roboto">
+    <div class="grid min-h-screen grid-cols-[14rem_minmax(0,1fr)] grid-rows-[4rem_minmax(0,1fr)]">
+        <header class="z-10 col-span-2 row-start-1">
+            {% include 'partials/header.html' %}
+        </header>
+
+        <aside class="col-start-1 row-start-2 min-w-0 flex flex-col items-center justify-start p-3">
+            {% include 'partials/sidebar.html' %}
+        </aside>
+
+        <main class="col-start-2 row-start-2 min-w-0 flex flex-col items-start justify-start p-10">
+            {% block content %}
+            {% endblock %}
+            
+            {% block scripts %}
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>

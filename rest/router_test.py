@@ -23,22 +23,18 @@ class TestCreateApp:
         # ASSERT
         assert "/" in rules
 
-    def test_login_route_registered(self):
-        # ARRANGE
-        app = create_app()
-
+    def test_root_route_redirects_to_login(self, client):
         # ACT
-        rules = {rule.rule for rule in app.url_map.iter_rules()}
+        response = client.get("/")
 
         # ASSERT
-        assert "/login" in rules
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/login"
 
-    def test_register_route_registered(self):
-        # ARRANGE
-        app = create_app()
-
+    def test_login_route_renders(self, client):
         # ACT
-        rules = {rule.rule for rule in app.url_map.iter_rules()}
+        response = client.get("/login")
 
         # ASSERT
-        assert "/register" in rules
+        assert response.status_code == 200
+        assert b"Login" in response.data

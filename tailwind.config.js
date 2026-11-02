@@ -3,18 +3,22 @@ module.exports = {
   content: ["./templates/**/*.html"],
   theme: {
     extend: {
-      // Hex values from design-doc/design-document.md's colour palette (AA contrast checked there).
       colors: {
-        brand: {
-          DEFAULT: "#0047AB",
-          mid: "#6082B6",
-          light: "#B6D0E2",
-          accent: "#6495ED",
-          pale: "#89CFF0",
+        app: {
+          background: "#F3F8FC",
+          divider: "#D9E4EF",
+          primary: "#1769E0",
+          secondary: "#6495ED",
+          ternary: "#89CFF0",
+          quaternary: "#6082B6",
+          quinary: "#B6D0E2",
+        },
+        text: {
+          primary: "#13213A",
         },
       },
       fontFamily: {
-        sans: ["Roboto", "sans-serif"],
+        roboto: ["Roboto", "sans-serif"],
       },
     },
   },
