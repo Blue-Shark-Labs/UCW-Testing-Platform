@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock
 
-from database.login.user import get_user_by_email
+from database.login.user import clear_failed_logins, get_user_by_email, record_failed_login
 from domain.entities.user import User
 
 
@@ -24,7 +24,7 @@ class TestGetUserByEmail:
 
     def test_get_user_by_email_maps_row_to_entity(self):
         # ARRANGE
-        row = ("11111111-1111-1111-1111-111111111111", "student@example.com", "hashed-password", "student", False)
+        row = ("11111111-1111-1111-1111-111111111111", "student@example.com", "hashed-password", "student", False, True)
         connection_provider = FakeConnectionProvider(row)
 
         # ACT
@@ -37,6 +37,7 @@ class TestGetUserByEmail:
             password_hash="hashed-password",
             role="student",
             is_disabled=False,
+            is_locked=True,
         )
         connection_provider.cursor_mock.execute.assert_called_once()
 
@@ -49,3 +50,33 @@ class TestGetUserByEmail:
 
         # ASSERT
         assert result is None
+
+
+class TestRecordFailedLogin:
+    """Test the record_failed_login function"""
+
+    def test_record_failed_login_passes_limits_to_query(self):
+        # ARRANGE
+        connection_provider = FakeConnectionProvider(None)
+
+        # ACT
+        record_failed_login(connection_provider, "user-1", 10, 15)
+
+        # ASSERT
+        _, params = connection_provider.cursor_mock.execute.call_args.args
+        assert params == {"user_id": "user-1", "max_attempts": 10, "lockout_minutes": 15}
+
+
+class TestClearFailedLogins:
+    """Test the clear_failed_logins function"""
+
+    def test_clear_failed_logins_targets_user(self):
+        # ARRANGE
+        connection_provider = FakeConnectionProvider(None)
+
+        # ACT
+        clear_failed_logins(connection_provider, "user-1")
+
+        # ASSERT
+        _, params = connection_provider.cursor_mock.execute.call_args.args
+        assert params == ("user-1",)

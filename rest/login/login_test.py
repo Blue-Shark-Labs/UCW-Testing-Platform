@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from domain.entities.user import User
 from rest.login.login import login_route
+from usecase.authenticate_user import AccountLockedError
 
 
 def make_user(**overrides):
@@ -65,3 +66,22 @@ class TestLoginRoute:
 
         # ASSERT
         assert "Incorrect email or password" in response
+        assert "Accounts are locked for 15 minutes after 10 failed attempts." in response
+
+    @patch("rest.login.login.PostgresConnectionProvider")
+    @patch("rest.login.login.authenticate_user")
+    def test_login_route_shows_lockout_message_when_account_locked(
+        self, mock_authenticate_user, mock_connection_provider, app
+    ):
+        # ARRANGE
+        mock_authenticate_user.side_effect = AccountLockedError()
+
+        # ACT
+        with app.test_request_context(
+            "/login", method="POST", data={"email": "student@example.com", "password": "any-password"}
+        ):
+            body, status_code = login_route()
+
+        # ASSERT
+        assert status_code == 429
+        assert "Please try again in 15 minutes." in body
