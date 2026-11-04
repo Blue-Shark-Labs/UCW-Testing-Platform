@@ -37,4 +37,5 @@ class TestCreateApp:
 
         # ASSERT
         assert response.status_code == 200
-        assert b"Login" in response.data
+        assert b'name="email"' in response.data
+        assert b'name="password"' in response.data

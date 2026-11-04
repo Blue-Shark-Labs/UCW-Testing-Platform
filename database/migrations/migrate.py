@@ -9,6 +9,7 @@
 
 from database.connection import PostgresConnectionProvider
 
+
 SCHEMA_STATEMENTS = [
     """
     CREATE TABLE IF NOT EXISTS users (
