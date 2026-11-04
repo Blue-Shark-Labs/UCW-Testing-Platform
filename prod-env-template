@@ -3,3 +3,6 @@ DATABASE_URL=prod.bluesharklabs.remote.ac
 DATABASE_NAME=WS381566_bluesharklabs_prod
 USERNAME=WS381566_prod_admin
 PASSWORD=
+
+#Session secret (signs the login session cookie)
+SECRET_KEY=
