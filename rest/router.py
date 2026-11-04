@@ -5,8 +5,9 @@ and translate HTTP requests into database-layer calls.
 """
 
 import os
+from types import SimpleNamespace
 
-from flask import Flask, redirect, url_for
+from flask import Flask, g, redirect, request, url_for
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route

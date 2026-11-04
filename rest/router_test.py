@@ -42,7 +42,8 @@ class TestCreateApp:
 
         # ASSERT
         assert response.status_code == 200
-        assert b"Login" in response.data
+        assert b'name="email"' in response.data
+        assert b'name="password"' in response.data
 
     @pytest.mark.parametrize(
         ("role", "visible_item", "hidden_item"),
@@ -61,7 +62,8 @@ class TestCreateApp:
             g.user = SimpleNamespace(role=role)
 
         # ACT
-        response = app.test_client().get("/login")
+        # Login is a standalone guest page, so use a page that renders the sidebar layout.
+        response = app.test_client().get("/pr-block/")
 
         # ASSERT
         assert response.status_code == 200
