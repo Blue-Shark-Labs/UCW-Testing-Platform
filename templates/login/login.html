@@ -3,41 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Log In — Reinforcement Testing Platform</title>
+    <title>{% block page_title %}Log In{% endblock %} — Reinforcement Testing Platform</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body class="bg-app-background text-slate-900 font-roboto">
-    <div class="flex min-h-screen flex-col items-center justify-center px-4 py-8">
-        <div class="w-full max-w-sm rounded-lg border border-app-divider bg-white p-8 shadow-sm">
+    <div class="flex min-h-screen flex-col items-center justify-center px-4 py-6 sm:py-8">
+        <div class="w-full {% block card_width %}max-w-sm{% endblock %} rounded-lg border border-app-divider bg-white p-6 shadow-sm sm:p-8">
             <div class="mb-6 flex flex-col items-center gap-2">
                 <img
                     class="h-12 w-12 object-contain rounded-md"
                     src="{{ url_for('static', filename='branding/blue_shark_labs_logo_vector_graphic.svg') }}"
                     alt="Blue Shark Labs logo"
                 >
-                <h1 class="text-text-primary text-lg font-extrabold">Log In</h1>
+                <h1 class="text-text-primary text-lg font-extrabold">{{ self.page_title() }}</h1>
             </div>
 
+            {% block messages %}
             {% if error %}
             <p class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</p>
             {% endif %}
+            {% endblock %}
 
-            <form method="POST" action="{{ url_for('login_route') }}" class="flex flex-col gap-4">
+            {% block form %}
+            <form method="POST" action="{% block form_action %}{{ url_for('login_route') }}{% endblock %}" class="flex flex-col gap-4">
+                {% block extra_fields %}{% endblock %}
                 <div class="flex flex-col gap-1">
-                    <label for="email" class="text-xs font-semibold uppercase text-slate-500">Username</label>
-                    <input type="email" id="email" name="email" value="{{ email or '' }}" required autofocus class="rounded-md border border-app-divider px-3 py-2 text-sm">
+                    <label for="email" class="text-xs font-semibold uppercase text-slate-500">{% block email_label %}Username{% endblock %}</label>
+                    <input type="email" id="email" name="email" value="{{ email or '' }}" required {% block email_attrs %}autofocus{% endblock %} class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
                 </div>
                 <div class="flex flex-col gap-1">
                     <label for="password" class="text-xs font-semibold uppercase text-slate-500">Password</label>
-                    <input type="password" id="password" name="password" required class="rounded-md border border-app-divider px-3 py-2 text-sm">
+                    <input type="password" id="password" name="password" required {% block password_attrs %}autocomplete="current-password"{% endblock %} class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
                 </div>
-                <button type="submit" class="mt-2 rounded-full bg-app-primary px-4 py-2 text-sm font-semibold text-white">Log In</button>
+                <button type="submit" class="mt-2 w-full rounded-full bg-app-primary px-4 py-3 text-sm font-semibold text-white sm:py-2">{% block submit_label %}Log In{% endblock %}</button>
             </form>
+            {% endblock %}
 
-            <p class="mt-4 text-center text-sm text-slate-500">Don't have an account? <a href="/register" class="font-medium text-app-primary no-underline">Sign Up</a></p>
+            {% block footer_link %}
+            <p class="mt-4 text-center text-sm text-slate-500">Don't have an account? <a href="{{ url_for('register_route') }}" class="font-medium text-app-primary no-underline">Sign Up</a></p>
+            {% endblock %}
         </div>
     </div>
 </body>
