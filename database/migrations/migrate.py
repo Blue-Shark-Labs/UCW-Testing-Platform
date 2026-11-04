@@ -113,7 +113,7 @@ SCHEMA_STATEMENTS = [
         'main',
         'Reinforcement Testing Platform',
         'An adaptive testing platform that helps students reinforce what they have learned through targeted practice tests.',
-        'contact@bluesharklabs.com',
+        'contact@bluesharklabs.app',
         '+44 1234 567890',
         'Blue Shark Labs, Weston-super-Mare, UK'
     )
