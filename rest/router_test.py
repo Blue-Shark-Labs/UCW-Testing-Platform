@@ -1,9 +1,6 @@
 # To Run: pytest rest/router_test.py
 
-from types import SimpleNamespace
-
 import pytest
-from flask import g
 
 from rest.router import create_app
 
@@ -50,22 +47,28 @@ class TestCreateApp:
         [
             ("student", b"Assigned Tests", b"User Management"),
             ("lecturer", b"Manage Tests", b"Assigned Tests"),
-            ("administrator", b"User Management", b"Assigned Tests"),
+            ("admin", b"User Management", b"Assigned Tests"),
         ],
     )
-    def test_sidebar_items_are_selected_by_user_role(self, role, visible_item, hidden_item):
+    def test_sidebar_items_are_selected_by_session_role(self, client, role, visible_item, hidden_item):
         # ARRANGE
-        app = create_app()
-
-        @app.before_request
-        def set_user_role():
-            g.user = SimpleNamespace(role=role)
+        with client.session_transaction() as session:
+            session["user_id"] = "11111111-1111-1111-1111-111111111111"
+            session["role"] = role
 
         # ACT
         # Login is a standalone guest page, so use a page that renders the sidebar layout.
-        response = app.test_client().get("/pr-block/")
+        response = client.get("/pr-block/")
 
         # ASSERT
         assert response.status_code == 200
         assert visible_item in response.data
         assert hidden_item not in response.data
+
+    def test_create_app_fails_without_secret_key(self, monkeypatch):
+        # ARRANGE
+        monkeypatch.delenv("SECRET_KEY", raising=False)
+
+        # ACT / ASSERT
+        with pytest.raises(RuntimeError, match="SECRET_KEY"):
+            create_app()

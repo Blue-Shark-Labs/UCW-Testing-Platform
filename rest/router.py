@@ -7,7 +7,7 @@ and translate HTTP requests into database-layer calls.
 import os
 from types import SimpleNamespace
 
-from flask import Flask, g, redirect, request, url_for
+from flask import Flask, g, redirect, request, session, url_for
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
@@ -30,13 +30,14 @@ def create_app():
         static_folder="../static",
     )
 
-    # SECRET_KEY signs the session cookie; falls back to a dev-only value so local
-    # setup works without extra config, but production must set a real secret.
-    app.secret_key = os.environ.get("SECRET_KEY", "dev-only-insecure-secret-key")
+    secret_key = os.environ.get("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY must be set.")
+    app.secret_key = secret_key
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
-        SESSION_COOKIE_SECURE=os.environ.get("SECRET_KEY") is not None,
+        SESSION_COOKIE_SECURE=True,
     )
 
     app.add_url_rule("/", view_func=root_route, methods=["GET"])
@@ -48,14 +49,9 @@ def create_app():
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
 
-    # For authetnication set g.user for each request otherwise default will be student,
-    # this can be done in a before_request handler or a middleware depending on the authentication mechanism used.
-    # That's up to you to figure out :)
-
-    # This is just for manual testing, you can remove it when you implement your authentication mechanism.
     @app.before_request
-    def set_test_user():
-        g.user = SimpleNamespace(role="student", name="Michael James")  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
+    def load_session_user():
+        g.user = SimpleNamespace(role=session.get("role")) if "user_id" in session else None
 
     @app.context_processor
     def inject_sidebar_navigation():
