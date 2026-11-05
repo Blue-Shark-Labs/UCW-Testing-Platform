@@ -5,8 +5,12 @@ and translate HTTP requests into database-layer calls.
 """
 
 from flask import Blueprint, Flask, g, redirect, request, url_for
+import os
 from types import SimpleNamespace
 
+from rest.dashboard.admin_dashboard import admin_dashboard_route
+from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
+from rest.dashboard.student_dashboard import student_dashboard_route
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.register import register_route
@@ -33,18 +37,26 @@ def create_app():
         static_folder="../static",
     )
 
+    secret_key = os.environ.get("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY must be set.")
+    app.secret_key = secret_key
+    app.config.update(
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=True,
+    )
+
     app.add_url_rule("/", view_func=root_route, methods=["GET"])
-    app.add_url_rule("/login", view_func=login_route, methods=["GET"])
+    app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
     app.add_url_rule("/register", view_func=register_route, methods=["GET"])
+    app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
+    app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
+    app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
 
-    # For authetnication set g.user for each request otherwise default will be student,
-    # this can be done in a before_request handler or a middleware depending on the authentication mechanism used.
-    # That's up to you to figure out :)
-
-    # This is just for manual testing, you can remove it when you implement your authentication mechanism.
     @app.before_request
     def set_test_user():
         g.user = SimpleNamespace(
