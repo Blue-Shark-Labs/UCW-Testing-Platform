@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Tests{% endblock %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block header_page_specific_content %}{% endblock %}
+
+{% block content %}
+    <h1 class="mb-6 text-2xl font-semibold">{{ page_title }}</h1>
+    {% if tests %}
+        <div class="w-full max-w-5xl overflow-x-auto">
+            {% if list_type == 'assigned' %}
+                <table class="w-full border-collapse text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-app-divider text-slate-600">
+                            <th class="py-3 pr-6 font-semibold">Test</th>
+                            <th class="py-3 pr-6 font-semibold">Subject</th>
+                            <th class="py-3 font-semibold">Questions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for test in tests %}
+                            <tr class="border-b border-app-divider">
+                                <td class="py-3 pr-6 font-medium">{{ test.test_name }}</td>
+                                <td class="py-3 pr-6">{{ test.subject_name }}</td>
+                                <td class="py-3">{{ test.question_count }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <table class="w-full border-collapse text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-app-divider text-slate-600">
+                            <th class="py-3 pr-6 font-semibold">Test</th>
+                            <th class="py-3 pr-6 font-semibold">Completed</th>
+                            <th class="py-3 pr-6 font-semibold">Questions</th>
+                            <th class="py-3 pr-6 font-semibold">Correct</th>
+                            <th class="py-3 font-semibold">Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for test in tests %}
+                            <tr class="border-b border-app-divider">
+                                <td class="py-3 pr-6 font-medium">{{ test.test_name }}</td>
+                                <td class="py-3 pr-6">{{ test.completed_at.strftime('%d %b %Y') }}</td>
+                                <td class="py-3 pr-6">{{ test.question_count }}</td>
+                                <td class="py-3 pr-6">{% if test.percentage is not none %}{{ '%.1f'|format(test.percentage) }}%{% else %}N/A{% endif %}</td>
+                                <td class="py-3">{{ test.total_points if test.total_points is not none else 'N/A' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="text-sm text-slate-600">
+            {% if list_type == 'assigned' %}No tests to complete.{% else %}No completed tests yet.{% endif %}
+        </p>
+    {% endif %}
+{% endblock %}

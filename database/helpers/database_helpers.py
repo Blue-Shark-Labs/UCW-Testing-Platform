@@ -1,6 +1,7 @@
 # Database helper functions for interacting with the PostgreSQL database.
 
 from domain.entities.company_info import CompanyInfo
+from database.connection import PostgresConnectionProvider
 from domain.entities.user import User
 
 
@@ -15,6 +16,56 @@ def row_to_company_info(row):
         contact_address=contact_address,
     )
 
+def get_assigned_tests(student_id):
+	"""Return tests assigned to a student that they have not completed."""
+	fields = ("test_id", "test_name", "subject_name", "question_count", "assigned_at")
+	query = """
+		SELECT t.test_id, t.title, s.name, t.question_count, a.assigned_at
+		FROM test_assignments AS a
+		JOIN tests AS t ON t.test_id = a.test_id
+		JOIN subjects AS s ON s.subject_id = t.subject_id
+		WHERE a.student_id = %s
+		  AND NOT EXISTS (
+			  SELECT 1
+			  FROM test_attempts AS attempt
+			  WHERE attempt.test_id = a.test_id
+				AND attempt.user_id = a.student_id
+				AND attempt.completed_at IS NOT NULL
+		  )
+		ORDER BY a.assigned_at DESC, t.title
+	"""
+	return _fetch_rows(query, (student_id,), fields)
+
+
+def get_completed_tests(student_id):
+	"""Return completed attempts with their result summary for a student."""
+	fields = (
+		"attempt_id",
+		"test_name",
+		"completed_at",
+		"question_count",
+		"percentage",
+		"total_points",
+	)
+	query = """
+		SELECT attempt.attempt_id, t.title, attempt.completed_at,
+			   COUNT(DISTINCT answer.question_id), attempt.percentage,
+			   attempt.total_points
+		FROM test_attempts AS attempt
+		JOIN tests AS t ON t.test_id = attempt.test_id
+		LEFT JOIN attempt_answers AS answer ON answer.attempt_id = attempt.attempt_id
+		WHERE attempt.user_id = %s
+		  AND attempt.completed_at IS NOT NULL
+		GROUP BY attempt.attempt_id, t.title
+		ORDER BY attempt.completed_at DESC
+	"""
+	return _fetch_rows(query, (student_id,), fields)
+
+
+def _fetch_rows(query, parameters, fields):
+	with PostgresConnectionProvider().cursor() as cursor:
+		cursor.execute(query, parameters)
+		return [dict(zip(fields, row)) for row in cursor.fetchall()]
 
 def row_to_user(row):
     """Maps a users table row to a User domain entity."""
