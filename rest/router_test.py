@@ -25,13 +25,13 @@ class TestCreateApp:
         # ASSERT
         assert "/" in rules
 
-    def test_root_route_redirects_to_login(self, client):
+    def test_root_route_redirects_to_landing_page(self, client):
         # ACT
         response = client.get("/")
 
         # ASSERT
         assert response.status_code == 302
-        assert response.headers["Location"] == "/login"
+        assert response.headers["Location"] == "/landing-page/"
 
     def test_login_route_renders(self, client):
         # ACT
@@ -64,6 +64,26 @@ class TestCreateApp:
         assert response.status_code == 200
         assert visible_item in response.data
         assert hidden_item not in response.data
+
+    def test_session_cookie_is_secure_by_default(self, monkeypatch):
+        # ARRANGE
+        monkeypatch.delenv("SESSION_COOKIE_SECURE", raising=False)
+
+        # ACT
+        app = create_app()
+
+        # ASSERT
+        assert app.config["SESSION_COOKIE_SECURE"] is True
+
+    def test_session_cookie_secure_can_be_disabled_for_local_dev(self, monkeypatch):
+        # ARRANGE
+        monkeypatch.setenv("SESSION_COOKIE_SECURE", "false")
+
+        # ACT
+        app = create_app()
+
+        # ASSERT
+        assert app.config["SESSION_COOKIE_SECURE"] is False
 
     def test_create_app_fails_without_secret_key(self, monkeypatch):
         # ARRANGE
