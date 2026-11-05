@@ -3,9 +3,11 @@
 from database.helpers.database_helpers import row_to_user
 
 SELECT_USER_BY_EMAIL = """
-    SELECT user_id, email, password_hash, role, is_disabled
-    FROM users
-    WHERE email = %s;
+    SELECT u.user_id, u.email, u.password_hash, u.role, u.is_disabled,
+           COALESCE(s.is_approved, TRUE)
+    FROM users u
+    LEFT JOIN students s ON s.user_id = u.user_id
+    WHERE u.email = %s;
 """
 
 
