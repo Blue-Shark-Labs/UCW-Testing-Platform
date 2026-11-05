@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Student{% endblock %}
+
+{% block page_title %}Subject Leaderboard{% endblock %}
+
+{% block header_page_specific_content %}{% endblock %}
+
+{% block content %}
+    <div class="w-full max-w-5xl">
+        <div class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-semibold">Subject Leaderboard</h1>
+                <p class="mt-2 text-sm text-slate-600">See the top five students in each subject.</p>
+            </div>
+            {% if subjects %}
+                <form method="get" action="{{ url_for('leaderboards.subject_leaderboards_route') }}"
+                      class="flex flex-col gap-2 sm:min-w-56">
+                    <label for="subject_id" class="text-sm font-semibold text-slate-700">Subject</label>
+                    <select id="subject_id" name="subject_id" onchange="this.form.submit()"
+                            class="rounded-md border border-app-divider bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:border-app-primary focus:outline-none focus:ring-2 focus:ring-app-primary/20">
+                        {% for subject in subjects %}
+                            <option value="{{ subject.subject_id }}"
+                                    {% if selected_subject and subject.subject_id|string == selected_subject.subject_id|string %}selected{% endif %}>
+                                {{ subject.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            {% endif %}
+        </div>
+
+        {% if not subjects %}
+            <div class="rounded-lg border border-app-divider bg-white p-8 text-center">
+                <p class="font-medium text-slate-800">No subjects available yet.</p>
+                <p class="mt-2 text-sm text-slate-600">Leaderboards will appear once subjects have been added.</p>
+            </div>
+        {% elif not leaderboard %}
+            <div class="rounded-lg border border-app-divider bg-white p-8 text-center">
+                <p class="font-medium text-slate-800">No completed tests for {{ selected_subject.name }} yet.</p>
+                <p class="mt-2 text-sm text-slate-600">Complete a test to appear on this leaderboard.</p>
+            </div>
+        {% else %}
+            <section aria-label="{{ selected_subject.name }} leaderboard"
+                     class="overflow-hidden rounded-lg border border-app-divider bg-white shadow-[0px_16px_42px_0px_rgba(23,58,99,0.0706)]">
+                <div class="flex items-center justify-between border-b border-app-divider bg-slate-50 px-5 py-4">
+                    <div>
+                        <h2 class="font-semibold text-slate-900">{{ selected_subject.name }}</h2>
+                        <p class="mt-1 text-xs text-slate-500">Ranked by total points</p>
+                    </div>
+                    <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Top 5</span>
+                </div>
+                <ol class="divide-y divide-app-divider">
+                    {% for student in leaderboard %}
+                        <li class="flex items-center gap-4 px-5 py-4">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full
+                                {% if loop.index == 1 %}bg-amber-100 text-amber-800
+                                {% elif loop.index == 2 %}bg-slate-200 text-slate-700
+                                {% elif loop.index == 3 %}bg-orange-100 text-orange-800
+                                {% else %}bg-app-primary/10 text-app-primary{% endif %}
+                                text-sm font-bold" aria-label="Rank {{ loop.index }}">
+                                {{ loop.index }}
+                            </span>
+                            <div class="flex min-w-0 flex-1 items-center gap-3">
+                                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-primary/10 text-sm font-semibold text-app-primary">
+                                    {{ student.first_name[0] }}{{ student.last_name[0] }}
+                                </span>
+                                <div class="min-w-0">
+                                    <p class="truncate font-medium text-slate-900">
+                                        {{ student.first_name }} {{ student.last_name }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        {{ student.completed_test_count }} completed
+                                        {% if student.completed_test_count == 1 %}test{% else %}tests{% endif %}
+                                        {% if student.average_percentage is not none %}
+                                            <span aria-hidden="true">·</span> {{ student.average_percentage }}% average
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <p class="font-semibold text-slate-900">{{ student.total_points }}</p>
+                                <p class="mt-1 text-xs text-slate-500">points</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </section>
+        {% endif %}
+    </div>
+{% endblock %}

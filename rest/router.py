@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
 from rest.dashboard.student_dashboard import student_dashboard_route
+from rest.dashboard.leaderboards import leaderboards
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.register import register_route
@@ -56,6 +57,7 @@ def create_app():
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
+    app.register_blueprint(leaderboards)
 
     @app.before_request
     def set_test_user():

@@ -62,6 +62,50 @@ def get_completed_tests(student_id):
 	return _fetch_rows(query, (student_id,), fields)
 
 
+def get_active_subjects():
+	"""Return active subjects for the leaderboard selector."""
+	fields = ("subject_id", "name")
+	query = """
+		SELECT subject_id, name
+		FROM subjects
+		WHERE is_active = TRUE
+		ORDER BY name
+	"""
+	return _fetch_rows(query, (), fields)
+
+
+def get_subject_leaderboard(subject_id):
+	"""Return the five highest-scoring students for a subject."""
+	fields = (
+		"user_id",
+		"first_name",
+		"last_name",
+		"completed_test_count",
+		"average_percentage",
+		"total_points",
+	)
+	query = """
+		SELECT u.user_id, u.first_name, u.last_name,
+			   COUNT(*) AS completed_test_count,
+			   ROUND(AVG(attempt.percentage), 1) AS average_percentage,
+			   SUM(COALESCE(attempt.total_points, 0)) AS total_points
+		FROM test_attempts AS attempt
+		JOIN tests AS t ON t.test_id = attempt.test_id
+		JOIN users AS u ON u.user_id = attempt.user_id
+		JOIN students AS student ON student.user_id = u.user_id
+		WHERE t.subject_id = %s
+		  AND attempt.completed_at IS NOT NULL
+		  AND u.role = 'student'
+		  AND u.is_disabled = FALSE
+		  AND student.is_approved = TRUE
+		GROUP BY u.user_id, u.first_name, u.last_name
+		ORDER BY total_points DESC, average_percentage DESC,
+				 u.last_name, u.first_name, u.user_id
+		LIMIT 5
+	"""
+	return _fetch_rows(query, (subject_id,), fields)
+
+
 def _fetch_rows(query, parameters, fields):
 	with PostgresConnectionProvider().cursor() as cursor:
 		cursor.execute(query, parameters)
