@@ -3,6 +3,11 @@
 setup-db:
 	python3 -m database.migrations.migrate
 
+## seed-student-dashboard: Add sample student dashboard data (run after setup-db).
+.PHONY: seed-student-dashboard
+seed-student-dashboard:
+	python3 -m database.migrations.seed_student_dashboard
+
 ## db-shell: Open the PostgreSQL shell.
 .PHONY: db-shell
 db-shell:
