@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - /opt/blue-shark-labs/production.env
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY is not set}
     expose:
       - "8000"
     restart: unless-stopped

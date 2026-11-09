@@ -5,4 +5,5 @@ USERNAME=WS381566_prod_admin
 PASSWORD=
 
 #Session secret (signs the login session cookie)
+# Supplied by the GitHub "production" environment secret, not this file.
 SECRET_KEY=

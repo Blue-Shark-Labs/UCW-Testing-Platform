@@ -79,6 +79,7 @@ jobs:
       - name: Deploy
         env:
           GITHUB_SHA: ${{ github.sha }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           chmod +x /opt/blue-shark-labs/source/scripts/deploy.sh
           GITHUB_SHA="$GITHUB_SHA" \
