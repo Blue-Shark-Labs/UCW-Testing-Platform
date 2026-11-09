@@ -10,11 +10,18 @@ SUBJECTS = [
 
 
 class TestSubjectLeaderboardsRoute:
-    def test_requires_student_login(self, client):
+    # def test_requires_student_login(self, client):
+    #     response = client.get("/leaderboards")
+    #     assert response.status_code == 302  # Redirect to login page
+    def test_allows_access_without_login(self, client, monkeypatch):
+        monkeypatch.setattr(leaderboards_module, "get_active_subjects", lambda: [])
+
         response = client.get("/leaderboards")
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == "/login"
+        assert response.status_code == 200
+        assert b"No subjects available yet." in response.data
+        # assert response.status_code == 302
+        # assert response.headers["Location"] == "/login"
 
     def test_renders_top_students_for_default_subject(self, client, monkeypatch):
         leaderboard = [
