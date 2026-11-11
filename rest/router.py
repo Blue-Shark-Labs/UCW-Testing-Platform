@@ -20,7 +20,7 @@ from rest.sidebar_navigation import get_sidebar_navigation
 
 
 def root_route():
-    return redirect(url_for("login_route"))
+    return redirect(url_for("landing_page.landing_page_route"))
 
 
 def create_app():
