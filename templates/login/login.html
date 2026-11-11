@@ -21,6 +21,12 @@
                 <h1 class="text-text-primary text-lg font-extrabold">Log In</h1>
             </div>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                <p role="status" class="mb-4 rounded-md px-3 py-2 text-sm {{ 'bg-green-50 text-green-800' if category == 'success' else 'bg-slate-50 text-slate-700' }}">{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+
             {% if error %}
             <p class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</p>
             {% endif %}
