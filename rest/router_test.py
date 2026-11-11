@@ -25,13 +25,15 @@ class TestCreateApp:
         # ASSERT
         assert "/" in rules
 
-    def test_root_route_redirects_to_landing_page(self, client):
+    def test_root_route_serves_landing_page(self):
+        # ARRANGE
+        app = create_app()
+
         # ACT
-        response = client.get("/")
+        endpoint, _ = app.url_map.bind("localhost").match("/")
 
         # ASSERT
-        assert response.status_code == 302
-        assert response.headers["Location"] == "/landing-page/"
+        assert endpoint == "landing_page.landing_page_route"
 
     def test_login_route_renders(self, client):
         # ACT
@@ -48,6 +50,7 @@ class TestCreateApp:
             ("student", b"Assigned Tests", b"User Management"),
             ("lecturer", b"Manage Tests", b"Assigned Tests"),
             ("admin", b"User Management", b"Assigned Tests"),
+            ("student", b"Assigned Tests", b">Home<"),
         ],
     )
     def test_sidebar_items_are_selected_by_session_role(self, client, role, visible_item, hidden_item):

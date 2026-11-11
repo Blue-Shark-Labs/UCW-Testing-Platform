@@ -3,7 +3,6 @@ from copy import deepcopy
 
 _NAVIGATION_BY_ROLE = {
     "student": [
-        {"label": "Home", "icon": "home", "endpoint": "landing_page.landing_page_route"},
         {
             "label": "Tests & Quizzes",
             "icon": "menu",
@@ -21,7 +20,6 @@ _NAVIGATION_BY_ROLE = {
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
     "lecturer": [
-        {"label": "Home", "icon": "home", "endpoint": "landing_page.landing_page_route"},
         {"label": "Manage Tests", "icon": "file", "endpoint": "manage_tests_route"},
         {"label": "Courses/Subjects", "icon": "book", "endpoint": "courses_subjects_route"},
         {"label": "Student Progress", "icon": "chart", "endpoint": "student_progress_route"},
@@ -29,7 +27,6 @@ _NAVIGATION_BY_ROLE = {
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
     "admin": [
-        {"label": "Home", "icon": "home", "endpoint": "landing_page.landing_page_route"},
         {"label": "User Management", "icon": "users", "endpoint": "user_management_route"},
         {"label": "Courses/Subjects", "icon": "book", "endpoint": "courses_subjects_route"},
         {"label": "System Settings", "icon": "sliders", "endpoint": "system_settings_route"},

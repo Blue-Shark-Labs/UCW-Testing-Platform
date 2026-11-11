@@ -7,7 +7,7 @@ and translate HTTP requests into database-layer calls.
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, g, redirect, request, session, url_for
+from flask import Flask, g, request, session, url_for
 from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
@@ -21,10 +21,6 @@ from rest.pr_block.routes import pr_block
 from rest.sidebar_navigation import get_sidebar_navigation
 
 load_dotenv()
-
-
-def root_route():
-    return redirect(url_for("landing_page.landing_page_route"))
 
 
 def create_app():
@@ -45,7 +41,6 @@ def create_app():
         SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "true").strip().lower() != "false",
     )
 
-    app.add_url_rule("/", view_func=root_route, methods=["GET"])
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
     app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
