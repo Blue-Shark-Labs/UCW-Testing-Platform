@@ -34,28 +34,43 @@
     <div class="flex flex-col items-start justify-items-center w-full gap-3" id="nav-items">
         {% for item in sidebar_items %}
             {% if item.children %}
-                <div class="w-full flex flex-col items-start justify-items-center p-2 cursor-pointer {{ 'sidebar-nav-item-active' if item.active else 'sidebar-nav-item-hover-action' }}" id="nav-item">
+                <div class="w-full flex flex-col items-start justify-items-center p-2 {{ 'sidebar-nav-item-active' if item.active else '' }}" id="nav-item">
                     <div class="flex items-center justify-items-start w-full gap-5" id="nav-item-header">
                         {{ nav_icon(item.icon, item.active, 18) }}
                         <span class="text-xs font-normal text-text-primary">{{ item.label }}</span>
                     </div>
                     <div class="w-full flex flex-col items-start justify-start pl-5 mt-5 gap-3" id="nav-items-dropdown">
                         {% for child in item.children %}
-                            <div class="flex items-center justify-items-start w-full gap-5 p-2 cursor-pointer {{ 'sidebar-nav-item-dropdown-active' if child.active else 'sidebar-nav-item-dropdown-hover-action' }}" id="nav-item-dropdown">
-                                {{ nav_icon(child.icon, child.active, 12) }}
-                                <a href="{{ child.href }}" class="text-xs font-light text-text-primary no-underline" {% if child.active %}aria-current="page"{% endif %}>{{ child.label }}</a>
-                            </div>
+                            {% if child.href %}
+                                <a href="{{ child.href }}" class="flex items-center justify-items-start w-full gap-5 p-2 no-underline {{ 'sidebar-nav-item-dropdown-active' if child.active else 'sidebar-nav-item-dropdown-hover-action' }}" id="nav-item-dropdown" {% if child.active %}aria-current="page"{% endif %}>
+                                    {{ nav_icon(child.icon, child.active, 12) }}
+                                    <span class="text-xs font-light text-text-primary">{{ child.label }}</span>
+                                </a>
+                            {% else %}
+                                <div class="flex items-center justify-items-start w-full gap-5 p-2 opacity-50" id="nav-item-dropdown" aria-disabled="true">
+                                    {{ nav_icon(child.icon, false, 12) }}
+                                    <span class="text-xs font-light text-text-primary">{{ child.label }}</span>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </div>
             {% else %}
-                <div class="w-full flex flex-col items-start justify-items-center p-2 cursor-pointer {{ 'sidebar-nav-item-active' if item.active else 'sidebar-nav-item-hover-action' }}" id="nav-item">
-                    <div class="flex items-center justify-items-start w-full gap-5" id="nav-item-header">
-                        {{ nav_icon(item.icon, item.active, 18) }}
-                        <a href="{{ item.href }}" class="text-xs font-normal text-text-primary no-underline" {% if item.active %}aria-current="page"{% endif %}>{{ item.label }}</a>
+                {% if item.href %}
+                    <a href="{{ item.href }}" class="w-full flex flex-col items-start justify-items-center p-2 no-underline {{ 'sidebar-nav-item-active' if item.active else 'sidebar-nav-item-hover-action' }}" {% if item.active %}aria-current="page"{% endif %}>
+                        <div class="flex items-center justify-items-start w-full gap-5">
+                            {{ nav_icon(item.icon, item.active, 18) }}
+                            <span class="text-xs font-normal text-text-primary">{{ item.label }}</span>
+                        </div>
+                    </a>
+                {% else %}
+                    <div class="w-full flex flex-col items-start justify-items-center p-2 opacity-50" aria-disabled="true">
+                        <div class="flex items-center justify-items-start w-full gap-5">
+                            {{ nav_icon(item.icon, false, 18) }}
+                            <span class="text-xs font-normal text-text-primary">{{ item.label }}</span>
+                        </div>
                     </div>
-                    <div class="w-full flex flex-col items-start justify-start" id="nav-items-dropdown"></div>
-                </div>
+                {% endif %}
             {% endif %}
         {% endfor %}
     </div>

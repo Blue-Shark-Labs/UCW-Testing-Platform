@@ -4,7 +4,7 @@
 and translate HTTP requests into database-layer calls. 
 """
 
-from flask import Blueprint, Flask, g, redirect, request, url_for
+from flask import Blueprint, Flask, g, redirect, request, session, url_for
 import os
 from types import SimpleNamespace
 
@@ -16,6 +16,11 @@ from rest.login.login import login_route
 from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 from rest.student_dashboard.student_dashboard import student_dashboard_route
+from rest.student_dashboard.testing import (
+    save_test_answer_route,
+    submit_test_route,
+    take_test_route,
+)
 from rest.sidebar_navigation import get_sidebar_navigation
 
 student_dashboard = Blueprint(
@@ -24,6 +29,24 @@ student_dashboard = Blueprint(
     url_prefix="/student-dashboard",
 )
 student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
+student_dashboard.add_url_rule(
+    "/tests/<uuid:test_id>",
+    endpoint="take_test",
+    view_func=take_test_route,
+    methods=["GET"],
+)
+student_dashboard.add_url_rule(
+    "/tests/<uuid:test_id>/attempts/<uuid:attempt_id>/answers",
+    endpoint="save_test_answer",
+    view_func=save_test_answer_route,
+    methods=["POST"],
+)
+student_dashboard.add_url_rule(
+    "/tests/<uuid:test_id>/attempts/<uuid:attempt_id>/submit",
+    endpoint="submit_test",
+    view_func=submit_test_route,
+    methods=["POST"],
+)
 
 
 def root_route():
@@ -59,11 +82,20 @@ def create_app():
 
     @app.before_request
     def set_test_user():
-        g.user = SimpleNamespace(
-            role="student",
-            name="Michael James",
-            user_id="00000000-0000-4000-8000-000000000001",
-        )  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
+        if "user_id" in session:
+            g.user = SimpleNamespace(
+                role=session.get("role"),
+                name=session.get("name", "Student"),
+                user_id=session["user_id"],
+            )
+        elif app.testing or app.debug:
+            g.user = SimpleNamespace(
+                role="student",
+                name="Michael James",
+                user_id="00000000-0000-4000-8000-000000000001",
+            )
+        else:
+            g.user = None
 
     @app.context_processor
     def inject_sidebar_navigation():
@@ -86,7 +118,11 @@ def create_app():
         def prepare_item(item):
             endpoint = item.get("endpoint")
             item["active"] = endpoint == request.endpoint
-            item["href"] = url_for(endpoint) if endpoint in app.view_functions else "#"
+            item["href"] = (
+                url_for(endpoint)
+                if endpoint in app.view_functions
+                else None
+            )
             item["children"] = [prepare_item(child) for child in item.get("children", [])]
             item["active"] = item["active"] or any(child["active"] for child in item["children"])
             return item

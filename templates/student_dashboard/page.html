@@ -24,10 +24,10 @@
                         <tbody>
                             {% for test in assigned_tests %}
                                 <tr class="border-b border-app-divider">
-                                    <td class="py-3 pr-6 font-medium">{{ test.test_name }}</td>
-                                    <td class="py-3 pr-6">{{ test.subject_name }}</td>
-                                    <td class="py-3">{{ test.question_count }}</td>
-                                </tr>
+                                <td class="py-3 pr-6 font-medium"><a class="text-blue-700 underline hover:text-blue-900" href="{{ url_for('student_dashboard.take_test', test_id=test.test_id) }}">{{ test.test_name }}</a></td>
+                                <td class="py-3 pr-6">{{ test.subject_name }}</td>
+                                <td class="py-3">{{ test.question_count }}</td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>

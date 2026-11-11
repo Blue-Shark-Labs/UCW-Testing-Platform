@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Student{% endblock %}
+
+{% block page_title %}Test complete{% endblock %}
+
+{% block header_page_specific_content %}{% endblock %}
+
+{% block content %}
+    <section class="w-full max-w-3xl rounded-xl border border-app-divider bg-white p-8 shadow-sm">
+        <p class="mb-2 text-sm font-medium text-slate-600">Test submitted</p>
+        <h1 class="mb-6 text-2xl font-semibold">{{ test_name }}</h1>
+        {% if result.timed_out %}
+            <p class="mb-5 rounded-lg bg-amber-50 p-4 text-amber-900">
+                The time limit expired. Any unanswered questions received zero points.
+            </p>
+        {% endif %}
+        <div class="grid gap-4 sm:grid-cols-3">
+            <div class="rounded-lg bg-slate-50 p-4">
+                <span class="block text-sm text-slate-600">Correct answers</span>
+                <strong class="text-xl">{{ result.correct_count }} / {{ result.question_count }}</strong>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+                <span class="block text-sm text-slate-600">Percentage</span>
+                <strong class="text-xl">{{ '%.1f'|format(result.percentage) }}%</strong>
+            </div>
+            <div class="rounded-lg bg-slate-50 p-4">
+                <span class="block text-sm text-slate-600">Points earned</span>
+                <strong class="text-xl">{{ result.total_points }}</strong>
+            </div>
+        </div>
+        <a class="mt-8 inline-flex rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800"
+           href="{{ url_for('student_dashboard.student_dashboard_route') }}">
+            Return to tests
+        </a>
+    </section>
+{% endblock %}

@@ -100,7 +100,7 @@ SCHEMA_STATEMENTS = [
         question_id UUID NOT NULL REFERENCES questions(question_id),
         -- Nullable: a row is recorded once the question is shown, before the student picks an option.
         selected_option_id UUID REFERENCES answer_options(option_id) DEFAULT NULL,
-        points_awarded INT CHECK (points_awarded IN (30, -10, 0))
+        points_awarded INT CHECK (points_awarded IN (30, -10, 0)),
     );
     """,
     # Indexes on foreign key columns (Postgres doesn't create these automatically).
