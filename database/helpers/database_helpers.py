@@ -39,22 +39,26 @@ def get_completed_tests(student_id):
 	"""Return completed attempts with their result summary for a student."""
 	fields = (
 		"attempt_id",
+		"test_id",
 		"test_name",
+		"subject_name",
 		"completed_at",
 		"question_count",
 		"percentage",
 		"total_points",
 	)
 	query = """
-		SELECT attempt.attempt_id, t.title, attempt.completed_at,
+		SELECT attempt.attempt_id, t.test_id, t.title, s.name,
+			   attempt.completed_at,
 			   COUNT(DISTINCT answer.question_id), attempt.percentage,
 			   attempt.total_points
 		FROM test_attempts AS attempt
 		JOIN tests AS t ON t.test_id = attempt.test_id
+		JOIN subjects AS s ON s.subject_id = t.subject_id
 		LEFT JOIN attempt_answers AS answer ON answer.attempt_id = attempt.attempt_id
 		WHERE attempt.user_id = %s
 		  AND attempt.completed_at IS NOT NULL
-		GROUP BY attempt.attempt_id, t.title
+		GROUP BY attempt.attempt_id, t.test_id, t.title, s.name
 		ORDER BY attempt.completed_at DESC
 	"""
 	return _fetch_rows(query, (student_id,), fields)

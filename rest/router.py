@@ -15,7 +15,11 @@ from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
-from rest.student_dashboard.student_dashboard import student_dashboard_route
+from rest.student_dashboard.student_dashboard import (
+    student_dashboard_route,
+    student_statistics_export_route,
+    student_statistics_route,
+)
 from rest.sidebar_navigation import get_sidebar_navigation
 
 student_dashboard = Blueprint(
@@ -24,6 +28,21 @@ student_dashboard = Blueprint(
     url_prefix="/student-dashboard",
 )
 student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
+statistics = Blueprint(
+    "statistics",
+    __name__,
+    url_prefix="/statistics",
+)
+statistics.add_url_rule(
+    "",
+    view_func=student_statistics_route,
+    methods=["GET"],
+)
+statistics.add_url_rule(
+    "/export.csv",
+    view_func=student_statistics_export_route,
+    methods=["GET"],
+)
 
 
 def root_route():
@@ -56,6 +75,7 @@ def create_app():
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
+    app.register_blueprint(statistics)
 
     @app.before_request
     def set_test_user():
