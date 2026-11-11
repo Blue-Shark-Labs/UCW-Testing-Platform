@@ -18,6 +18,7 @@ from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 from rest.sidebar_navigation import get_sidebar_navigation
 
+from database.connection import PostgresConnectionProvider
 
 def root_route():
     return redirect(url_for("landing_page.landing_page_route"))
@@ -51,7 +52,32 @@ def create_app():
 
     @app.before_request
     def load_session_user():
-        g.user = SimpleNamespace(role=session.get("role")) if "user_id" in session else None
+        if "user_id" not in session:
+            g.user = None
+            return
+
+        connection_provider = PostgresConnectionProvider()
+
+        with connection_provider.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT first_name, last_name, role
+                FROM users
+                WHERE user_id = %s
+                """,
+                (session["user_id"],)
+            )
+            user = cursor.fetchone()
+
+        if user:
+            g.user = SimpleNamespace(
+                first_name=user[0],
+                last_name=user[1],
+                name=f"{first_name} {last_name}",
+                role=user[2]
+            )
+        else:
+            g.user = None
 
     @app.context_processor
     def inject_sidebar_navigation():
