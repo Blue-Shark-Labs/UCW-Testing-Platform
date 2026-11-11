@@ -4,10 +4,9 @@
 and translate HTTP requests into database-layer calls. 
 """
 
+from flask import Blueprint, Flask, g, redirect, request, url_for
 import os
 from types import SimpleNamespace
-
-from flask import Flask, g, redirect, request, session, url_for
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
@@ -16,7 +15,34 @@ from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
+from rest.student_dashboard.student_dashboard import (
+    student_dashboard_route,
+    student_statistics_export_route,
+    student_statistics_route,
+)
 from rest.sidebar_navigation import get_sidebar_navigation
+
+student_dashboard = Blueprint(
+    "student_dashboard",
+    __name__,
+    url_prefix="/student-dashboard",
+)
+student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
+statistics = Blueprint(
+    "statistics",
+    __name__,
+    url_prefix="/statistics",
+)
+statistics.add_url_rule(
+    "",
+    view_func=student_statistics_route,
+    methods=["GET"],
+)
+statistics.add_url_rule(
+    "/export.csv",
+    view_func=student_statistics_export_route,
+    methods=["GET"],
+)
 
 
 def root_route():
@@ -48,10 +74,16 @@ def create_app():
     app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
+    app.register_blueprint(student_dashboard)
+    app.register_blueprint(statistics)
 
     @app.before_request
-    def load_session_user():
-        g.user = SimpleNamespace(role=session.get("role")) if "user_id" in session else None
+    def set_test_user():
+        g.user = SimpleNamespace(
+            role="student",
+            name="Michael James",
+            user_id="00000000-0000-4000-8000-000000000001",
+        )  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
 
     @app.context_processor
     def inject_sidebar_navigation():
