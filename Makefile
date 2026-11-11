@@ -3,6 +3,10 @@
 setup-db:
 	python3 -m database.migrations.migrate
 
+## seed-student-dashboard: Add sample student dashboard data (run after setup-db).
+.PHONY: seed-student-dashboard
+seed-student-dashboard:
+	python3 -m database.migrations.seed_student_dashboard
 ## seed-dev-users: Seed one login per role (dev/nonprod only).
 .PHONY: seed-dev-users
 seed-dev-users:

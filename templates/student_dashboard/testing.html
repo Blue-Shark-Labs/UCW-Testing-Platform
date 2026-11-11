@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Student{% endblock %}
+
+{% block page_title %}{{ attempt.test_name }}{% endblock %}
+
+{% block header_page_specific_content %}{% endblock %}
+
+{% block content %}
+    <div class="w-full max-w-4xl">
+        <div class="mb-8 flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <p class="mb-1 text-sm font-medium text-slate-600">{{ attempt.subject_name }}</p>
+                <h1 class="text-2xl font-semibold">{{ attempt.test_name }}</h1>
+            </div>
+            {% if attempt.time_limit_minutes is not none %}
+                <div class="rounded-lg border border-app-divider bg-white px-4 py-3 text-right"
+                     role="timer"
+                     aria-live="polite"
+                     data-countdown="{{ attempt.seconds_remaining }}">
+                    <span class="block text-xs font-medium uppercase tracking-wide text-slate-600">Time remaining</span>
+                    <span class="text-xl font-semibold tabular-nums" data-countdown-display></span>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="post" action="{{ submit_url }}" data-test-form data-save-url="{{ save_answer_url }}">
+            <div class="mb-4 flex items-center justify-between gap-4">
+                <p class="font-medium" aria-live="polite">
+                    Question <span data-current-question>1</span> of {{ attempt.questions|length }}
+                </p>
+                <div class="h-2 w-40 overflow-hidden rounded-full bg-slate-200" aria-hidden="true">
+                    <div class="h-full w-0 bg-blue-700 transition-all" data-progress></div>
+                </div>
+            </div>
+
+            {% for question in attempt.questions %}
+                <section class="rounded-xl border border-app-divider bg-white p-6 shadow-sm"
+                         data-question-index="{{ loop.index0 }}"
+                         {% if not loop.first %}hidden{% endif %}>
+                    <h2 class="mb-6 text-lg font-semibold">{{ question.question_text }}</h2>
+                    <fieldset class="space-y-3">
+                        <legend class="sr-only">Choose one answer</legend>
+                        {% for option in question.options %}
+                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-app-divider p-4 hover:bg-slate-50">
+                                <input class="mt-1 h-4 w-4 accent-blue-700"
+                                       type="radio"
+                                       name="answer_{{ question.question_id }}"
+                                       value="{{ option.option_id }}"
+                                       data-question-id="{{ question.question_id }}"
+                                       {% if option.option_id == question.selected_option_id %}checked{% endif %}>
+                                <span>{{ option.option_text }}</span>
+                            </label>
+                        {% endfor %}
+                    </fieldset>
+                </section>
+            {% endfor %}
+
+            <p class="mt-3 min-h-6 text-sm text-slate-600" data-save-status role="status"></p>
+            <div class="mt-3 flex flex-wrap justify-between gap-3">
+                <button class="rounded-lg border border-app-divider px-5 py-3 font-medium hover:bg-white disabled:opacity-50"
+                        type="button" data-previous disabled>Previous</button>
+                <div class="flex gap-3">
+                    <button class="rounded-lg border border-app-divider px-5 py-3 font-medium hover:bg-white"
+                            type="button" data-next>Next question</button>
+                    <button class="rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800"
+                            type="submit" data-submit hidden>Submit test</button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        (() => {
+            const form = document.querySelector("[data-test-form]");
+            const questions = Array.from(form.querySelectorAll("[data-question-index]"));
+            const previousButton = form.querySelector("[data-previous]");
+            const nextButton = form.querySelector("[data-next]");
+            const submitButton = form.querySelector("[data-submit]");
+            const currentQuestion = form.querySelector("[data-current-question]");
+            const progress = form.querySelector("[data-progress]");
+            const saveStatus = form.querySelector("[data-save-status]");
+            const pendingSaves = new Map();
+            let currentIndex = 0;
+            let submitting = false;
+
+            const showQuestion = (index) => {
+                currentIndex = index;
+                questions.forEach((question, questionIndex) => {
+                    question.hidden = questionIndex !== currentIndex;
+                });
+                currentQuestion.textContent = String(currentIndex + 1);
+                progress.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+                previousButton.disabled = currentIndex === 0;
+                nextButton.hidden = currentIndex === questions.length - 1;
+                submitButton.hidden = currentIndex !== questions.length - 1;
+            };
+
+            previousButton.addEventListener("click", () => showQuestion(currentIndex - 1));
+            nextButton.addEventListener("click", () => showQuestion(currentIndex + 1));
+
+            form.querySelectorAll('input[type="radio"]').forEach((input) => {
+                input.addEventListener("change", () => {
+                    const payload = {
+                        question_id: input.dataset.questionId,
+                        option_id: input.value,
+                    };
+                    const save = fetch(form.dataset.saveUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                    }).then((response) => {
+                        if (!response.ok) {
+                            throw new Error("Your answer could not be saved.");
+                        }
+                        saveStatus.textContent = "Answer saved.";
+                    }).catch((error) => {
+                        saveStatus.textContent = error.message;
+                    });
+                    pendingSaves.set(payload.question_id, save);
+                    save.finally(() => {
+                        if (pendingSaves.get(payload.question_id) === save) {
+                            pendingSaves.delete(payload.question_id);
+                        }
+                    });
+                });
+            });
+
+            form.addEventListener("submit", (event) => {
+                if (submitting) return;
+                event.preventDefault();
+                Promise.all(Array.from(pendingSaves.values())).then(() => {
+                    submitting = true;
+                    form.requestSubmit();
+                });
+            });
+
+            const timer = document.querySelector("[data-countdown]");
+            if (timer) {
+                const display = timer.querySelector("[data-countdown-display]");
+                let seconds = Number(timer.dataset.countdown);
+                const updateCountdown = () => {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    display.textContent = `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+                    if (seconds <= 0) {
+                        form.requestSubmit();
+                        return;
+                    }
+                    seconds -= 1;
+                    window.setTimeout(updateCountdown, 1000);
+                };
+                updateCountdown();
+            }
+
+            showQuestion(0);
+        })();
+    </script>
+{% endblock %}

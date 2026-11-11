@@ -1,5 +1,7 @@
 # To Run: pytest rest/router_test.py
 
+import re
+
 import pytest
 
 from rest.router import create_app
@@ -64,6 +66,29 @@ class TestCreateApp:
         assert response.status_code == 200
         assert visible_item in response.data
         assert hidden_item not in response.data
+
+    def test_sidebar_supported_items_are_full_row_links(self, client):
+        response = client.get("/pr-block/")
+
+        assert response.status_code == 200
+        assert re.search(
+            rb'<a href="/student-dashboard/" class="[^"]*"[^>]*>'
+            rb'.*?<svg[^>]*>.*?</svg>.*?Assigned Tests</span>.*?</a>',
+            response.data,
+            re.DOTALL,
+        )
+        assert re.search(
+            rb'<a href="/pr-block/" class="[^"]*"[^>]*>'
+            rb'.*?<svg[^>]*>.*?</svg>.*?Home</span>.*?</a>',
+            response.data,
+            re.DOTALL,
+        )
+        assert b'href="#"' not in response.data
+        assert re.search(
+            rb'<div[^>]*aria-disabled="true"[^>]*>.*?Subject Leaderboards</span>',
+            response.data,
+            re.DOTALL,
+        )
 
     def test_create_app_fails_without_secret_key(self, monkeypatch):
         # ARRANGE
