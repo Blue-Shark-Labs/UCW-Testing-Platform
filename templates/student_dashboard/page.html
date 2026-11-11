@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Student{% endblock %}
+
+{% block page_title %}Tests{% endblock %}
+
+{% block header_page_specific_content %}{% endblock %}
+
+{% block content %}
+    <h1 class="mb-8 text-[2rem] font-bold text-text-primary">Your tests</h1>
+    <div class="w-full max-w-5xl space-y-8">
+        <section class="dashboard-card" aria-labelledby="assigned-tests-heading">
+            <h2 id="assigned-tests-heading" class="mb-4 text-2xl font-bold text-app-primary">Assigned Tests</h2>
+            {% if assigned_tests %}
+                <div class="overflow-x-auto rounded-md border border-app-divider">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Test</th>
+                                <th scope="col">Subject</th>
+                                <th scope="col">Questions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in assigned_tests %}
+                                <tr>
+                                    <td class="font-medium">{{ test.test_name }}</td>
+                                    <td>{{ test.subject_name }}</td>
+                                    <td>{{ test.question_count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="rounded-md bg-app-background px-4 py-3 text-sm text-slate-600">No tests to complete.</p>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-card" aria-labelledby="completed-tests-heading">
+            <h2 id="completed-tests-heading" class="mb-4 text-2xl font-bold text-app-primary">Completed Tests</h2>
+            {% if completed_tests %}
+                <div class="overflow-x-auto rounded-md border border-app-divider">
+                    <table class="dashboard-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Test</th>
+                                <th scope="col">Completed</th>
+                                <th scope="col">Questions</th>
+                                <th scope="col">Score</th>
+                                <th scope="col">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in completed_tests %}
+                                <tr>
+                                    <td class="font-medium">{{ test.test_name }}</td>
+                                    <td>{{ test.completed_at.strftime('%d %b %Y') }}</td>
+                                    <td>{{ test.question_count }}</td>
+                                    <td>
+                                        {% if test.percentage is not none %}
+                                            <span class="rounded-full bg-app-quinary/40 px-2.5 py-1 text-xs font-medium text-text-primary">{{ '%.1f'|format(test.percentage) }}%</span>
+                                        {% else %}N/A{% endif %}
+                                    </td>
+                                    <td class="font-medium">{{ test.total_points if test.total_points is not none else 'N/A' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="rounded-md bg-app-background px-4 py-3 text-sm text-slate-600">No completed tests yet.</p>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}
