@@ -19,7 +19,7 @@ def login_route():
         if user is None:
             return render_template(
                 "login/login.html",
-                error="Incorrect email or password, or this account has been disabled.",
+                error="Incorrect email or password, or this account is disabled or awaiting approval.",
                 email=email,
             )
         # Clearing first prevents session fixation from any pre-login session data.

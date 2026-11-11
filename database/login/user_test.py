@@ -24,7 +24,7 @@ class TestGetUserByEmail:
 
     def test_get_user_by_email_maps_row_to_entity(self):
         # ARRANGE
-        row = ("11111111-1111-1111-1111-111111111111", "student@example.com", "hashed-password", "student", False)
+        row = ("11111111-1111-1111-1111-111111111111", "student@example.com", "hashed-password", "student", False, False)
         connection_provider = FakeConnectionProvider(row)
 
         # ACT
@@ -37,6 +37,7 @@ class TestGetUserByEmail:
             password_hash="hashed-password",
             role="student",
             is_disabled=False,
+            is_approved=False,
         )
         connection_provider.cursor_mock.execute.assert_called_once()
 

@@ -1,12 +1,60 @@
-{% extends 'base.html' %}
-
-{% block page_section %}Registration{% endblock %}
+{% extends 'login/login.html' %}
 
 {% block page_title %}Sign Up{% endblock %}
 
-{% block header_page_specific_content %}{% endblock %}
+{% block messages %}
+{% if errors %}
+<ul role="alert" class="mb-4 list-disc rounded-md bg-red-50 py-2 pl-6 pr-3 text-sm text-red-700">
+    {% for error in errors %}
+    <li>{{ error }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% endblock %}
 
-{% block content %}
-    <h1 class="mb-2 text-2xl font-semibold">Sign Up</h1>
-    <p>Your registration content lives here.</p>
+{% block form %}
+{% if pending_approval %}
+<p role="status" class="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+    Registration successful. Your account is awaiting lecturer approval; you will be able to log in once it has been approved.
+</p>
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block form_action %}{{ url_for('register_route') }}{% endblock %}
+
+{% block card_width %}max-w-sm sm:max-w-md{% endblock %}
+
+{% block extra_fields %}
+<div class="flex flex-col gap-1">
+    <label for="student_number" class="text-xs font-semibold uppercase text-slate-500">Student Number</label>
+    <input type="text" id="student_number" name="student_number" value="{{ form.get('student_number', '') }}" required maxlength="20" autofocus class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+</div>
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="flex flex-col gap-1">
+        <label for="first_name" class="text-xs font-semibold uppercase text-slate-500">First Name</label>
+        <input type="text" id="first_name" name="first_name" value="{{ form.get('first_name', '') }}" required maxlength="50" autocomplete="given-name" class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+    </div>
+    <div class="flex flex-col gap-1">
+        <label for="last_name" class="text-xs font-semibold uppercase text-slate-500">Last Name</label>
+        <input type="text" id="last_name" name="last_name" value="{{ form.get('last_name', '') }}" required maxlength="50" autocomplete="family-name" class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+    </div>
+</div>
+<div class="flex flex-col gap-1">
+    <label for="course_title" class="text-xs font-semibold uppercase text-slate-500">Course Title</label>
+    <input type="text" id="course_title" name="course_title" value="{{ form.get('course_title', '') }}" required maxlength="100" class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+</div>
+{% endblock %}
+
+{% block email_label %}Email{% endblock %}
+
+{% block email_attrs %}maxlength="50" autocomplete="email"{% endblock %}
+
+{% block password_attrs %}minlength="8" autocomplete="new-password"{% endblock %}
+
+{% block submit_label %}Sign Up{% endblock %}
+
+{% block footer_link %}
+<p class="mt-4 text-center text-sm text-slate-500">Already have an account? <a href="{{ url_for('login_route') }}" class="font-medium text-app-primary no-underline">Log In</a></p>
 {% endblock %}

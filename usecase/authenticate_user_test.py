@@ -68,6 +68,21 @@ class TestAuthenticateUser:
 
     @patch("usecase.authenticate_user.check_password_hash")
     @patch("usecase.authenticate_user.get_user_by_email")
+    def test_authenticate_user_returns_none_when_student_not_approved(
+        self, mock_get_user_by_email, mock_check_password_hash
+    ):
+        # ARRANGE
+        mock_get_user_by_email.return_value = make_user(is_approved=False)
+
+        # ACT
+        result = authenticate_user(object(), "student@example.com", "correct-password")
+
+        # ASSERT
+        assert result is None
+        mock_check_password_hash.assert_not_called()
+
+    @patch("usecase.authenticate_user.check_password_hash")
+    @patch("usecase.authenticate_user.get_user_by_email")
     def test_authenticate_user_returns_none_for_incorrect_password(
         self, mock_get_user_by_email, mock_check_password_hash
     ):
