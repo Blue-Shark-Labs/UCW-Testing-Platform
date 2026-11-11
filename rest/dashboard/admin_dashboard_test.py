@@ -25,4 +25,4 @@ class TestAdminDashboardRoute:
             response = admin_dashboard_route()
 
         # ASSERT
-        assert "Admin Dashboard" in response
+        assert b"Admin Dashboard" in response.data

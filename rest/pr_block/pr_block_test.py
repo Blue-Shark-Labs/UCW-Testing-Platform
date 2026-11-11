@@ -25,4 +25,4 @@ class TestPrBlockRoute:
             response = pr_block_route()
 
         # ASSERT
-        assert "PR Block" in response
+        assert b"PR Block" in response.data

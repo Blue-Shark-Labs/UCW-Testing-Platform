@@ -38,4 +38,4 @@ class TestLecturerDashboardRoute:
             response = lecturer_dashboard_route()
 
         # ASSERT
-        assert "Lecturer Dashboard" in response
+        assert b"Lecturer Dashboard" in response.data
