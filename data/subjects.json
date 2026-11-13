@@ -1,53 +1,96 @@
-
 {
     "subjects": [
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440001",
-            "name": "Ocean Science",
+            "name": "Ocean Sciences",
             "description": "Explore ocean systems and marine environments.",
-            "isActive": false
+            "lecturers": [
+                1001
+            ],
+            "isActive": false,
+            "code": "650e8400-e29b-41d4-a716-446655440001",
+            "updatedAt": "2026-11-13"
         },
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440002",
             "name": "Marine Biology",
             "description": "Study marine organisms and their ecosystems.",
-            "isActive": true
+            "lecturers": [
+                1002,
+                1006,
+                1007
+            ],
+            "isActive": true,
+            "updatedAt": "2026-11-04"
         },
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440003",
             "name": "Coastal Ecology",
             "description": "Understand coastal habitats and biodiversity.",
+            "lecturers": [
+                1008,
+                1012
+            ],
             "isActive": true
         },
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440004",
             "name": "Climate Science",
             "description": "Discover climate systems and global change.",
-            "isActive": true
+            "lecturers": [
+                1002
+            ],
+            "isActive": true,
+            "updatedAt": "2026-11-04"
         },
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440005",
             "name": "Conservation",
             "description": "Protect marine species and natural habitats.",
+            "lecturers": [
+                1001,
+                1003,
+                1004
+            ],
             "isActive": true
         },
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440006",
             "name": "Earth Systems",
             "description": "Connect the atmosphere, land and oceans.",
+            "lecturers": [
+                1006,
+                1008
+            ],
             "isActive": true
         },
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440007",
             "name": "Environmental Chemistry",
             "description": "Investigate chemical processes in nature.",
+            "lecturers": [
+                1007
+            ],
             "isActive": true
         },
         {
             "subjectId": "650e8400-e29b-41d4-a716-446655440008",
             "name": "Research Methods",
             "description": "Build practical scientific research skills.",
+            "lecturers": [
+                1012,
+                1003,
+                1004
+            ],
             "isActive": true
+        },
+        {
+            "isActive": true,
+            "name": "dsfsfs",
+            "subjectId": "b0f695ea-216d-4491-b0bd-94bf94b5f031",
+            "description": "dsfdsfdsfdsfsdfs",
+            "lecturers": [],
+            "updatedAt": "2026-11-13"
         }
     ]
 }

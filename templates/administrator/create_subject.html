@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Administration{% endblock %}
+
+{% block page_title %}Administration Panel{% endblock %}
+
+<!-- Example of page-specific content in the header -->
+{% block header_page_specific_content %}
+{% endblock %}
+
+{% block content %}
+    <div class="flex items-center justify-between mb-4 w-full">
+        <div class="flex flex-col items-start justify-center">
+            <h1 class="mb-2 text-3xl font-extrabold text-text-primary">Create subject</h1>
+            <p class="text-text-primary/50">Add a new subject to the database. Please note subjects cannot be deleted only archived after creation.</p>
+        </div>
+        <a href="{{ url_for('administrator.administrator_view_subjects_route') }}" class="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-600 text-sm font-semibold px-4 py-2.5 rounded-md border border-gray-200 shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-app-primary focus:ring-offset-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span>Back to subjects</span>
+        </a>
+    </div>
+    <div class="py-4 sm:py-8 w-full">
+        <div class="mx-auto w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center justify-between border-b border-slate-200 pb-5">
+                <div>
+                    <h2 class="text-md font-bold text-slate-900">Subject details</h2>
+                    <p class="mt-1 text-xs text-slate-500">All fields are required.</p>
+                </div>
+            </div>
+            {% if general_error %}
+            <div class="mb-4 flex gap-2 rounded-lg border border-red-100 bg-red-50 p-3">
+                <svg class="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.5"/><path stroke-linecap="round" stroke-width="1.5" d="M12 8v4m0 4h.01"/></svg>
+                <div>
+                    <p class="text-xs font-semibold text-red-700">{{ general_error }}</p>
+                    <p class="mt-1 text-xs text-red-600">The subject has not been saved. Correct the details below and try again.</p>
+                </div>
+            </div>
+            {% endif %}
+            <form method="POST">
+                <div class="mb-4">
+                    <label for="name" class="mb-2 block text-sm font-semibold text-slate-800">Subject name</label>
+                    <input type="text" id="name" name="name" value="{{ form_data.name }}" required class="w-full rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-blue-100 {% if errors.get('name') %}border-red-400 focus:border-red-400 focus:ring-red-100{% else %}border-slate-200 focus:border-blue-400{% endif %}">
+                    {% if errors.get('name') %}
+                    <p class="mt-1.5 text-xs text-red-500">{{ errors.name }}</p>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label for="subjectCode" class="mb-2 block text-sm font-semibold text-slate-800">Unique code</label>
+                    <input type="text" id="subjectCode" value="{{ form_data.subjectId }}" required disabled class="w-full rounded-lg border px-3 py-3 pr-9 text-sm text-slate-800 outline-none border-slate-200">
+                    <input type="hidden" name="subjectId" value="{{ form_data.subjectId }}">
+                    <p class="mt-2 text-xs text-slate-500">This code cannot be edited</p>
+                </div>
+                <div class="mb-4">
+                    <label for="description" class="mb-2 block text-sm font-semibold text-slate-800">Description</label>
+                    <textarea id="description" name="description" rows="4" required class="w-full resize-none rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-blue-100 {% if errors.get('description') %}border-red-400 focus:border-red-400 focus:ring-red-100{% else %}border-slate-200 focus:border-blue-400{% endif %}">{{ form_data.description }}</textarea>
+                    {% if errors.get('description') %}
+                    <p class="mt-1.5 text-xs text-red-500">{{ errors.description }}</p>
+                    {% else %}
+                    <p class="mt-2 text-xs text-slate-500">A short, clear description of the subject.</p>
+                    {% endif %}
+                </div>
+                <div class="mb-4">
+                    <label for="lecturerPicker" class="mb-2 block text-sm font-semibold text-slate-800">Lecturers</label>
+                    <select
+                        id="lecturerPicker"
+                        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    >
+                        <option value="">Choose a lecturer to add</option>
+                        {% for lecturer in all_available_lecturers %}
+                        {% set lecturerId = lecturer.get('userId') %}
+                        {% set lecturerName = (lecturer.get('firstName', '') ~ ' ' ~ lecturer.get('lastName', '')) %}
+                        <option value="{{ lecturerId }}">{{ lecturerName|trim }}</option>
+                        {% else %}
+                        <option value="" disabled>No lecturers available</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-2 text-xs text-slate-500">Choose a lecturer from the list to add them. Selected lecturers appear below.</p>
+                    <div
+                        id="selectedLecturers"
+                        class="mt-3 flex min-h-10 flex-wrap gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2"
+                        aria-label="Selected lecturers"
+                    >
+                        {% for lecturer in all_available_lecturers if lecturer.get('userId') in form_data.lecturers %}
+                        <span class="inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 text-sm font-medium text-text-primary" data-selected-lecturer data-user-id="{{ lecturer.userId }}">
+                            {% set lecturerName = (lecturer.get('firstName', '') ~ ' ' ~ lecturer.get('lastName', '')) %}
+                            <span>{{ lecturerName|trim }}</span>
+                            <input type="number" hidden name="lecturerId" value="{{ lecturer.userId }}">
+                            <button type="button" class="rounded-full text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-700" aria-label="Remove {{ lecturerName|trim }}">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </span>
+                        {% endfor %}
+                    </div>
+                    <p id="lecturerEmptyState" class="mt-2 text-xs text-slate-500" {% if form_data.get('lecturers', []) %}hidden{% endif %}>
+                        No lecturers selected.
+                    </p>
+                </div>
+                <div class="mb-4 flex gap-2 rounded-lg bg-blue-50 p-3">
+                    <svg class="mt-0.5 h-4 w-4 shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.5"/><path stroke-linecap="round" stroke-width="1.5" d="M12 11v5m0-8h.01"/></svg>
+                    <div>
+                        <p class="text-sm text-app-primary">Upon creation this subject will automatically become active.</p>
+                    </div>
+                </div>
+                <div class="mt-4 flex flex-col justify-between gap-4 border-t border-slate-200 pt-4 sm:flex-row sm:items-center">
+                    <p class="text-[10px] text-slate-500">Last updated {{ updated_at or 'Not available' }}</p>
+                    <div class="flex items-center justify-end gap-2">
+                        <a href="{{ url_for('administrator.administrator_view_subjects_route') }}" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-text-primary transition hover:bg-slate-50">Cancel</a>
+                        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-app-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">
+                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6"/></svg>
+                            Save changes
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const lecturerPicker = document.getElementById("lecturerPicker");
+    const selectedLecturers = document.getElementById("selectedLecturers");
+    const lecturerEmptyState = document.getElementById("lecturerEmptyState");
+
+    function updateLecturerPicker() {
+        const selectedIds = new Set(
+            Array.from(selectedLecturers.querySelectorAll("[data-user-id]"))
+                .map((lecturer) => lecturer.dataset.userId)
+        );
+
+        Array.from(lecturerPicker.options).forEach((option) => {
+            if (option.value) {
+                option.disabled = selectedIds.has(option.value);
+            }
+        });
+
+        lecturerEmptyState.hidden = selectedIds.size > 0;
+    }
+
+    lecturerPicker.addEventListener("change", () => {
+        const option = lecturerPicker.selectedOptions[0];
+        if (!option || !option.value) {
+            return;
+        }
+
+        const lecturer = document.createElement("span");
+        lecturer.className = "inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 text-sm font-medium text-text-primary";
+        lecturer.dataset.selectedLecturer = "";
+        lecturer.dataset.userId = option.value;
+
+        const name = document.createElement("span");
+        name.textContent = option.textContent.trim();
+
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "lecturerId";
+        hiddenInput.value = option.value;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "rounded-full text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-700";
+        removeButton.setAttribute("aria-label", `Remove ${name.textContent}`);
+        removeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
+        removeButton.addEventListener("click", () => {
+            lecturer.remove();
+            updateLecturerPicker();
+        });
+
+        lecturer.append(name, hiddenInput, removeButton);
+        selectedLecturers.append(lecturer);
+        lecturerPicker.value = "";
+        updateLecturerPicker();
+    });
+
+    selectedLecturers.addEventListener("click", (event) => {
+        const removeButton = event.target.closest("button");
+        if (removeButton) {
+            removeButton.closest("[data-selected-lecturer]").remove();
+            updateLecturerPicker();
+        }
+    });
+
+    updateLecturerPicker();
+</script>
+{% endblock %}
