@@ -117,16 +117,19 @@
                         <span class="inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 text-sm font-medium text-text-primary" data-selected-lecturer data-user-id="{{ lecturer.userId }}">
                             {% set lecturerName = (lecturer.get('firstName', '') ~ ' ' ~ lecturer.get('lastName', '')) %}
                             <span>{{ lecturerName|trim }}</span>
-                            <input type="number" hidden name="lecturerId" value="{{ lecturer.userId }}">
+                            <input type="hidden" name="lecturerId" value="{{ lecturer.userId }}">
                             <button type="button" class="rounded-full text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-700" aria-label="Remove {{ lecturerName|trim }}">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </span>
                         {% endfor %}
                     </div>
-                    <p id="lecturerEmptyState" class="mt-2 text-xs text-slate-500" {% if subject.get('lecturers', []) %}hidden{% endif %}>
+                    <p id="lecturerEmptyState" class="mt-2 text-xs text-slate-500" {% if form_data.lecturers %}hidden{% endif %}>
                         No lecturers selected.
                     </p>
+                    {% if errors.get('lecturers') %}
+                    <p class="mt-1.5 text-xs text-red-500">{{ errors.lecturers }}</p>
+                    {% endif %}
                 </div>
                 <div class="mb-4 flex gap-2 rounded-lg bg-blue-50 p-3">
                     <svg class="mt-0.5 h-4 w-4 shrink-0 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.5"/><path stroke-linecap="round" stroke-width="1.5" d="M12 11v5m0-8h.01"/></svg>
@@ -136,7 +139,7 @@
                     </div>
                 </div>
                 <div class="mt-4 flex flex-col justify-between gap-4 border-t border-slate-200 pt-4 sm:flex-row sm:items-center">
-                    <p class="text-[10px] text-slate-500">Last updated {{ updated_at or 'Not available' }}</p>
+                    <p class="text-[10px] text-slate-500">Subject ID {{ subject.subjectId }}</p>
                     <div class="flex items-center justify-end gap-2">
                         <a href="{{ url_for('administrator.administrator_view_subjects_route') }}" class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-text-primary transition hover:bg-slate-50">Cancel</a>
                         <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-app-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">

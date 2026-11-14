@@ -1,297 +1,164 @@
-import json
 import math
-import os
 import uuid
+from uuid import UUID
 
-from pathlib import Path
-from datetime import datetime
 from flask import render_template, request, redirect, url_for
+from psycopg.errors import ForeignKeyViolation, UniqueViolation
+from werkzeug.security import generate_password_hash
 
-# Data file path for subjects JSON
-
-SUBJECTS_DATA_FILE = (
-    Path(__file__).resolve().parents[2]
-    / "data"
-    / "subjects.json"
+from database.administrator.subjects import (
+    create_subject,
+    get_subject,
+    list_available_lecturers,
+    list_subjects,
+    update_subject,
+)
+from database.administrator.users import (
+    create_user,
+    delete_user,
+    get_user,
+    list_users,
+    set_user_disabled,
+    update_user,
 )
 
-USERS_DATA_FILE = (
-    Path(__file__).resolve().parents[2]
-    / "data"
-    / "users.json"
-)
 
-# Load subjects from JSON file
-def load_subjects():
-    if not SUBJECTS_DATA_FILE.exists():
-        return []
-
-    with open(SUBJECTS_DATA_FILE, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    return data.get("subjects", [])
-
-# Load users from JSON file
-def load_users():
-    if not USERS_DATA_FILE.exists():
-        return []
-
-    with open(USERS_DATA_FILE, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    return data.get("users", [])
-
-def save_users(users):
-    USERS_DATA_FILE.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    temp_file = USERS_DATA_FILE.with_suffix(".tmp")
-
-    try:
-
-        # Write JSON to temporary file
-        with open(temp_file, "w", encoding="utf-8") as file:
-
-            json.dump(
-                {"users": users},
-                file,
-                indent=4,
-                ensure_ascii=False
-            )
-
-            file.flush()
-            os.fsync(file.fileno())
-
-        # Atomically replace original JSON file
-        os.replace(temp_file, USERS_DATA_FILE)
-
-        return True
-
-    except (OSError, TypeError, ValueError):
-
-        # Clean up temporary file if saving fails
-        if temp_file.exists():
-            temp_file.unlink()
-
-        return False
-
-def save_subjects(subjects):
-
-    SUBJECTS_DATA_FILE.parent.mkdir(
-        parents=True,
-        exist_ok=True
-    )
-
-    temp_file = SUBJECTS_DATA_FILE.with_suffix(".tmp")
-
-    try:
-
-        # Write JSON to temporary file
-        with open(temp_file, "w", encoding="utf-8") as file:
-
-            json.dump(
-                {"subjects": subjects},
-                file,
-                indent=4,
-                ensure_ascii=False
-            )
-
-            file.flush()
-            os.fsync(file.fileno())
-
-        # Atomically replace original JSON file
-        os.replace(temp_file, SUBJECTS_DATA_FILE)
-
-        return True
-
-    except (OSError, TypeError, ValueError):
-
-        # Clean up temporary file if saving fails
-        if temp_file.exists():
-            temp_file.unlink()
-
-        return False
-
-# View subjects route for the administrator
-
-def administrator_view_subjects_route(methods=["GET"]):
-    # Load subjects from JSON
-    all_subjects = load_subjects()
-
-    # Search
-    search = request.args.get("q", "").strip().lower()
-
-    if search:
-        all_subjects = [
-            subject for subject in all_subjects
-            if search in subject.get("name", "").lower()
-            or search in subject.get("description", "").lower()
-        ]
-
-    # Pagination
-    page = request.args.get("page", 1, type=int)
-    per_page = 8
-
-    total = len(all_subjects)
-    total_pages = max(
-        1,
-        math.ceil(total / per_page)
-    )
+def _pagination(total, page, per_page=8):
+    total_pages = max(1, math.ceil(total / per_page))
     page = max(1, min(page, total_pages))
-
     start = (page - 1) * per_page
-    end = start + per_page
-
-    paginated_subjects = all_subjects[start:end]
-
-    lecturer_names_by_id = {
-        user["userId"]: " ".join(
-            name for name in (user.get("firstName"), user.get("lastName")) if name
-        )
-        for user in load_users()
-        if user.get("role") == "lecturer" and user.get("userId") is not None
-    }
-    paginated_subjects = [
-        {
-            **subject,
-            "lecturerNames": [
-                lecturer_names_by_id[lecturer_id]
-                for lecturer_id in subject.get("lecturers", [])
-                if lecturer_id in lecturer_names_by_id
-            ]
-        }
-        for subject in paginated_subjects
-    ]
-
-    pagination = {
+    return page, start, {
         "page": page,
         "per_page": per_page,
         "total": total,
         "first": start + 1 if total else 0,
-        "last": min(end, total),
+        "last": min(start + per_page, total),
         "total_pages": total_pages,
         "has_prev": page > 1,
         "has_next": page < total_pages,
         "prev_num": page - 1,
-        "next_num": page + 1
+        "next_num": page + 1,
     }
+
+
+def _lecturer_selection(available_lecturers, submitted_ids):
+    lecturers_by_id = {
+        lecturer["userId"]: lecturer for lecturer in available_lecturers
+    }
+    lecturer_ids = []
+    selected_lecturers = []
+    valid = True
+
+    for submitted_id in submitted_ids:
+        try:
+            lecturer_id = str(UUID(submitted_id))
+        except ValueError:
+            valid = False
+            continue
+
+        lecturer = lecturers_by_id.get(lecturer_id)
+        if lecturer is None:
+            valid = False
+            continue
+
+        if lecturer_id not in lecturer_ids:
+            lecturer_ids.append(lecturer_id)
+            selected_lecturers.append(lecturer)
+
+    return lecturer_ids, selected_lecturers, valid
+
+def administrator_view_subjects_route(methods=["GET"]):
+    search = request.args.get("q", "").strip()
+    page = max(1, request.args.get("page", 1, type=int))
+    per_page = 8
+    subjects, total = list_subjects(search, per_page, (page - 1) * per_page)
+    page, _, pagination = _pagination(total, page, per_page)
+    if page != request.args.get("page", 1, type=int):
+        subjects, total = list_subjects(search, per_page, (page - 1) * per_page)
 
     return render_template(
         "administrator/view_subjects.html",
-        subjects=paginated_subjects,
+        subjects=subjects,
         pagination=pagination,
         search=search
     )
 
 def administrator_edit_subject_route(subject_id, methods=["GET", "POST"]):
-    subjects = load_subjects()
-    all_available_lecturers = [user for user in load_users() if user.get("role") == "lecturer" or user.get("role") == "admin"]
-    subject_lecturers = next(
-        (s.get("lecturers", []) for s in subjects if s.get("subjectId") == subject_id),
-        []
-    )
-    subject_lecturers = [
-        {
-            "firstName": lecturer.get("firstName"),
-            "lastName": lecturer.get("lastName"),
-            "userId": lecturer.get("userId")
-        }
-        for lecturer in all_available_lecturers
-        if lecturer.get("userId") in subject_lecturers
-    ]
-
-    subject = next(
-        (
-            item for item in subjects
-            if item.get("subjectId") == subject_id
-        ),
-        None
-    )
-
+    subject_id = UUID(str(subject_id))
+    subject = get_subject(subject_id)
     if subject is None:
         return "Subject not found", 404
 
-    # Preserve submitted values
+    all_available_lecturers = list_available_lecturers()
     form_data = {
-        "isActive": subject.get("isActive"),
-        "name": subject.get("name", ""),
-        "description": subject.get("description", ""),
-        "lecturers": subject_lecturers
+        "isActive": subject["isActive"],
+        "name": subject["name"],
+        "description": subject["description"] or "",
+        "lecturers": subject["lecturers"],
     }
-
-    # Error handling
     errors = {}
     general_error = None
 
     if request.method == "POST":
-        submitted_status = request.form.get("isActive")
+        submitted_status = request.form.get("isActive", "")
         status_values = {"true": True, "false": False}
+        lecturer_ids, selected_lecturers, lecturers_valid = _lecturer_selection(
+            all_available_lecturers,
+            request.form.getlist("lecturerId"),
+        )
         form_data = {
-            "isActive": status_values.get(submitted_status),
+            "isActive": status_values.get(submitted_status, subject["isActive"]),
             "name": request.form.get("name", "").strip(),
-            "subjectId": subject_id,  # Code is not editable
+            "subjectId": str(subject_id),
             "description": request.form.get("description", "").strip(),
-            "lecturers":  [int(id) for id in request.form.getlist("lecturerId")]  # List of selected lecturers
+            "lecturers": selected_lecturers,
         }
 
-        # Temporary JSON validation
         if not form_data["name"]:
             errors["name"] = "Subject name is required."
-
+        elif len(form_data["name"]) > 100:
+            errors["name"] = "Subject name must be 100 characters or fewer."
         if not form_data["description"]:
             errors["description"] = "Description is required."
-
-        # Process form submission if no errors
+        elif len(form_data["description"]) > 250:
+            errors["description"] = "Description must be 250 characters or fewer."
+        if submitted_status not in status_values:
+            errors["isActive"] = "Choose a valid subject status."
+        if not lecturers_valid:
+            errors["lecturers"] = "Choose valid lecturers."
 
         if errors:
-
             general_error = "Check the highlighted fields"
-
         else:
-
-            # Update subject
-            subject["isActive"] = form_data["isActive"]
-            subject["name"] = form_data["name"]
-            subject["subjectId"] = subject_id  # Code is not editable
-            subject["description"] = form_data["description"]
-            subject["lecturers"] = form_data["lecturers"]
-            subject["updatedAt"] = datetime.now().strftime("%Y-%m-%d")
-
-            if save_subjects(subjects):
-
-                return redirect(
-                    url_for("administrator.administrator_view_subjects_route")
+            try:
+                updated = update_subject(
+                    subject_id,
+                    form_data["name"],
+                    form_data["description"],
+                    form_data["isActive"],
+                    [UUID(lecturer_id) for lecturer_id in lecturer_ids],
                 )
-
+            except ValueError as error:
+                errors["lecturers"] = str(error)
+                general_error = "Check the highlighted fields"
             else:
-
-                general_error = "Unable to save subject. Please try again."
-
-    # Format last updated date
-    updated_at = subject.get("updatedAt", "")
-
-    if updated_at:
-        try:
-            updated_at = datetime.strptime(
-                updated_at, "%Y-%m-%d"
-            ).strftime("%d %b %Y")
-        except ValueError:
-            pass
+                if updated:
+                    return redirect(
+                        url_for("administrator.administrator_view_subjects_route")
+                    )
+                return "Subject not found", 404
 
     return render_template(
         "administrator/edit_subject.html",
         subject=subject,
         all_available_lecturers=all_available_lecturers,
         form_data=form_data,
-        updated_at=updated_at,
         errors=errors,
         general_error=general_error
     )
 
 def administrator_create_subject_route(methods=["GET", "POST"]):
-    all_available_lecturers = [user for user in load_users() if user.get("role") == "lecturer" or user.get("role") == "admin"]
+    all_available_lecturers = list_available_lecturers()
     errors = {}
     general_error = None
 
@@ -299,40 +166,51 @@ def administrator_create_subject_route(methods=["GET", "POST"]):
         "name": "",
         "subjectId": str(uuid.uuid4()),
         "description": "",
-        "lecturers":  [],  # List of selected lecturers
+        "lecturers": [],
     }
 
     if request.method == "POST":
-        form_data = {
-            "isActive": True,
-            "name": request.form.get("name", "").strip(),
-            "subjectId": request.form.get("subjectId", "").strip(),
-            "description": request.form.get("description", "").strip(),
-            "lecturers":  [int(id) for id in request.form.getlist("lecturerId")],  # List of selected lecturers
-            "updatedAt": datetime.now().strftime("%Y-%m-%d")
-        }
+        subject_id = uuid.uuid4()
 
-        if not form_data["subjectId"]:
-            form_data["subjectId"] = str(uuid.uuid4())
+        lecturer_ids, selected_lecturers, lecturers_valid = _lecturer_selection(
+            all_available_lecturers,
+            request.form.getlist("lecturerId"),
+        )
+        form_data = {
+            "name": request.form.get("name", "").strip(),
+            "subjectId": str(subject_id),
+            "description": request.form.get("description", "").strip(),
+            "lecturers": selected_lecturers,
+        }
 
         if not form_data["name"]:
             errors["name"] = "Subject name is required."
-
+        elif len(form_data["name"]) > 100:
+            errors["name"] = "Subject name must be 100 characters or fewer."
         if not form_data["description"]:
             errors["description"] = "Description is required."
+        elif len(form_data["description"]) > 250:
+            errors["description"] = "Description must be 250 characters or fewer."
+        if not lecturers_valid:
+            errors["lecturers"] = "Choose valid lecturers."
 
         if errors:
             general_error = "Check the highlighted fields"
         else:
-            subjects = load_subjects()
-            subjects.append(form_data)
-
-            if save_subjects(subjects):
+            try:
+                create_subject(
+                    form_data["name"],
+                    form_data["description"],
+                    [UUID(lecturer_id) for lecturer_id in lecturer_ids],
+                    subject_id,
+                )
+            except ValueError as error:
+                errors["lecturers"] = str(error)
+                general_error = "Check the highlighted fields"
+            else:
                 return redirect(
                     url_for("administrator.administrator_view_subjects_route")
                 )
-
-            general_error = "Unable to save subject. Please try again."
 
     return render_template(
         "administrator/create_subject.html",
@@ -343,74 +221,43 @@ def administrator_create_subject_route(methods=["GET", "POST"]):
     )
 
 def administrator_view_users_route(methods=["GET"]):
-    all_users = load_users()
-
-    #search = request.args.get("q", "").strip().lower()
-    search = ""
-
-    # Pagination
-    page = request.args.get("page", 1, type=int)
+    search = request.args.get("q", "").strip()
+    page = max(1, request.args.get("page", 1, type=int))
     per_page = 8
+    users, total = list_users(search, per_page, (page - 1) * per_page)
+    requested_page = page
+    page, start, pagination = _pagination(total, page, per_page)
+    if page != requested_page:
+        users, total = list_users(search, per_page, start)
 
-    total = len(all_users)
-    total_pages = max(
-        1,
-        math.ceil(total / per_page)
-    )
-    page = max(1, min(page, total_pages))
-
-    start = (page - 1) * per_page
-    end = start + per_page
-
-    paginated_users = all_users[start:end]
-
-    pagination = {
-        "page": page,
-        "per_page": per_page,
-        "total": total,
-        "first": start + 1 if total else 0,
-        "last": min(end, total),
-        "total_pages": total_pages,
-        "has_prev": page > 1,
-        "has_next": page < total_pages,
-        "prev_num": page - 1,
-        "next_num": page + 1
-    }
-    
     return render_template(
-    "administrator/view_users.html",
-    users=paginated_users,
-    pagination=pagination,
-    search=search
+        "administrator/view_users.html",
+        users=users,
+        pagination=pagination,
+        search=search
     )
 
 def administrator_activate_deactivate_user_route(user_id, action, methods=["GET"]):
-    all_users = load_users()
-
-    user = next((u for u in all_users if u["userId"] == user_id), None)
-
-    if user:
-        if action == "activate":
-            user["isDisabled"] = False
-        elif action == "deactivate":
-            user["isDisabled"] = True
-
-        if save_users(all_users):
-            return redirect(url_for("administrator.administrator_view_users_route"))
-        else:
-            return "Failed to update user status", 500
+    if action not in {"activate", "deactivate"}:
+        return "Invalid account action", 400
+    if not set_user_disabled(user_id, action == "deactivate"):
+        return "User not found", 404
+    return redirect(url_for("administrator.administrator_view_users_route"))
 
 
 def administrator_edit_user_route(user_id, methods=["GET", "POST", "DELETE"]):
-    all_users = load_users()
-    user = next(u for u in all_users if u["userId"] == user_id)
+    user = get_user(user_id)
+    if user is None:
+        return "User not found", 404
 
     form_data = {
-        "firstName": user.get("firstName", ""),
-        "lastName": user.get("lastName", ""),
-        "email": user.get("email", ""),
-        "role": user.get("role", ""),
-        "lastLoginAt": user.get("lastLoginAt", "")
+        "firstName": user["firstName"],
+        "lastName": user["lastName"],
+        "email": user["email"],
+        "role": user["role"],
+        "lastLoginAt": user["lastLoginAt"],
+        "studentNumber": user["studentNumber"],
+        "courseTitle": user["courseTitle"],
     }
 
     errors = {}
@@ -422,40 +269,72 @@ def administrator_edit_user_route(user_id, methods=["GET", "POST", "DELETE"]):
             "lastName": request.form.get("lastName", "").strip(),
             "email": request.form.get("email", "").strip(),
             "role": request.form.get("role", "").strip(),
-            "lastLoginAt": user.get("lastLoginAt", "")
+            "lastLoginAt": user["lastLoginAt"],
+            "studentNumber": request.form.get("studentNumber", "").strip(),
+            "courseTitle": request.form.get("courseTitle", "").strip(),
         }
-
-        errors = {}
 
         if not form_data["firstName"]:
             errors["firstName"] = "First name is required."
+        elif len(form_data["firstName"]) > 50:
+            errors["firstName"] = "First name must be 50 characters or fewer."
 
         if not form_data["lastName"]:
             errors["lastName"] = "Last name is required."
+        elif len(form_data["lastName"]) > 50:
+            errors["lastName"] = "Last name must be 50 characters or fewer."
 
         if not form_data["email"]:
             errors["email"] = "Email is required."
+        elif len(form_data["email"]) > 50 or "@" not in form_data["email"]:
+            errors["email"] = "Enter a valid email address (maximum 50 characters)."
 
-        if not form_data["role"]:
-            errors["role"] = "Role is required."
+        if form_data["role"] not in {"student", "lecturer", "admin"}:
+            errors["role"] = "Choose a valid user role."
+
+        if form_data["role"] == "student":
+            if not form_data["studentNumber"]:
+                errors["studentNumber"] = "Student number is required."
+            elif len(form_data["studentNumber"]) > 20:
+                errors["studentNumber"] = "Student number must be 20 characters or fewer."
+            if not form_data["courseTitle"]:
+                errors["courseTitle"] = "Course title is required."
+            elif len(form_data["courseTitle"]) > 100:
+                errors["courseTitle"] = "Course title must be 100 characters or fewer."
 
         if not errors:
-            user.update(form_data)
-
-            if save_users(all_users):
-                return redirect(url_for("administrator.administrator_view_users_route"))
+            try:
+                updated = update_user(
+                    user_id,
+                    form_data["firstName"],
+                    form_data["lastName"],
+                    form_data["email"],
+                    form_data["role"],
+                    form_data["studentNumber"] or None,
+                    form_data["courseTitle"] or None,
+                )
+            except UniqueViolation:
+                errors["email"] = "A user with this email already exists."
+                general_error = "Check the highlighted fields"
             else:
-                general_error = "Unable to save user. Please try again."
-        else:
+                if not updated:
+                    return "User not found", 404
+                return redirect(url_for("administrator.administrator_view_users_route"))
+
+        if errors:
             general_error = "Check the highlighted fields"
 
     if request.method == "DELETE":
-        all_users = [u for u in all_users if u["userId"] != user_id]
-
-        if save_users(all_users):
+        try:
+            deleted = delete_user(user_id)
+        except ForeignKeyViolation:
+            return (
+                "This user is referenced by tests or attempts and cannot be deleted.",
+                409,
+            )
+        if deleted:
             return "", 204
-        else:
-            general_error = "Unable to delete user. Please try again."
+        return "User not found", 404
 
     return render_template(
         "administrator/edit_user.html",
@@ -470,51 +349,71 @@ def administrator_create_user_route(methods=["GET", "POST"]):
         "lastName": "",
         "email": "",
         "role": "lecturer",
-        "lastLoginAt": "n/a"
+        "studentNumber": "",
+        "courseTitle": "",
     }
 
     errors = {}
     general_error = None
 
     if request.method == "POST":
-        users = load_users()
-
         form_data = {
-            "userId": max(
-                (user["userId"] for user in users),
-                default=1000
-            ) + 1,
             "firstName": request.form.get("firstName", "").strip(),
             "lastName": request.form.get("lastName", "").strip(),
             "email": request.form.get("email", "").strip(),
-            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
             "role": request.form.get("role", "").strip(),
-            "mfaEnabled": False,
-            "mfaSecret": None,
-            "isDisabled": True,
-            "lastLoginAt": None
+            "studentNumber": request.form.get("studentNumber", "").strip(),
+            "courseTitle": request.form.get("courseTitle", "").strip(),
         }
+        password = request.form.get("password", "")
 
-        try:
-            users.append(form_data)
-            if save_users(users):
+        if not form_data["firstName"]:
+            errors["firstName"] = "First name is required."
+        elif len(form_data["firstName"]) > 50:
+            errors["firstName"] = "First name must be 50 characters or fewer."
+        if not form_data["lastName"]:
+            errors["lastName"] = "Last name is required."
+        elif len(form_data["lastName"]) > 50:
+            errors["lastName"] = "Last name must be 50 characters or fewer."
+        if not form_data["email"]:
+            errors["email"] = "Email is required."
+        elif len(form_data["email"]) > 50 or "@" not in form_data["email"]:
+            errors["email"] = "Enter a valid email address (maximum 50 characters)."
+        if form_data["role"] not in {"student", "lecturer", "admin"}:
+            errors["role"] = "Choose a valid user role."
+        if not password:
+            errors["password"] = "Password is required."
+        elif len(password) < 8:
+            errors["password"] = "Password must be at least 8 characters."
+
+        if form_data["role"] == "student":
+            if not form_data["studentNumber"]:
+                errors["studentNumber"] = "Student number is required."
+            elif len(form_data["studentNumber"]) > 20:
+                errors["studentNumber"] = "Student number must be 20 characters or fewer."
+            if not form_data["courseTitle"]:
+                errors["courseTitle"] = "Course title is required."
+            elif len(form_data["courseTitle"]) > 100:
+                errors["courseTitle"] = "Course title must be 100 characters or fewer."
+
+        if errors:
+            general_error = "Check the highlighted fields"
+        else:
+            try:
+                create_user(
+                    form_data["firstName"],
+                    form_data["lastName"],
+                    form_data["email"],
+                    generate_password_hash(password),
+                    form_data["role"],
+                    form_data["studentNumber"] or None,
+                    form_data["courseTitle"] or None,
+                )
+            except UniqueViolation:
+                errors["email"] = "A user with this email already exists."
+                general_error = "Check the highlighted fields"
+            else:
                 return redirect(url_for("administrator.administrator_view_users_route"))
-
-            general_error = "Unable to save user due to connection. Please try again."
-            return render_template(
-                "administrator/create_user.html",
-                form_data=form_data,
-                errors=errors,
-                general_error=general_error
-            )
-        except:
-            general_error = "Oops, you've dropped a clanger"
-            return render_template(
-                "administrator/create_user.html",
-                form_data=form_data,
-                errors=errors,
-                general_error=general_error
-            )
 
     return render_template(
         "administrator/create_user.html",

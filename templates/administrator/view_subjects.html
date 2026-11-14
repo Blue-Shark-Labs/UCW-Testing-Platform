@@ -32,7 +32,7 @@
                         type="search"
                         name="q"
                         value="{{ search }}"
-                        placeholder="Search by name or code"
+                        placeholder="Search by name or description"
                         class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                     >
                 </form>
@@ -50,7 +50,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-200 bg-white">
                         {% for subject in subjects %}
-                        <tr class="transition hover:bg-slate-50">
+                        <tr class="">
                             <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-900">{{ subject.name }}</td>
                             <td class="px-3 py-4 text-sm text-slate-500">{{ subject.description }}</td>
                             <td class="px-3 py-4 text-sm text-slate-500">{{ subject.lecturerNames | join(", ") if subject.lecturerNames else "No lecturers assigned" }}</td>
@@ -60,8 +60,15 @@
                                     <h4 class="text-sm font-medium">{% if subject.isActive == true %}Active{% else %}Archived{% endif %}</h4>
                                 </div>
                             </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-right">
-                                <a href="{{ url_for('administrator.administrator_edit_subject_route', subject_id=subject.subjectId) }}" class="text-sm font-semibold text-app-primary hover:text-blue-800">Edit</a>
+                            <td class="whitespace-nowrap px-3 py-4 flex items-center justify-end">
+                                <a href="{{ url_for('administrator.administrator_edit_subject_route', subject_id=subject.subjectId) }}"
+                                    class="flex flex-col items-center justify-center w-14 h-11 rounded-xl bg-transparent border border-transparent hover:bg-blue-50/80 transition-all group cursor-pointer"
+                                    title="Edit Details">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                    <span class="mt-0.5 text-[9.5px] font-medium text-slate-500 group-hover:text-blue-600 transition-colors">Edit</span>
+                                </a>
                             </td>
                         </tr>
                         {% else %}

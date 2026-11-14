@@ -61,14 +61,14 @@
                 <div class="flex items-center gap-4 mb-4 w-full">
                     <div class="w-full">
                         <label for="firstName" class="mb-2 block text-sm font-semibold text-slate-800">First name</label>
-                        <input type="text" id="firstName" name="firstName" value="{{ form_data.firstName }}" required class="w-full rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-blue-100 {% if errors.get('firstName') %}border-red-400 focus:border-red-400 focus:ring-red-100{% else %}border-slate-200 focus:border-blue-400{% endif %}">
+                        <input type="text" id="firstName" name="firstName" value="{{ form_data.firstName }}" maxlength="50" required class="w-full rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-blue-100 {% if errors.get('firstName') %}border-red-400 focus:border-red-400 focus:ring-red-100{% else %}border-slate-200 focus:border-blue-400{% endif %}">
                         {% if errors.get('firstName') %}
                         <p class="mt-1.5 text-xs text-red-500">{{ errors.firstName }}</p>
                         {% endif %}
                     </div>
                     <div class="w-full">
                         <label for="lastName" class="mb-2 block text-sm font-semibold text-slate-800">Last name</label>
-                        <input type="text" id="lastName" name="lastName" value="{{ form_data.lastName }}" required class="w-full rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-blue-100 {% if errors.get('lastName') %}border-red-400 focus:border-red-400 focus:ring-red-100{% else %}border-slate-200 focus:border-blue-400{% endif %}">
+                        <input type="text" id="lastName" name="lastName" value="{{ form_data.lastName }}" maxlength="50" required class="w-full rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none transition focus:ring-2 focus:ring-blue-100 {% if errors.get('lastName') %}border-red-400 focus:border-red-400 focus:ring-red-100{% else %}border-slate-200 focus:border-blue-400{% endif %}">
                         {% if errors.get('lastName') %}
                         <p class="mt-1.5 text-xs text-red-500">{{ errors.lastName }}</p>
                         {% endif %}
@@ -76,8 +76,11 @@
                 </div>
                 <div class="mb-4">
                     <label for="email" class="mb-2 block text-sm font-semibold text-slate-800">Email address</label>
-                    <input type="text" id="email" name="email" value="{{ form_data.email }}" required class="w-full rounded-lg border px-3 py-3 pr-9 text-sm text-slate-800 outline-none border-slate-200">
+                    <input type="email" id="email" name="email" value="{{ form_data.email }}" maxlength="50" required class="w-full rounded-lg border px-3 py-3 pr-9 text-sm text-slate-800 outline-none border-slate-200">
                     <p class="mt-2 text-xs text-slate-500">The email address used by the user.</p>
+                    {% if errors.get('email') %}
+                    <p class="mt-1.5 text-xs text-red-500">{{ errors.email }}</p>
+                    {% endif %}
                 </div>
                 <div class="mb-4">
                     <label for="role" class="mb-2 block text-sm font-semibold text-slate-800">Role</label>
@@ -92,6 +95,22 @@
                         <option value="admin" {% if form_data.role == 'admin' %}selected{% endif %}>Admin</option>
                     </select>
                     <p class="mt-2 text-xs text-slate-500">The role assigned to the user.</p>
+                </div>
+                <div id="studentFields" class="mb-4 space-y-4">
+                    <div>
+                        <label for="studentNumber" class="mb-2 block text-sm font-semibold text-slate-800">Student number</label>
+                        <input type="text" id="studentNumber" name="studentNumber" value="{{ form_data.studentNumber }}" maxlength="20" class="w-full rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none border-slate-200">
+                        {% if errors.get('studentNumber') %}
+                        <p class="mt-1.5 text-xs text-red-500">{{ errors.studentNumber }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="courseTitle" class="mb-2 block text-sm font-semibold text-slate-800">Course title</label>
+                        <input type="text" id="courseTitle" name="courseTitle" value="{{ form_data.courseTitle }}" maxlength="100" class="w-full rounded-lg border px-3 py-3 text-sm text-slate-800 outline-none border-slate-200">
+                        {% if errors.get('courseTitle') %}
+                        <p class="mt-1.5 text-xs text-red-500">{{ errors.courseTitle }}</p>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="mb-4">
                     <label for="lastLoginAt" class="mb-2 block text-sm font-semibold text-slate-800">Last login</label>
@@ -124,4 +143,20 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+    const rolePicker = document.getElementById("role");
+    const studentFields = document.getElementById("studentFields");
+    const studentNumber = document.getElementById("studentNumber");
+    const courseTitle = document.getElementById("courseTitle");
+
+    function updateStudentFields() {
+        const isStudent = rolePicker.value === "student";
+        studentFields.hidden = !isStudent;
+        studentNumber.required = isStudent;
+        courseTitle.required = isStudent;
+    }
+
+    rolePicker.addEventListener("change", updateStudentFields);
+    updateStudentFields();
+</script>
 {% endblock %}
