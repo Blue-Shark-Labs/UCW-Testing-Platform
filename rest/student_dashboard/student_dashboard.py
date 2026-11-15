@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import datetime
 from io import StringIO
 
-from flask import abort, g, make_response, render_template, url_for
+from flask import abort, g, make_response, redirect, render_template, url_for
 
 from database.helpers.database_helpers import get_assigned_tests, get_completed_tests
 
@@ -15,7 +15,7 @@ _CHART_TOP = 12
 _CHART_BOTTOM = 30
 
 
-def student_dashboard_route():
+def student_test_lists_route():
     student_id = _student_id()
     assigned_tests = get_assigned_tests(student_id) if student_id else []
     completed_tests = get_completed_tests(student_id) if student_id else []
@@ -69,8 +69,8 @@ def student_statistics_export_route():
         completed_at = test.get("completed_at")
         writer.writerow(
             (
-                test.get("test_name", ""),
-                test.get("subject_name", ""),
+                _safe_csv_text(test.get("test_name", "")),
+                _safe_csv_text(test.get("subject_name", "")),
                 completed_at.strftime("%Y-%m-%d") if completed_at else "",
                 test.get("question_count", ""),
                 _format_csv_score(test.get("percentage")),
@@ -160,6 +160,12 @@ def _test_highlight(test_average, summary):
     return ""
 
 
+def _safe_csv_text(value):
+    # Prevents spreadsheet apps from evaluating cell text as a formula.
+    text = str(value)
+    return f"'{text}" if text.startswith(("=", "+", "-", "@", "\t", "\r")) else text
+
+
 def _format_csv_score(score):
     return f"{float(score):.1f}" if score is not None else ""
 
@@ -208,6 +214,8 @@ def _build_chart_points(completed_tests):
 
 def _student_id():
     user = getattr(g, "user", None)
-    if str(getattr(user, "role", "student")).lower() != "student":
+    if user is None:
+        abort(redirect(url_for("login_route")))
+    if str(getattr(user, "role", "")).lower() != "student":
         abort(403)
     return getattr(user, "user_id", None)

@@ -4,9 +4,10 @@
 and translate HTTP requests into database-layer calls. 
 """
 
-from flask import Blueprint, Flask, g, redirect, request, url_for
 import os
 from types import SimpleNamespace
+
+from flask import Blueprint, Flask, g, redirect, request, session, url_for
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
@@ -16,9 +17,9 @@ from rest.login.login import login_route
 from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 from rest.student_dashboard.student_dashboard import (
-    student_dashboard_route,
     student_statistics_export_route,
     student_statistics_route,
+    student_test_lists_route,
 )
 from rest.sidebar_navigation import get_sidebar_navigation
 
@@ -27,7 +28,12 @@ student_dashboard = Blueprint(
     __name__,
     url_prefix="/student-dashboard",
 )
-student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
+student_dashboard.add_url_rule(
+    "/",
+    endpoint="student_dashboard_route",
+    view_func=student_test_lists_route,
+    methods=["GET"],
+)
 statistics = Blueprint(
     "statistics",
     __name__,
@@ -78,12 +84,12 @@ def create_app():
     app.register_blueprint(statistics)
 
     @app.before_request
-    def set_test_user():
-        g.user = SimpleNamespace(
-            role="student",
-            name="Michael James",
-            user_id="00000000-0000-4000-8000-000000000001",
-        )  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
+    def load_session_user():
+        g.user = (
+            SimpleNamespace(role=session.get("role"), user_id=session.get("user_id"))
+            if "user_id" in session
+            else None
+        )
 
     @app.context_processor
     def inject_sidebar_navigation():

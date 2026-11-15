@@ -86,6 +86,45 @@ def test_statistics_routes_require_student_role(app, client):
     assert client.get("/statistics/export.csv").status_code == 403
 
 
+def test_statistics_routes_redirect_to_login_without_session(client):
+    with client.session_transaction() as session:
+        session.clear()
+
+    for path in ("/statistics", "/statistics/export.csv", "/student-dashboard/"):
+        response = client.get(path)
+        assert response.status_code == 302
+        assert response.headers["Location"].endswith("/login")
+
+
+def test_chart_points_are_ordered_oldest_first():
+    points = dashboard_module._build_chart_points(_completed_tests())
+
+    assert [point["score"] for point in points] == [80.0, 50.0, 90.0]
+    assert [point["x"] for point in points] == sorted(point["x"] for point in points)
+
+
+def test_export_marks_single_test_as_best_and_worst(client, monkeypatch):
+    monkeypatch.setattr(
+        dashboard_module, "get_completed_tests", lambda student_id: _completed_tests()[:1]
+    )
+
+    response = client.get("/statistics/export.csv")
+
+    rows = list(csv.DictReader(StringIO(response.get_data(as_text=True))))
+    assert rows[0]["Highlight"] == "Best and worst"
+
+
+def test_export_neutralises_spreadsheet_formulas(client, monkeypatch):
+    test = dict(_completed_tests()[0], test_name="=HYPERLINK(\"x\")", subject_name="@SUM(A1)")
+    monkeypatch.setattr(dashboard_module, "get_completed_tests", lambda student_id: [test])
+
+    response = client.get("/statistics/export.csv")
+
+    rows = list(csv.DictReader(StringIO(response.get_data(as_text=True))))
+    assert rows[0]["Test"] == "'=HYPERLINK(\"x\")"
+    assert rows[0]["Subject"] == "'@SUM(A1)"
+
+
 def test_empty_student_export_still_has_csv_headers(client, monkeypatch):
     monkeypatch.setattr(dashboard_module, "get_completed_tests", lambda student_id: [])
 
