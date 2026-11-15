@@ -3,10 +3,13 @@ from uuid import UUID
 from flask import abort, g, jsonify, render_template, request, url_for
 
 from database.helpers.database_helpers import (
+    UnansweredQuestionsError,
     save_test_answer,
     start_or_resume_test_attempt,
     submit_test_attempt,
 )
+
+UNANSWERED_ERROR = "Answer every question before submitting."
 
 
 def take_test_route(test_id):
@@ -28,9 +31,14 @@ def take_test_route(test_id):
             abort(404)
         return _render_result(attempt["test_name"], result)
 
+    return _render_testing_page(test_id, attempt)
+
+
+def _render_testing_page(test_id, attempt, error=None):
     return render_template(
         "student_dashboard/testing.html",
         attempt=attempt,
+        error=error,
         submit_url=url_for(
             "student_dashboard.submit_test",
             test_id=test_id,
@@ -90,6 +98,18 @@ def submit_test_route(test_id, attempt_id):
         )
     except ValueError:
         abort(400)
+    except UnansweredQuestionsError as error:
+        attempt = start_or_resume_test_attempt(test_id, student_id)
+        if attempt is None:
+            abort(404)
+        unanswered_ids = {str(question_id) for question_id in error.question_ids}
+        numbers = [
+            str(number)
+            for number, question in enumerate(attempt["questions"], start=1)
+            if str(question["question_id"]) in unanswered_ids
+        ]
+        message = f"{UNANSWERED_ERROR} Unanswered: {', '.join(numbers)}."
+        return _render_testing_page(test_id, attempt, message), 400
     if result is None:
         abort(404)
 

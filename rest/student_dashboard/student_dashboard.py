@@ -1,10 +1,16 @@
 from flask import abort, g, render_template
 
-from database.helpers.database_helpers import get_assigned_tests, get_completed_tests
+from database.helpers.database_helpers import (
+    get_assigned_tests,
+    get_completed_tests,
+    submit_expired_test_attempts,
+)
 
 
 def student_dashboard_route():
     student_id = _student_id()
+    if student_id:
+        submit_expired_test_attempts(student_id)
     assigned_tests = get_assigned_tests(student_id) if student_id else []
     completed_tests = get_completed_tests(student_id) if student_id else []
     return render_template(

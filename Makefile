@@ -12,6 +12,11 @@ seed-student-dashboard:
 seed-dev-users:
 	python3 -m database.migrations.seed_dev_users
 
+## submit-expired-attempts: Score timed-out attempts (schedule via cron).
+.PHONY: submit-expired-attempts
+submit-expired-attempts:
+	python3 -m scripts.submit_expired_attempts
+
 ## db-shell: Open the PostgreSQL shell.
 .PHONY: db-shell
 db-shell:

@@ -1,6 +1,9 @@
 from contextlib import contextmanager
 from datetime import datetime
 from unittest.mock import MagicMock
+
+import pytest
+
 from database.helpers import database_helpers
 
 
@@ -123,7 +126,7 @@ def test_start_attempt_uses_existing_attempt_answer_columns(monkeypatch):
     assert attempt["questions"][0]["question_text"] == "Solve for x."
 
 
-def test_submit_test_attempt_awards_correct_incorrect_and_unanswered_points(monkeypatch):
+def test_submit_test_attempt_awards_correct_and_incorrect_points(monkeypatch):
     class ScoringCursor:
         def __init__(self):
             self.one = None
@@ -168,6 +171,7 @@ def test_submit_test_attempt_awards_correct_incorrect_and_unanswered_points(monk
         {
             "question-1": "correct-option",
             "question-2": "incorrect-option",
+            "question-3": "incorrect-option",
         },
     )
 
@@ -178,9 +182,73 @@ def test_submit_test_attempt_awards_correct_incorrect_and_unanswered_points(monk
         "question_count": 3,
         "correct_count": 1,
         "percentage": 100 / 3,
-        "total_points": 20,
+        "total_points": 10,
         "timed_out": False,
     }
+
+
+def test_submit_expired_test_attempts_submits_each_expired_attempt(monkeypatch):
+    rows = [("test-1", "attempt-1", "student-1"), ("test-2", "attempt-2", "student-1")]
+    provider = FakeConnectionProvider(rows)
+    monkeypatch.setattr(database_helpers, "PostgresConnectionProvider", lambda: provider)
+    submitted = []
+    monkeypatch.setattr(
+        database_helpers,
+        "submit_test_attempt",
+        lambda test_id, attempt_id, user_id: submitted.append(attempt_id) or {},
+    )
+
+    count = database_helpers.submit_expired_test_attempts("student-1")
+
+    query, parameters = provider.cursor_mock.execute.call_args.args
+    assert "attempt.completed_at IS NULL" in query
+    assert "t.time_limit_minutes IS NOT NULL" in query
+    assert parameters == ("student-1", "student-1")
+    assert submitted == ["attempt-1", "attempt-2"]
+    assert count == 2
+
+
+def test_submit_with_unanswered_questions_raises_and_records_nothing(monkeypatch):
+    class UnansweredCursor:
+        def __init__(self):
+            self.one = None
+            self.many = []
+            self.executed = []
+
+        def execute(self, query, parameters):
+            self.executed.append(query)
+            if "SELECT t.time_limit_minutes" in query:
+                self.one = (None, "Algebra Check", False)
+            elif "SELECT question_id, selected_option_id" in query:
+                self.many = [("question-1", None), ("question-2", None)]
+
+        def fetchone(self):
+            return self.one
+
+        def fetchall(self):
+            return self.many
+
+    provider = FakeConnectionProvider([])
+    cursor = UnansweredCursor()
+
+    @contextmanager
+    def unanswered_cursor():
+        yield cursor
+
+    provider.cursor = unanswered_cursor
+    monkeypatch.setattr(database_helpers, "PostgresConnectionProvider", lambda: provider)
+
+    with pytest.raises(database_helpers.UnansweredQuestionsError) as error:
+        database_helpers.submit_test_attempt(
+            "test-1", "attempt-1", "student-1", {"question-1": "correct-option"}
+        )
+
+    assert error.value.question_ids == ["question-2"]
+
+    assert not any(
+        "UPDATE attempt_answers" in query or "UPDATE test_attempts" in query
+        for query in cursor.executed
+    )
 
 
 def test_expired_test_does_not_accept_late_answers(monkeypatch):

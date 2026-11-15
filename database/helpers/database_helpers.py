@@ -5,6 +5,14 @@ from database.connection import PostgresConnectionProvider
 from domain.entities.user import User
 
 
+class UnansweredQuestionsError(Exception):
+	"""Raised when a student submits an unexpired test with unanswered questions."""
+
+	def __init__(self, question_ids):
+		super().__init__("Unanswered questions remain.")
+		self.question_ids = question_ids
+
+
 def row_to_company_info(row):
     """Maps a company_info table row to a CompanyInfo domain entity."""
     product_name, product_description, contact_email, contact_phone, contact_address = row
@@ -313,13 +321,19 @@ def submit_test_attempt(test_id, attempt_id, student_id, answers=None):
 			(attempt_id,),
 		)
 		attempt_questions = cursor.fetchall()
-		correct_count = 0
-		total_points = 0
+		selections = []
 		for question_id, saved_option_id in attempt_questions:
 			selected_option_id = saved_option_id
 			if not expired and str(question_id) in answers:
 				selected_option_id = answers[str(question_id)]
+			selections.append((question_id, selected_option_id))
+		unanswered = [question_id for question_id, option_id in selections if option_id is None]
+		if not expired and unanswered:
+			raise UnansweredQuestionsError(unanswered)
 
+		correct_count = 0
+		total_points = 0
+		for question_id, selected_option_id in selections:
 			points_awarded = 0
 			if selected_option_id is not None:
 				cursor.execute(
@@ -376,6 +390,31 @@ def submit_test_attempt(test_id, attempt_id, student_id, answers=None):
 			"total_points": total_points,
 			"timed_out": expired,
 		}
+
+
+def submit_expired_test_attempts(student_id=None):
+	"""Score open attempts whose time limit has passed; returns how many were submitted."""
+	with PostgresConnectionProvider().cursor() as cursor:
+		cursor.execute(
+			"""
+			SELECT attempt.test_id, attempt.attempt_id, attempt.user_id
+			FROM test_attempts AS attempt
+			JOIN tests AS t ON t.test_id = attempt.test_id
+			WHERE attempt.completed_at IS NULL
+			  AND t.time_limit_minutes IS NOT NULL
+			  AND CURRENT_TIMESTAMP >= attempt.started_at
+			      + t.time_limit_minutes * INTERVAL '1 minute'
+			  AND (%s::uuid IS NULL OR attempt.user_id = %s::uuid)
+			""",
+			(student_id, student_id),
+		)
+		expired_attempts = cursor.fetchall()
+
+	submitted = 0
+	for test_id, attempt_id, user_id in expired_attempts:
+		if submit_test_attempt(test_id, attempt_id, user_id) is not None:
+			submitted += 1
+	return submitted
 
 
 def _fetch_rows(query, parameters, fields):

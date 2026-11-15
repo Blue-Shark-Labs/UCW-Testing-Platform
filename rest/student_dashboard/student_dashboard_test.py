@@ -10,6 +10,12 @@ from rest.student_dashboard import testing as testing_module
 
 class TestStudentDashboardRoutes:
     def test_dashboard_shows_assigned_and_completed_tests_together(self, client, monkeypatch):
+        submitted_for = []
+        monkeypatch.setattr(
+            dashboard_module,
+            "submit_expired_test_attempts",
+            submitted_for.append,
+        )
         monkeypatch.setattr(
             dashboard_module,
             "get_assigned_tests",
@@ -39,6 +45,7 @@ class TestStudentDashboardRoutes:
         response = client.get("/student-dashboard/")
 
         assert response.status_code == 200
+        assert len(submitted_for) == 1
         assert b"Algebra Check" in response.data
         assert b"Mathematics" in response.data
         assert b"Computing Basics" in response.data
@@ -155,6 +162,41 @@ class TestStudentTestingRoutes:
         assert b"30" in response.data
         assert submitted["answers"] == {str(question_id): option_id}
         assert submitted["student_id"] == "00000000-0000-4000-8000-000000000001"
+
+    def test_submitting_with_unanswered_questions_shows_error(self, client, monkeypatch):
+        test_id = UUID("00000000-0000-4000-8000-000000000001")
+        attempt_id = UUID("00000000-0000-4000-8000-000000000002")
+        first_question = UUID("00000000-0000-4000-8000-000000000003")
+        second_question = UUID("00000000-0000-4000-8000-000000000004")
+
+        def fake_submit(test_id, attempt_id, student_id, answers):
+            raise testing_module.UnansweredQuestionsError([second_question])
+
+        monkeypatch.setattr(testing_module, "submit_test_attempt", fake_submit)
+        monkeypatch.setattr(
+            testing_module,
+            "start_or_resume_test_attempt",
+            lambda test_id, student_id: {
+                "attempt_id": attempt_id,
+                "test_id": test_id,
+                "test_name": "Algebra Check",
+                "subject_name": "Mathematics",
+                "time_limit_minutes": None,
+                "seconds_remaining": None,
+                "questions": [
+                    {"question_id": first_question, "question_text": "Q1", "selected_option_id": None, "options": []},
+                    {"question_id": second_question, "question_text": "Q2", "selected_option_id": None, "options": []},
+                ],
+            },
+        )
+
+        response = client.post(
+            f"/student-dashboard/tests/{test_id}/attempts/{attempt_id}/submit",
+            data={},
+        )
+
+        assert response.status_code == 400
+        assert b"Answer every question before submitting. Unanswered: 2." in response.data
 
     def test_expired_test_is_submitted_when_opened(self, client, monkeypatch):
         test_id = UUID("00000000-0000-4000-8000-000000000001")
