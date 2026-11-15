@@ -22,6 +22,9 @@ def get_assigned_tests(student_id):
 	query = """
 		SELECT t.test_id, t.title, s.name, t.question_count
 		FROM tests AS t
+		JOIN test_assignments AS assignment
+			ON assignment.test_id = t.test_id
+			AND assignment.student_id = %s
 		JOIN subjects AS s ON s.subject_id = t.subject_id
 		WHERE NOT EXISTS (
 			  SELECT 1
@@ -32,7 +35,7 @@ def get_assigned_tests(student_id):
 		  )
 		ORDER BY t.title
 	"""
-	return _fetch_rows(query, (student_id,), fields)
+	return _fetch_rows(query, (student_id, student_id), fields)
 
 
 def get_completed_tests(student_id):
@@ -47,14 +50,11 @@ def get_completed_tests(student_id):
 	)
 	query = """
 		SELECT attempt.attempt_id, t.title, attempt.completed_at,
-			   COUNT(DISTINCT answer.question_id), attempt.percentage,
-			   attempt.total_points
+			   t.question_count, attempt.percentage, attempt.total_points
 		FROM test_attempts AS attempt
 		JOIN tests AS t ON t.test_id = attempt.test_id
-		LEFT JOIN attempt_answers AS answer ON answer.attempt_id = attempt.attempt_id
 		WHERE attempt.user_id = %s
 		  AND attempt.completed_at IS NOT NULL
-		GROUP BY attempt.attempt_id, t.title
 		ORDER BY attempt.completed_at DESC
 	"""
 	return _fetch_rows(query, (student_id,), fields)

@@ -45,9 +45,9 @@ class TestCreateApp:
     @pytest.mark.parametrize(
         ("role", "visible_item", "hidden_item"),
         [
-            ("student", b"Assigned Tests", b"User Management"),
-            ("lecturer", b"Manage Tests", b"Assigned Tests"),
-            ("admin", b"User Management", b"Assigned Tests"),
+            ("student", b"Subject Leaderboards", b"User Management"),
+            ("lecturer", b"Manage Tests", b"Subject Leaderboards"),
+            ("admin", b"User Management", b"Subject Leaderboards"),
         ],
     )
     def test_sidebar_items_are_selected_by_session_role(self, client, role, visible_item, hidden_item):

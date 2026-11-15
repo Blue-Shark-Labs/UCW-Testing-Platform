@@ -1,43 +1,17 @@
 """Seed repeatable sample data for manually testing the student dashboard.
 
-Run after creating the schema with
+Attaches the data to the dev student created by `seed_dev_users`, so run
+`make seed-dev-users` first, then
 `python -m database.migrations.seed_student_dashboard` or
-`make seed-student-dashboard`.
+`make seed-student-dashboard`. Never run against prod.
 """
 
 from database.connection import PostgresConnectionProvider
+from database.migrations.seed_dev_users import DEV_USERS
+
+DEV_STUDENT_EMAIL = next(email for _, _, email, _, role in DEV_USERS if role == "student")
 
 SEED_STATEMENTS = [
-    """
-    INSERT INTO users (user_id, first_name, last_name, email, password_hash, role)
-    VALUES (
-        '00000000-0000-4000-8000-000000000001',
-        'Michael',
-        'James',
-        'michael.james@example.test',
-        'seed-data-only',
-        'student'
-    )
-    ON CONFLICT (user_id) DO UPDATE SET
-        first_name = EXCLUDED.first_name,
-        last_name = EXCLUDED.last_name,
-        email = EXCLUDED.email,
-        password_hash = EXCLUDED.password_hash,
-        role = EXCLUDED.role;
-    """,
-    """
-    INSERT INTO students (user_id, student_number, course_title, is_approved)
-    VALUES (
-        '00000000-0000-4000-8000-000000000001',
-        'DEMO-001',
-        'BSc Computing',
-        TRUE
-    )
-    ON CONFLICT (user_id) DO UPDATE SET
-        student_number = EXCLUDED.student_number,
-        course_title = EXCLUDED.course_title,
-        is_approved = EXCLUDED.is_approved;
-    """,
     """
     INSERT INTO subjects (subject_id, name, description)
     VALUES
@@ -139,52 +113,52 @@ SEED_STATEMENTS = [
     VALUES
         (
             '00000000-0000-4000-8000-000000000020',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-10-30 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000021',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-10-29 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000022',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-08 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000023',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-07 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000024',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-06 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000025',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-05 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000026',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-04 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000027',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-03 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000028',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-02 09:00:00'
         ),
         (
             '00000000-0000-4000-8000-000000000029',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-01 09:00:00'
         )
     ON CONFLICT (test_id, student_id) DO UPDATE SET
@@ -247,7 +221,7 @@ SEED_STATEMENTS = [
     VALUES (
         '00000000-0000-4000-8000-000000000050',
         '00000000-0000-4000-8000-000000000021',
-        '00000000-0000-4000-8000-000000000001',
+        %(student_id)s,
         TIMESTAMP '2026-10-31 14:00:00',
         TIMESTAMP '2026-10-31 14:30:00',
         80.00,
@@ -269,7 +243,7 @@ SEED_STATEMENTS = [
         (
             '00000000-0000-4000-8000-000000000051',
             '00000000-0000-4000-8000-000000000026',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-04 10:00:00',
             TIMESTAMP '2026-11-04 10:25:00',
             100.00,
@@ -278,7 +252,7 @@ SEED_STATEMENTS = [
         (
             '00000000-0000-4000-8000-000000000052',
             '00000000-0000-4000-8000-000000000027',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-03 10:00:00',
             TIMESTAMP '2026-11-03 10:25:00',
             80.00,
@@ -287,7 +261,7 @@ SEED_STATEMENTS = [
         (
             '00000000-0000-4000-8000-000000000053',
             '00000000-0000-4000-8000-000000000028',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-02 10:00:00',
             TIMESTAMP '2026-11-02 10:25:00',
             60.00,
@@ -296,7 +270,7 @@ SEED_STATEMENTS = [
         (
             '00000000-0000-4000-8000-000000000054',
             '00000000-0000-4000-8000-000000000029',
-            '00000000-0000-4000-8000-000000000001',
+            %(student_id)s,
             TIMESTAMP '2026-11-01 10:00:00',
             TIMESTAMP '2026-11-01 10:25:00',
             40.00,
@@ -502,9 +476,24 @@ SEED_STATEMENTS = [
 def seed_student_dashboard():
     provider = PostgresConnectionProvider()
     with provider.cursor() as cur:
+        cur.execute(
+            """
+            SELECT u.user_id
+            FROM users AS u
+            JOIN students AS s ON s.user_id = u.user_id
+            WHERE u.email = %s AND u.role = 'student';
+            """,
+            (DEV_STUDENT_EMAIL,),
+        )
+        row = cur.fetchone()
+        if row is None:
+            raise RuntimeError(
+                f"Dev student {DEV_STUDENT_EMAIL} not found. Run `make seed-dev-users` first."
+            )
+        params = {"student_id": row[0]}
         for statement in SEED_STATEMENTS:
-            cur.execute(statement)
-    print("Student dashboard sample data seeded.")
+            cur.execute(statement, params)
+    print(f"Student dashboard sample data seeded for {DEV_STUDENT_EMAIL}.")
 
 
 if __name__ == "__main__":

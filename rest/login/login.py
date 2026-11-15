@@ -4,7 +4,7 @@ from database.connection import PostgresConnectionProvider
 from usecase.authenticate_user import authenticate_user
 
 ROLE_DASHBOARD_ENDPOINTS = {
-    "student": "student_dashboard_route",
+    "student": "student_dashboard.student_dashboard_route",
     "lecturer": "lecturer_dashboard_route",
     "admin": "admin_dashboard_route",
 }
