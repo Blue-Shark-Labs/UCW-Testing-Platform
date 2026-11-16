@@ -3,6 +3,11 @@
 setup-db:
 	python3 -m database.migrations.migrate
 
+## seed-dev-users: Seed one login per role (dev/nonprod only).
+.PHONY: seed-dev-users
+seed-dev-users:
+	python3 -m database.migrations.seed_dev_users
+
 ## db-shell: Open the PostgreSQL shell.
 .PHONY: db-shell
 db-shell:

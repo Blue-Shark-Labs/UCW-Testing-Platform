@@ -3,3 +3,6 @@ DATABASE_URL=nonprod.bluesharklabs.remote.ac
 DATABASE_NAME=WS381566_bluesharklabs_nonprod
 USERNAME=WS381566_nonprod_admin
 PASSWORD=
+
+#Session secret (signs the login session cookie)
+SECRET_KEY=

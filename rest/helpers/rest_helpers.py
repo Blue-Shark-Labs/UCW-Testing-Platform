@@ -1,6 +1,8 @@
 # Shared helpers for REST route handlers.
 
-from flask import jsonify, request
+from functools import wraps
+
+from flask import jsonify, redirect, request, session, url_for
 
 
 def wants_json():
@@ -13,3 +15,18 @@ def json_response(message, status_code=200):
     if isinstance(message, dict):
         return jsonify(message), status_code
     return jsonify({"message": message}), status_code
+
+
+def login_required(role=None):
+    """Redirects to the login page unless there's an authenticated session (optionally for a specific role)."""
+
+    def decorator(view):
+        @wraps(view)
+        def wrapped_view(*args, **kwargs):
+            if "user_id" not in session or (role is not None and session.get("role") != role):
+                return redirect(url_for("login_route"))
+            return view(*args, **kwargs)
+
+        return wrapped_view
+
+    return decorator

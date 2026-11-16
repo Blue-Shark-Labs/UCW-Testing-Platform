@@ -4,14 +4,23 @@
 and translate HTTP requests into database-layer calls. 
 """
 
-from flask import Flask, g, redirect, request, url_for
+import os
 from types import SimpleNamespace
 
+from flask import Flask, g, redirect, request, session, url_for
+
+from rest.dashboard.admin_dashboard import admin_dashboard_route
+from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
+from rest.dashboard.student_dashboard import student_dashboard_route
+from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
+from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 from rest.sidebar_navigation import get_sidebar_navigation
+
 from rest.lecturer.student_management import lecturer_bp
 from rest.lecturer.test_management import test_management_bp
+from database.connection import PostgresConnectionProvider
 
 def root_route():
     return redirect(url_for("login_route"))
@@ -24,23 +33,60 @@ def create_app():
         static_folder="../static",
     )
 
+    secret_key = os.environ.get("SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY must be set.")
+    app.secret_key = secret_key
+    app.config.update(
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=True,
+    )
+
     app.add_url_rule("/", view_func=root_route, methods=["GET"])
-    app.add_url_rule("/login", view_func=login_route, methods=["GET"])
+    app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
+    app.add_url_rule("/register", view_func=register_route, methods=["GET"])
+    app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
+    app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
+    app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
+    app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
     app.register_blueprint(lecturer_bp)  # lecturer blueprint
     app.register_blueprint(test_management_bp)  # Register test management blueprint
 
     app.secret_key = "ucw-dev-secret-key"
 
-    # For authetnication set g.user for each request otherwise default will be student,
-    # this can be done in a before_request handler or a middleware depending on the authentication mechanism used.
-    # That's up to you to figure out :)
-
-    # This is just for manual testing, you can remove it when you implement your authentication mechanism.
     @app.before_request
-    def set_test_user():
-        # g.user = SimpleNamespace(role="student", name="Michael James")  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
-        g.user = SimpleNamespace(role="lecturer", name="Dr. James Hickmott")
+    def load_session_user():
+        if "user_id" not in session:
+            g.user = None
+            return
+
+        connection_provider = PostgresConnectionProvider()
+
+        with connection_provider.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT first_name, last_name, role
+                FROM users
+                WHERE user_id = %s
+                """,
+                (session["user_id"],)
+            )
+            user = cursor.fetchone()
+
+        if user:
+            first_name = user[0]
+            last_name = user[1]
+
+            g.user = SimpleNamespace(
+                first_name=first_name,
+                last_name=last_name,
+                name=f"{first_name} {last_name}",
+                role=user[2]
+            )
+        else:
+            g.user = None
 
     @app.context_processor
     def inject_sidebar_navigation():

@@ -3,3 +3,5 @@ import sys
 
 # Add the project root to the Python path so all test files can import modules directly.
 sys.path.insert(0, os.path.dirname(__file__))
+
+os.environ.setdefault("SECRET_KEY", "test-only-secret-key")

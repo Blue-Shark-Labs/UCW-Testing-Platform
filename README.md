@@ -9,7 +9,11 @@
 
 ## 2. Architecture
 
-- Clean architecture
+- Clean architecture — dependencies point inward: `rest` → `usecase` → `database`, with `domain` entities shared across all layers.
+  - **rest/** — HTTP delivery only: Flask routes/handlers translate requests into usecase calls and render responses. No SQL, no business rules.
+  - **usecase/** — business logic/orchestration: coordinates one or more database calls and enforces business rules (e.g. auth attempts, scoring, question selection). No Flask/HTTP objects, no SQL.
+  - **database/** — persistence only: raw SQL queries and row-mapping helpers. The only code that talks to Postgres.
+  - **domain/entities/** — plain data objects (dataclasses) passed between layers; no behavior/logic.
 
 ## 3. Database & data
 
@@ -39,10 +43,12 @@ Clean architecture — dependencies point inward (REST → use cases → databas
 │   ├── home.py                  # home_route()
 │   ├── helpers/rest_helpers.py  # shared JSON helpers
 │   └── *_test.py                # co-located tests
+├── usecase/                     # use case layer: business logic, no Flask/SQL
 ├── database/                    # database layer
 │   ├── connection.py            # PostgresConnectionProvider (raw psycopg)
 │   ├── helpers/                 # row-mapping helpers
 │   └── migrations/migrate.py    # schema setup (make setup-db)
+├── domain/entities/             # plain data objects shared across layers
 ├── templates/                   # templates + partials
 ├── static/css/                  # styles
 ├── requirements.txt
