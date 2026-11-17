@@ -37,6 +37,36 @@ SCHEMA_STATEMENTS = [
         is_approved BOOLEAN NOT NULL DEFAULT FALSE
     );
     """,
+    # Automatically generate student numbers.
+    """
+    CREATE SEQUENCE IF NOT EXISTS student_number_seq;
+    """,
+    # Initialise the sequence without moving it backwards.
+    """
+    SELECT setval(
+        'student_number_seq',
+        GREATEST(
+            (SELECT last_value FROM student_number_seq),
+            COALESCE(
+                (
+                    SELECT MAX(
+                        CAST(SUBSTRING(student_number FROM 2) AS BIGINT)
+                    )
+                    FROM students
+                    WHERE student_number ~ '^S[0-9]+$'
+                ),
+                1
+            )
+        ),
+        TRUE
+    );
+    """,
+    # Prevent duplicate student numbers.
+    """
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_students_student_number
+    ON students(student_number);
+    """,
+    # Create subjects table
     """
     CREATE TABLE IF NOT EXISTS subjects (
         subject_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
