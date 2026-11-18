@@ -6,3 +6,6 @@ PASSWORD=
 
 #Session secret (signs the login session cookie)
 SECRET_KEY=
+
+#Local dev runs over http, so the session cookie can't be Secure-only
+SESSION_COOKIE_SECURE=false
