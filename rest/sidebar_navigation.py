@@ -20,7 +20,6 @@ _NAVIGATION_BY_ROLE = {
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
     "lecturer": [
-        {"label": "Home", "icon": "home", "endpoint": "pr_block.pr_block_route"},
         {
             "label": "Management",
             "icon": "sliders",

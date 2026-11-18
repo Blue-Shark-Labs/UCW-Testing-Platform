@@ -18,7 +18,7 @@ class TestLogoutRoute:
     def test_logout_clears_session(self, client):
         # ARRANGE
         with client.session_transaction() as sess:
-            sess["user_id"] = 42
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
 
         # ACT
         client.post("/logout")
