@@ -6,6 +6,9 @@ and translate HTTP requests into database-layer calls.
 
 from flask import Blueprint, Flask, g, redirect, request, url_for
 import os
+
+from dotenv import load_dotenv
+from flask import Flask, g, request, session, url_for
 from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
@@ -14,6 +17,7 @@ from rest.dashboard.student_dashboard import student_dashboard_route
 from rest.dashboard.leaderboards import leaderboards
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
+from rest.login.logout import logout_route
 from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 from rest.student_dashboard.student_dashboard import student_dashboard_route
@@ -26,10 +30,9 @@ student_dashboard = Blueprint(
 )
 student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
 
+from rest.lecturer.routes import lecturer
 from database.connection import PostgresConnectionProvider
-
-def root_route():
-    return redirect(url_for("landing_page.landing_page_route"))
+load_dotenv()
 
 
 def create_app():
@@ -41,16 +44,17 @@ def create_app():
 
     secret_key = os.environ.get("SECRET_KEY")
     if not secret_key:
-        raise RuntimeError("SECRET_KEY must be set.")
+        raise RuntimeError("SECRET_KEY environment variable must be set")
     app.secret_key = secret_key
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
-        SESSION_COOKIE_SECURE=True,
+        # Set SESSION_COOKIE_SECURE=false only for local http dev; browsers drop Secure cookies over http.
+        SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "true").strip().lower() != "false",
     )
 
-    app.add_url_rule("/", view_func=root_route, methods=["GET"])
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
+    app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
@@ -59,6 +63,7 @@ def create_app():
     app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
     app.register_blueprint(leaderboards)
+    app.register_blueprint(lecturer)
 
     @app.before_request
     def set_test_user():
