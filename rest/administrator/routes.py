@@ -14,6 +14,15 @@ administrator = Blueprint(
     url_prefix="/administrator",
 )
 
+@administrator.before_request
+def require_admin_role():
+    if "user_id" not in session:
+        return redirect(url_for("login_route"))
+    user = getattr(g, "user", None)
+    role = getattr(user, "role", None) or session.get("role")
+    if role != "admin":
+        return redirect(url_for("root_route"))
+        
 administrator.add_url_rule("/subjects", view_func=administrator_view_subjects_route, methods=["GET"])
 administrator.add_url_rule("/subjects/edit-subject/<uuid:subject_id>", view_func=administrator_edit_subject_route, methods=["GET", "POST"])
 administrator.add_url_rule("/subjects/create-subject", view_func=administrator_create_subject_route, methods=["GET", "POST"])
