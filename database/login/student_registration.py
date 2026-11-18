@@ -1,5 +1,14 @@
 # Persistence for self-registered student accounts.
 
+from psycopg.errors import UniqueViolation
+
+STUDENT_NUMBER_CONSTRAINT = "idx_students_student_number"
+
+
+class DuplicateStudentNumberError(Exception):
+    """Raised when the student number is already registered."""
+
+
 INSERT_USER = """
     INSERT INTO users (first_name, last_name, email, password_hash, role)
     VALUES (%s, %s, %s, %s, 'student')
@@ -29,5 +38,11 @@ def create_student(connection_provider, registration, password_hash):
         row = cur.fetchone()
         if row is None:
             return False
-        cur.execute(INSERT_STUDENT, (row[0], registration.student_number, registration.course_title))
+        try:
+            cur.execute(INSERT_STUDENT, (row[0], registration.student_number, registration.course_title))
+        except UniqueViolation as e:
+            # Raising inside the cursor block rolls back the users insert too.
+            if e.diag.constraint_name == STUDENT_NUMBER_CONSTRAINT:
+                raise DuplicateStudentNumberError() from e
+            raise
     return True

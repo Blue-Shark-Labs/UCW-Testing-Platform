@@ -2,7 +2,7 @@
 
 from werkzeug.security import generate_password_hash
 
-from database.login.student_registration import create_student
+from database.login.student_registration import DuplicateStudentNumberError, create_student
 
 MIN_PASSWORD_LENGTH = 8
 
@@ -44,6 +44,10 @@ def register_student(connection_provider, registration):
         return errors
 
     password_hash = generate_password_hash(registration.password)
-    if not create_student(connection_provider, registration, password_hash):
+    try:
+        created = create_student(connection_provider, registration, password_hash)
+    except DuplicateStudentNumberError:
+        return ["An account with this student number already exists."]
+    if not created:
         return ["An account with this email already exists."]
     return []

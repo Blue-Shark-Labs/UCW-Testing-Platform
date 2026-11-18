@@ -3,7 +3,14 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock
 
-from database.login.student_registration import INSERT_STUDENT, create_student
+import pytest
+
+from database.login.student_registration import (
+    INSERT_STUDENT,
+    STUDENT_NUMBER_CONSTRAINT,
+    DuplicateStudentNumberError,
+    create_student,
+)
 from domain.entities.user import StudentRegistration
 
 REGISTRATION = StudentRegistration(
@@ -58,3 +65,16 @@ class TestCreateStudent:
         # ASSERT
         assert result is False
         assert provider.cursor_mock.execute.call_count == 1
+
+    def test_raises_duplicate_student_number_error(self, monkeypatch):
+        # ARRANGE
+        class FakeUniqueViolation(Exception):
+            diag = MagicMock(constraint_name=STUDENT_NUMBER_CONSTRAINT)
+
+        monkeypatch.setattr("database.login.student_registration.UniqueViolation", FakeUniqueViolation)
+        provider = FakeConnectionProvider(("user-id",))
+        provider.cursor_mock.execute.side_effect = [None, FakeUniqueViolation()]
+
+        # ACT / ASSERT
+        with pytest.raises(DuplicateStudentNumberError):
+            create_student(provider, REGISTRATION, "hashed-value")

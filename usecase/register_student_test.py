@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from werkzeug.security import check_password_hash
 
+from database.login.student_registration import DuplicateStudentNumberError
 from domain.entities.user import StudentRegistration
 from usecase.register_student import register_student
 
@@ -70,3 +71,14 @@ class TestRegisterStudent:
 
         # ASSERT
         assert errors == ["An account with this email already exists."]
+
+    @patch("usecase.register_student.create_student")
+    def test_duplicate_student_number_is_rejected(self, mock_create_student):
+        # ARRANGE
+        mock_create_student.side_effect = DuplicateStudentNumberError()
+
+        # ACT
+        errors = register_student(object(), VALID)
+
+        # ASSERT
+        assert errors == ["An account with this student number already exists."]
