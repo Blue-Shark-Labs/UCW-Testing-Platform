@@ -3,11 +3,40 @@
 from datetime import datetime
 from uuid import UUID
 
+import pytest
 import rest.lecturer.student_management as student_mgmt_module
 from werkzeug.security import check_password_hash
 
 
+@pytest.fixture(autouse=True)
+def stub_session_user_db(monkeypatch):
+    """Prevent load_session_user() in rest/router.py from hitting PostgreSQL during unit tests."""
+    class FakeCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            pass
+
+        def fetchone(self):
+            return None
+
+    class FakeConnectionProvider:
+        def cursor(self):
+            return FakeCursor()
+
+    monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+
+
 class TestLecturerStudentManagementRoutes:
+    def _login_as_lecturer(self, client):
+        with client.session_transaction() as sess:
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+            sess["role"] = "lecturer"
+
     def test_student_management_renders_student_number_and_statuses(
         self, app, monkeypatch
     ):
@@ -49,6 +78,7 @@ class TestLecturerStudentManagementRoutes:
     def test_create_student_hashes_password_and_calls_db(
         self, client, monkeypatch
     ):
+        self._login_as_lecturer(client)
         created = {}
 
         def fake_create_student(first_name, last_name, email, password_hash, course):
@@ -84,6 +114,7 @@ class TestLecturerStudentManagementRoutes:
         assert check_password_hash(created["password_hash"], "Student123!")
 
     def test_edit_student_updates_student_record(self, client, monkeypatch):
+        self._login_as_lecturer(client)
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         updated = {}
 
@@ -113,6 +144,7 @@ class TestLecturerStudentManagementRoutes:
         )
 
     def test_approve_student_calls_approve(self, client, monkeypatch):
+        self._login_as_lecturer(client)
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         approved = []
         monkeypatch.setattr(
@@ -127,6 +159,7 @@ class TestLecturerStudentManagementRoutes:
         assert approved == [student_id]
 
     def test_toggle_student_status_calls_toggle(self, client, monkeypatch):
+        self._login_as_lecturer(client)
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         toggled = []
         monkeypatch.setattr(
@@ -141,6 +174,7 @@ class TestLecturerStudentManagementRoutes:
         assert toggled == [student_id]
 
     def test_delete_student_handles_existing_attempts(self, client, monkeypatch):
+        self._login_as_lecturer(client)
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         monkeypatch.setattr(
             student_mgmt_module,
@@ -152,6 +186,7 @@ class TestLecturerStudentManagementRoutes:
         assert response.status_code == 302
 
     def test_delete_student_deletes_user_when_no_attempts(self, client, monkeypatch):
+        self._login_as_lecturer(client)
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         monkeypatch.setattr(
             student_mgmt_module,
@@ -161,3 +196,14 @@ class TestLecturerStudentManagementRoutes:
 
         response = client.post(f"/lecturer/student/{student_id}/delete")
         assert response.status_code == 302
+
+    def test_non_lecturer_cannot_access_mutation_routes(self, client):
+        with client.session_transaction() as sess:
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+            sess["role"] = "student"
+
+        student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
+        response = client.post(f"/lecturer/approve-student/{student_id}")
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/login"

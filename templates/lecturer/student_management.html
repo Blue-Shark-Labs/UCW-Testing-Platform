@@ -152,7 +152,7 @@
                         <div class="inline-flex items-center gap-1 justify-end">
                             <!-- Edit Action -->
                             <button type="button"
-                                    onclick="openEditModal('{{ student.student_id }}', '{{ student.first_name }}', '{{ student.last_name }}', '{{ student.course }}')"
+                                    onclick="openEditModal('{{ student.student_id }}', '{{ student.student_number }}', '{{ student.first_name }}', '{{ student.last_name }}', '{{ student.course }}')"
                                     class="flex flex-col items-center justify-center w-14 h-11 rounded-xl bg-transparent border border-transparent hover:bg-blue-50/80 transition-all group cursor-pointer"
                                     title="Edit Details">
                                 <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,7 +248,7 @@
 
         <form id="editStudentForm" method="POST" action="" class="mt-4 space-y-4">
             <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Student ID</label>
+                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Student Number</label>
                 <input type="text" id="modalStudentIdDisplay" disabled class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 cursor-not-allowed">
             </div>
 
@@ -334,7 +334,7 @@
 
 {% block scripts %}
 <script>
-    function openEditModal(studentId, firstName, lastName, course) {
+    function openEditModal(studentId, studentNumber, firstName, lastName, course) {
         const modal = document.getElementById('editStudentModal');
         const form = document.getElementById('editStudentForm');
         const idDisplay = document.getElementById('modalStudentIdDisplay');
@@ -343,7 +343,7 @@
         const courseInput = document.getElementById('modalStudentCourse');
 
         form.action = `/lecturer/student/${studentId}/edit`;
-        idDisplay.value = studentId;
+        idDisplay.value = studentNumber;
         firstNameInput.value = firstName;
         lastNameInput.value = lastName;
         courseInput.value = course;
