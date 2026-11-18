@@ -20,6 +20,7 @@ from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 from rest.sidebar_navigation import get_sidebar_navigation
 
+from database.connection import PostgresConnectionProvider
 load_dotenv()
 
 
@@ -43,7 +44,7 @@ def create_app():
 
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
     app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
-    app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
+    app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
@@ -52,7 +53,32 @@ def create_app():
 
     @app.before_request
     def load_session_user():
-        g.user = SimpleNamespace(role=session.get("role")) if "user_id" in session else None
+        if "user_id" not in session:
+            g.user = None
+            return
+
+        connection_provider = PostgresConnectionProvider()
+
+        with connection_provider.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT first_name, last_name, role
+                FROM users
+                WHERE user_id = %s
+                """,
+                (session["user_id"],)
+            )
+            user = cursor.fetchone()
+
+        if user:
+            first_name = user[0]
+            last_name = user[1]
+            g.user = SimpleNamespace(
+                name=f"{first_name} {last_name}",
+                role=user[2]
+            )
+        else:
+            g.user = None
 
     @app.context_processor
     def inject_sidebar_navigation():

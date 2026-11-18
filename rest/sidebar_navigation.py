@@ -20,7 +20,23 @@ _NAVIGATION_BY_ROLE = {
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
     "lecturer": [
-        {"label": "Manage Tests", "icon": "file", "endpoint": "manage_tests_route"},
+        {"label": "Home", "icon": "home", "endpoint": "pr_block.pr_block_route"},
+        {
+            "label": "Management",
+            "icon": "sliders",
+            "children": [
+                {
+                    "label": "Student Roster",
+                    "icon": "users",
+                    "endpoint": "lecturer.lecturer_management_route",
+                },
+                {
+                    "label": "Test Management",
+                    "icon": "file",
+                    "endpoint": "lecturer_tests.test_management_route",
+                },
+            ],
+        },
         {"label": "Courses/Subjects", "icon": "book", "endpoint": "courses_subjects_route"},
         {"label": "Student Progress", "icon": "chart", "endpoint": "student_progress_route"},
         {"label": "Settings", "icon": "sliders", "endpoint": "settings_route"},

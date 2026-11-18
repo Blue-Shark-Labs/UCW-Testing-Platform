@@ -48,16 +48,37 @@ class TestCreateApp:
         ("role", "visible_item", "hidden_item"),
         [
             ("student", b"Assigned Tests", b"User Management"),
-            ("lecturer", b"Manage Tests", b"Assigned Tests"),
+            ("lecturer", b"Test Management", b"Assigned Tests"),
             ("admin", b"User Management", b"Assigned Tests"),
             ("student", b"Assigned Tests", b">Home<"),
         ],
     )
-    def test_sidebar_items_are_selected_by_session_role(self, client, role, visible_item, hidden_item):
+    def test_sidebar_items_are_selected_by_session_role(
+        self, client, monkeypatch, role, visible_item, hidden_item
+    ):
         # ARRANGE
-        with client.session_transaction() as session:
-            session["user_id"] = "11111111-1111-1111-1111-111111111111"
-            session["role"] = role
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                pass
+
+            def fetchone(self):
+                return ("Test", "User", role)
+
+        class FakeConnectionProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+
+        with client.session_transaction() as sess:
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+            sess["role"] = role
 
         # ACT
         # Login is a standalone guest page, so use a page that renders the sidebar layout.
