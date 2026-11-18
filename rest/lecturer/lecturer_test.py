@@ -3,46 +3,8 @@
 from datetime import datetime
 from uuid import UUID
 
-import psycopg
-import pytest
-from werkzeug.security import check_password_hash
-
 import rest.lecturer.student_management as student_mgmt_module
-
-
-class FakeCursor:
-    """Simulates a psycopg cursor with scripted fetchone/fetchall responses."""
-
-    def __init__(self, fetchone_results=None, fetchall_results=None, error=None):
-        self.fetchone_results = list(fetchone_results or [])
-        self.fetchall_results = list(fetchall_results or [])
-        self.error = error
-        self.executed = []
-
-    def execute(self, query, params=None):
-        if self.error:
-            raise self.error
-        self.executed.append((query, params))
-
-    def fetchone(self):
-        return self.fetchone_results.pop(0) if self.fetchone_results else None
-
-    def fetchall(self):
-        return self.fetchall_results.pop(0) if self.fetchall_results else []
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        return False
-
-
-class FakeConnectionProvider:
-    def __init__(self, fake_cursor):
-        self._cursor = fake_cursor
-
-    def cursor(self):
-        return self._cursor
+from werkzeug.security import check_password_hash
 
 
 class TestLecturerStudentManagementRoutes:
@@ -74,12 +36,7 @@ class TestLecturerStudentManagementRoutes:
                 False,
             ),
         ]
-        fake_cur = FakeCursor(fetchall_results=[rows])
-        monkeypatch.setattr(
-            student_mgmt_module,
-            "PostgresConnectionProvider",
-            lambda: FakeConnectionProvider(fake_cur),
-        )
+        monkeypatch.setattr(student_mgmt_module, "list_students", lambda: rows)
 
         with app.test_request_context("/lecturer/student-management"):
             html = student_mgmt_module.lecturer_management_route()
@@ -89,15 +46,23 @@ class TestLecturerStudentManagementRoutes:
         assert "BSc Computer Science" in html
         assert "Pending Approval" in html
 
-    def test_create_student_hashes_password_and_generates_student_number(
+    def test_create_student_hashes_password_and_calls_db(
         self, client, monkeypatch
     ):
-        new_user_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
-        fake_cur = FakeCursor(fetchone_results=[(new_user_id,), ("S0000003",)])
+        created = {}
+
+        def fake_create_student(first_name, last_name, email, password_hash, course):
+            created.update(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                password_hash=password_hash,
+                course=course,
+            )
+            return "S0000003"
+
         monkeypatch.setattr(
-            student_mgmt_module,
-            "PostgresConnectionProvider",
-            lambda: FakeConnectionProvider(fake_cur),
+            student_mgmt_module, "create_student", fake_create_student
         )
 
         response = client.post(
@@ -112,28 +77,22 @@ class TestLecturerStudentManagementRoutes:
         )
 
         assert response.status_code == 302
-        assert len(fake_cur.executed) == 2
+        assert created["first_name"] == "Jane"
+        assert created["last_name"] == "Doe"
+        assert created["email"] == "j.doe@ucw.ac.uk"
+        assert created["course"] == "Computer Science"
+        assert check_password_hash(created["password_hash"], "Student123!")
 
-        # Verify user insert & password hashing
-        user_query, user_params = fake_cur.executed[0]
-        assert "INSERT INTO users" in user_query
-        assert user_params[0:3] == ("Jane", "Doe", "j.doe@ucw.ac.uk")
-        assert check_password_hash(user_params[3], "Student123!")
+    def test_edit_student_updates_student_record(self, client, monkeypatch):
+        student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
+        updated = {}
 
-        # Verify student profile insert uses student_number_seq
-        student_query, student_params = fake_cur.executed[1]
-        assert "student_number_seq" in student_query
-        assert student_params == (new_user_id, "Computer Science")
+        def fake_update_student(sid, first_name, last_name, course):
+            updated["args"] = (sid, first_name, last_name, course)
+            return True
 
-    def test_edit_student_updates_user_and_upserts_student_profile(
-        self, client, monkeypatch
-    ):
-        student_id = "1cf03c86-74c1-4da8-b411-c6d62c64da70"
-        fake_cur = FakeCursor(fetchone_results=[(UUID(student_id),)])
         monkeypatch.setattr(
-            student_mgmt_module,
-            "PostgresConnectionProvider",
-            lambda: FakeConnectionProvider(fake_cur),
+            student_mgmt_module, "update_student", fake_update_student
         )
 
         response = client.post(
@@ -146,75 +105,59 @@ class TestLecturerStudentManagementRoutes:
         )
 
         assert response.status_code == 302
-        assert len(fake_cur.executed) == 2
-        assert fake_cur.executed[0][1] == ("Samuel", "Student", student_id)
-        assert "ON CONFLICT (user_id)" in fake_cur.executed[1][0]
-        assert fake_cur.executed[1][1] == (student_id, "Software Engineering")
+        assert updated["args"] == (
+            student_id,
+            "Samuel",
+            "Student",
+            "Software Engineering",
+        )
 
-    def test_approve_student_sets_is_approved_true(self, client, monkeypatch):
-        student_id = "1cf03c86-74c1-4da8-b411-c6d62c64da70"
-        fake_cur = FakeCursor(fetchone_results=[(UUID(student_id),)])
+    def test_approve_student_calls_approve(self, client, monkeypatch):
+        student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
+        approved = []
         monkeypatch.setattr(
             student_mgmt_module,
-            "PostgresConnectionProvider",
-            lambda: FakeConnectionProvider(fake_cur),
+            "approve_student",
+            lambda sid: approved.append(sid) or True,
         )
 
         response = client.post(f"/lecturer/approve-student/{student_id}")
 
         assert response.status_code == 302
-        query, params = fake_cur.executed[0]
-        assert "SET is_approved = TRUE" in query
-        assert params == (student_id,)
+        assert approved == [student_id]
 
-    def test_toggle_student_status_flips_is_disabled(self, client, monkeypatch):
-        student_id = "1cf03c86-74c1-4da8-b411-c6d62c64da70"
-        fake_cur = FakeCursor(fetchone_results=[(True,)])
+    def test_toggle_student_status_calls_toggle(self, client, monkeypatch):
+        student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
+        toggled = []
         monkeypatch.setattr(
             student_mgmt_module,
-            "PostgresConnectionProvider",
-            lambda: FakeConnectionProvider(fake_cur),
+            "toggle_student_status",
+            lambda sid: toggled.append(sid) or True,
         )
 
         response = client.post(f"/lecturer/toggle-student-status/{student_id}")
 
         assert response.status_code == 302
-        query, params = fake_cur.executed[0]
-        assert "SET is_disabled = NOT is_disabled" in query
-        assert params == (student_id,)
+        assert toggled == [student_id]
 
-    def test_delete_student_blocks_deletion_when_test_attempts_exist(
-        self, client, monkeypatch
-    ):
-        student_id = "1cf03c86-74c1-4da8-b411-c6d62c64da70"
-        fake_cur = FakeCursor(fetchone_results=[(True,)])
+    def test_delete_student_handles_existing_attempts(self, client, monkeypatch):
+        student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         monkeypatch.setattr(
             student_mgmt_module,
-            "PostgresConnectionProvider",
-            lambda: FakeConnectionProvider(fake_cur),
+            "delete_student",
+            lambda sid: ("has_attempts", None),
         )
 
         response = client.post(f"/lecturer/student/{student_id}/delete")
-
         assert response.status_code == 302
-        # Only the EXISTS check runs; DELETE FROM users must not execute
-        assert len(fake_cur.executed) == 1
-        assert "FROM test_attempts" in fake_cur.executed[0][0]
 
-    def test_delete_student_deletes_user_when_no_attempts_exist(
-        self, client, monkeypatch
-    ):
-        student_id = "1cf03c86-74c1-4da8-b411-c6d62c64da70"
-        fake_cur = FakeCursor(fetchone_results=[(False,), ("Sam", "Student")])
+    def test_delete_student_deletes_user_when_no_attempts(self, client, monkeypatch):
+        student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         monkeypatch.setattr(
             student_mgmt_module,
-            "PostgresConnectionProvider",
-            lambda: FakeConnectionProvider(fake_cur),
+            "delete_student",
+            lambda sid: ("deleted", ("Sam", "Student")),
         )
 
         response = client.post(f"/lecturer/student/{student_id}/delete")
-
         assert response.status_code == 302
-        assert len(fake_cur.executed) == 2
-        assert "DELETE FROM users" in fake_cur.executed[1][0]
-        assert fake_cur.executed[1][1] == (student_id,)

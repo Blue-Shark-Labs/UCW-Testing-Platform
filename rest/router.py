@@ -18,7 +18,7 @@ from rest.login.register import register_route
 from rest.pr_block.routes import pr_block
 from rest.sidebar_navigation import get_sidebar_navigation
 
-from rest.lecturer.student_management import lecturer_bp
+from rest.lecturer.routes import lecturer
 from database.connection import PostgresConnectionProvider
 
 def root_route():
@@ -50,9 +50,7 @@ def create_app():
     app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
-    app.register_blueprint(lecturer_bp)  # lecturer blueprint
-
-    app.secret_key = "ucw-dev-secret-key"
+    app.register_blueprint(lecturer)
 
     @app.before_request
     def load_session_user():
