@@ -12,6 +12,7 @@ class User:
     is_disabled: bool
     # Only students can be unapproved; other roles are always True.
     is_approved: bool = True
+    is_locked: bool = False
 
 
 @dataclass(frozen=True)
@@ -22,4 +23,3 @@ class StudentRegistration:
     student_number: str
     course_title: str
     password: str
-    is_locked: bool = False
