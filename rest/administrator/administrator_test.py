@@ -7,6 +7,35 @@ from werkzeug.security import check_password_hash
 
 
 class TestAdministratorRoutes:
+    def test_activate_deactivate_route_accepts_hidden_post_fields(
+        self, client, monkeypatch
+    ):
+        user_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
+        calls = []
+
+        def fake_set_user_disabled(submitted_user_id, is_disabled):
+            calls.append((submitted_user_id, is_disabled))
+            return True
+
+        monkeypatch.setattr(
+            administrator_module,
+            "set_user_disabled",
+            fake_set_user_disabled,
+        )
+
+        deactivate_response = client.post(
+            "/administrator/users/activate-deactivate-user",
+            data={"userId": str(user_id), "action": "deactivate"},
+        )
+        activate_response = client.post(
+            "/administrator/users/activate-deactivate-user",
+            data={"userId": str(user_id), "action": "activate"},
+        )
+
+        assert deactivate_response.status_code == 302
+        assert activate_response.status_code == 302
+        assert calls == [(user_id, True), (user_id, False)]
+
     def test_view_subjects_route_renders_database_results(
         self, app, monkeypatch
     ):

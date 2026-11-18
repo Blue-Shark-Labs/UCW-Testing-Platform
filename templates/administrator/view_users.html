@@ -70,23 +70,31 @@
                                     <span class="mt-0.5 text-[9.5px] font-medium text-slate-500 group-hover:text-blue-600 transition-colors">Edit</span>
                                 </a>
                                 {% if user.isDisabled %}
-                                <a href="{{ url_for('administrator.administrator_activate_deactivate_user_route', user_id=user.userId, action='activate') }}"
+                                <form method="POST" action="{{ url_for('administrator.administrator_activate_deactivate_user_route') }}" class="m-0">
+                                    <input type="hidden" name="userId" value="{{ user.userId }}">
+                                    <input type="hidden" name="action" value="activate">
+                                    <button type="submit"
                                         class="flex flex-col items-center justify-center w-14 h-11 rounded-xl bg-transparent border border-transparent hover:bg-emerald-50/80 transition-all group cursor-pointer"
                                         title="Enable Account">
-                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
-                                    </svg>
-                                    <span class="mt-0.5 text-[9.5px] font-medium text-slate-500 group-hover:text-emerald-600 transition-colors">Enable</span>
-                                </a>
+                                        <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="mt-0.5 text-[9.5px] font-medium text-slate-500 group-hover:text-emerald-600 transition-colors">Enable</span>
+                                    </button>
+                                </form>
                                 {% else %}
-                                <a href="{{ url_for('administrator.administrator_activate_deactivate_user_route', user_id=user.userId, action='deactivate') }}"
+                                <form method="POST" action="{{ url_for('administrator.administrator_activate_deactivate_user_route') }}" class="m-0">
+                                    <input type="hidden" name="userId" value="{{ user.userId }}">
+                                    <input type="hidden" name="action" value="deactivate">
+                                    <button type="submit"
                                         class="flex flex-col items-center justify-center w-14 h-11 rounded-xl bg-transparent border border-transparent hover:bg-amber-50/80 transition-all group cursor-pointer"
                                         title="Disable Account">
-                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                    </svg>
-                                    <span class="mt-0.5 text-[9.5px] font-medium text-slate-500 group-hover:text-amber-600 transition-colors">Disable</span>
-                                </a>
+                                        <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        </svg>
+                                        <span class="mt-0.5 text-[9.5px] font-medium text-slate-500 group-hover:text-amber-600 transition-colors">Disable</span>
+                                    </button>
+                                </form>
                                 {% endif %}
                                 <button type="submit" data-user-id="{{ user.userId }}" data-user-name="{{ user.firstName }} {{ user.lastName }}" onclick="toggleUserDeleteModal(this.dataset.userId, this.dataset.userName)"
                                         class="flex flex-col items-center justify-center w-14 h-11 rounded-xl bg-transparent border border-transparent hover:bg-red-50/80 transition-all group cursor-pointer"

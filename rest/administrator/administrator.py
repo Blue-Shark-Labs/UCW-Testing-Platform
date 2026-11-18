@@ -237,10 +237,17 @@ def administrator_view_users_route(methods=["GET"]):
         search=search
     )
 
-def administrator_activate_deactivate_user_route(user_id, action, methods=["GET"]):
+def administrator_activate_deactivate_user_route(methods=["POST"]):
+    user_id = request.form.get("userId", "").strip()
+    action = request.form.get("action", "").strip()
+
     if action not in {"activate", "deactivate"}:
         return "Invalid account action", 400
-    if not set_user_disabled(user_id, action == "deactivate"):
+    try:
+        user_uuid = UUID(user_id)
+    except (AttributeError, ValueError):
+        return "Invalid user ID", 400
+    if not set_user_disabled(user_uuid, action == "deactivate"):
         return "User not found", 404
     return redirect(url_for("administrator.administrator_view_users_route"))
 

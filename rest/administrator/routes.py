@@ -20,7 +20,7 @@ administrator.add_url_rule("/subjects/create-subject", view_func=administrator_c
 administrator.add_url_rule("/edit-subject/<uuid:subject_id>", view_func=administrator_edit_subject_route, methods=["GET", "POST"])
 administrator.add_url_rule("/create-subject", view_func=administrator_create_subject_route, methods=["GET", "POST"])
 administrator.add_url_rule("/users", view_func=administrator_view_users_route, methods=["GET"])
-administrator.add_url_rule("/users/activate-deactivate-user/<uuid:user_id>/<string:action>", view_func=administrator_activate_deactivate_user_route, methods=["GET"])
+administrator.add_url_rule("/users/activate-deactivate-user", view_func=administrator_activate_deactivate_user_route, methods=["POST"])
 administrator.add_url_rule("/users/edit-user/<uuid:user_id>", view_func=administrator_edit_user_route, methods=["GET", "POST", "DELETE"])
 administrator.add_url_rule("/users/create-user", view_func=administrator_create_user_route, methods=["GET", "POST"])
 administrator.add_url_rule("/edit-user/<uuid:user_id>", view_func=administrator_edit_user_route, methods=["GET", "POST", "DELETE"])
