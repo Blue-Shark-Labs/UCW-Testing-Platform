@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from flask import jsonify, redirect, request, session, url_for
+from flask import jsonify, make_response, redirect, request, session, url_for
 
 
 def wants_json():
@@ -25,7 +25,10 @@ def login_required(role=None):
         def wrapped_view(*args, **kwargs):
             if "user_id" not in session or (role is not None and session.get("role") != role):
                 return redirect(url_for("login_route"))
-            return view(*args, **kwargs)
+            # Stop the browser from re-showing protected pages from cache after logout.
+            response = make_response(view(*args, **kwargs))
+            response.headers["Cache-Control"] = "no-store"
+            return response
 
         return wrapped_view
 
