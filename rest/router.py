@@ -70,9 +70,9 @@ def create_app():
             user = cursor.fetchone()
 
         if user:
+            first_name = user[0]
+            last_name = user[1]
             g.user = SimpleNamespace(
-                first_name=user[0],
-                last_name=user[1],
                 name=f"{first_name} {last_name}",
                 role=user[2]
             )
