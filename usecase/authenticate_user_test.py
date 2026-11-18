@@ -75,7 +75,6 @@ class TestAuthenticateUser:
         assert result is None
         mock_check_password_hash.assert_not_called()
 
-    @patch("usecase.authenticate_user.record_failed_login")
     @patch("usecase.authenticate_user.check_password_hash")
     @patch("usecase.authenticate_user.get_user_by_email")
     def test_authenticate_user_returns_none_when_student_not_approved(
@@ -91,6 +90,7 @@ class TestAuthenticateUser:
         assert result is None
         mock_check_password_hash.assert_not_called()
 
+    @patch("usecase.authenticate_user.record_failed_login")
     @patch("usecase.authenticate_user.check_password_hash")
     @patch("usecase.authenticate_user.get_user_by_email")
     def test_authenticate_user_returns_none_for_incorrect_password(
