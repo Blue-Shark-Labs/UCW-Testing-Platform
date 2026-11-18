@@ -43,7 +43,7 @@ def create_app():
 
     app.add_url_rule("/", view_func=root_route, methods=["GET"])
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
-    app.add_url_rule("/register", view_func=register_route, methods=["GET"])
+    app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
@@ -70,9 +70,9 @@ def create_app():
             user = cursor.fetchone()
 
         if user:
+            first_name = user[0]
+            last_name = user[1]
             g.user = SimpleNamespace(
-                first_name=user[0],
-                last_name=user[1],
                 name=f"{first_name} {last_name}",
                 role=user[2]
             )

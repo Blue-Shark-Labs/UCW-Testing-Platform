@@ -10,3 +10,16 @@ class User:
     password_hash: str
     role: str
     is_disabled: bool
+    # Only students can be unapproved; other roles are always True.
+    is_approved: bool = True
+
+
+@dataclass(frozen=True)
+class StudentRegistration:
+    first_name: str
+    last_name: str
+    email: str
+    student_number: str
+    course_title: str
+    password: str
+    is_locked: bool = False
