@@ -25,9 +25,14 @@ SCHEMA_STATEMENTS = [
         mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
         mfa_secret VARCHAR(64),
         is_disabled BOOLEAN NOT NULL DEFAULT FALSE,
-        last_login_at TIMESTAMP DEFAULT NULL
+        last_login_at TIMESTAMP DEFAULT NULL,
+        failed_login_attempts INT NOT NULL DEFAULT 0,
+        locked_until TIMESTAMP DEFAULT NULL
     );
     """,
+    # Backfills the lockout columns on databases created before they existed.
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT NOT NULL DEFAULT 0;",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP DEFAULT NULL;",
     # One-to-one extension of users for role='student' accounts.
     """
     CREATE TABLE IF NOT EXISTS students (

@@ -22,3 +22,4 @@ class StudentRegistration:
     student_number: str
     course_title: str
     password: str
+    is_locked: bool = False
