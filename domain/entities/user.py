@@ -10,3 +10,4 @@ class User:
     password_hash: str
     role: str
     is_disabled: bool
+    is_locked: bool = False
