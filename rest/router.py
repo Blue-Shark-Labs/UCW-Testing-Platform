@@ -19,7 +19,6 @@ from rest.pr_block.routes import pr_block
 from rest.sidebar_navigation import get_sidebar_navigation
 
 from rest.lecturer.student_management import lecturer_bp
-from rest.lecturer.test_management import test_management_bp
 from database.connection import PostgresConnectionProvider
 
 def root_route():
@@ -52,7 +51,6 @@ def create_app():
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
     app.register_blueprint(lecturer_bp)  # lecturer blueprint
-    app.register_blueprint(test_management_bp)  # Register test management blueprint
 
     app.secret_key = "ucw-dev-secret-key"
 
