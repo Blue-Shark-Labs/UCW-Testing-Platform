@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    line-height: 1;
+  }
+
+  p, li, dd, dt, blockquote, figcaption {
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.1;
+  }
+
+  button, input, textarea, select {
+    line-height: 1.2;
+  }
+}
+
+/*
+ * Line-height is intentionally tailored to individual elements to maintain
+ * a clean, space-efficient layout. Paragraphs and other text-heavy elements
+ * use increased line spacing for readability, while headings and UI elements
+ * retain tighter spacing. WCAG 2.1 SC 1.4.12 does not require 1.5 line-height
+ * by default, but the layout must accommodate larger text spacing
+ * without loss of content or functionality which it achieves using responsive design.
+ */
