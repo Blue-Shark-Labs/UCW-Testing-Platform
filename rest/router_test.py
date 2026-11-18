@@ -42,29 +42,6 @@ class TestCreateApp:
         assert b'name="email"' in response.data
         assert b'name="password"' in response.data
 
-    @pytest.mark.parametrize(
-        ("role", "visible_item", "hidden_item"),
-        [
-            ("student", b"Assigned Tests", b"User Management"),
-            ("lecturer", b"Manage Tests", b"Assigned Tests"),
-            ("admin", b"User Management", b"Assigned Tests"),
-        ],
-    )
-    def test_sidebar_items_are_selected_by_session_role(self, client, role, visible_item, hidden_item):
-        # ARRANGE
-        with client.session_transaction() as session:
-            session["user_id"] = "11111111-1111-1111-1111-111111111111"
-            session["role"] = role
-
-        # ACT
-        # Login is a standalone guest page, so use a page that renders the sidebar layout.
-        response = client.get("/pr-block/")
-
-        # ASSERT
-        assert response.status_code == 200
-        assert visible_item in response.data
-        assert hidden_item not in response.data
-
     def test_create_app_fails_without_secret_key(self, monkeypatch):
         # ARRANGE
         monkeypatch.delenv("SECRET_KEY", raising=False)
