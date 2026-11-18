@@ -1,5 +1,7 @@
 # To Run: pytest rest/login/logout_test.py
 
+from unittest.mock import patch
+
 from rest.login.logout import SIGN_OUT_MESSAGE
 
 
@@ -15,7 +17,8 @@ class TestLogoutRoute:
         assert response.headers["Location"] == "/login"
         assert response.headers["Cache-Control"] == "no-store"
 
-    def test_logout_clears_session(self, client):
+    @patch("rest.router.PostgresConnectionProvider")
+    def test_logout_clears_session(self, _mock_provider, client):
         # ARRANGE
         with client.session_transaction() as sess:
             sess["user_id"] = "11111111-1111-1111-1111-111111111111"
