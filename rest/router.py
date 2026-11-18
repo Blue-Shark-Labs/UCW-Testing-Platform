@@ -26,9 +26,10 @@ student_dashboard = Blueprint(
 )
 student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
 
+from database.connection import PostgresConnectionProvider
 
 def root_route():
-    return redirect(url_for("login_route"))
+    return redirect(url_for("landing_page.landing_page_route"))
 
 
 def create_app():
@@ -50,7 +51,7 @@ def create_app():
 
     app.add_url_rule("/", view_func=root_route, methods=["GET"])
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
-    app.add_url_rule("/register", view_func=register_route, methods=["GET"])
+    app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
@@ -66,6 +67,33 @@ def create_app():
             name="Michael James",
             user_id="00000000-0000-4000-8000-000000000001",
         )  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
+    def load_session_user():
+        if "user_id" not in session:
+            g.user = None
+            return
+
+        connection_provider = PostgresConnectionProvider()
+
+        with connection_provider.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT first_name, last_name, role
+                FROM users
+                WHERE user_id = %s
+                """,
+                (session["user_id"],)
+            )
+            user = cursor.fetchone()
+
+        if user:
+            first_name = user[0]
+            last_name = user[1]
+            g.user = SimpleNamespace(
+                name=f"{first_name} {last_name}",
+                role=user[2]
+            )
+        else:
+            g.user = None
 
     @app.context_processor
     def inject_sidebar_navigation():
