@@ -25,4 +25,5 @@ class TestStudentDashboardRoute:
             response = student_dashboard_route()
 
         # ASSERT
-        assert "Student Dashboard" in response
+        assert b"Student Dashboard" in response.data
+        assert response.headers["Cache-Control"] == "no-store"

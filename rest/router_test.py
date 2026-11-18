@@ -25,13 +25,15 @@ class TestCreateApp:
         # ASSERT
         assert "/" in rules
 
-    def test_root_route_redirects_to_landing_page(self, client):
+    def test_root_route_serves_landing_page(self):
+        # ARRANGE
+        app = create_app()
+
         # ACT
-        response = client.get("/")
+        endpoint, _ = app.url_map.bind("localhost").match("/")
 
         # ASSERT
-        assert response.status_code == 302
-        assert response.headers["Location"] == "/landing-page/"
+        assert endpoint == "landing_page.landing_page_route"
 
     def test_login_route_renders(self, client):
         # ACT
@@ -48,6 +50,7 @@ class TestCreateApp:
             ("student", b"Assigned Tests", b"User Management"),
             ("lecturer", b"Test Management", b"Assigned Tests"),
             ("admin", b"User Management", b"Assigned Tests"),
+            ("student", b"Assigned Tests", b">Home<"),
         ],
     )
     def test_sidebar_items_are_selected_by_session_role(
@@ -85,7 +88,27 @@ class TestCreateApp:
         assert response.status_code == 200
         assert visible_item in response.data
         assert hidden_item not in response.data
-        
+
+    def test_session_cookie_is_secure_by_default(self, monkeypatch):
+        # ARRANGE
+        monkeypatch.delenv("SESSION_COOKIE_SECURE", raising=False)
+
+        # ACT
+        app = create_app()
+
+        # ASSERT
+        assert app.config["SESSION_COOKIE_SECURE"] is True
+
+    def test_session_cookie_secure_can_be_disabled_for_local_dev(self, monkeypatch):
+        # ARRANGE
+        monkeypatch.setenv("SESSION_COOKIE_SECURE", "false")
+
+        # ACT
+        app = create_app()
+
+        # ASSERT
+        assert app.config["SESSION_COOKIE_SECURE"] is False
+
     def test_create_app_fails_without_secret_key(self, monkeypatch):
         # ARRANGE
         monkeypatch.delenv("SECRET_KEY", raising=False)
