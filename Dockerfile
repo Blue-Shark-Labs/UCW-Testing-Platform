@@ -75,6 +75,7 @@ COPY app.py requirements.txt ./
 COPY database ./database
 COPY domain ./domain
 COPY rest ./rest
+COPY usecase ./usecase
 COPY templates ./templates
 COPY static ./static
 

@@ -22,7 +22,7 @@ from rest.lecturer.routes import lecturer
 from database.connection import PostgresConnectionProvider
 
 def root_route():
-    return redirect(url_for("login_route"))
+    return redirect(url_for("landing_page.landing_page_route"))
 
 
 def create_app():
@@ -74,10 +74,7 @@ def create_app():
         if user:
             first_name = user[0]
             last_name = user[1]
-
             g.user = SimpleNamespace(
-                first_name=first_name,
-                last_name=last_name,
                 name=f"{first_name} {last_name}",
                 role=user[2]
             )
