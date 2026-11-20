@@ -8,7 +8,6 @@ from flask import Blueprint, Flask, g, redirect, request, session, url_for
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, g, request, session, url_for
 from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
@@ -28,7 +27,14 @@ student_dashboard = Blueprint(
     __name__,
     url_prefix="/student-dashboard",
 )
-student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
+student_dashboard.add_url_rule(
+    "/", endpoint="student_dashboard_route", view_func=student_dashboard_route, methods=["GET"]
+)
+
+def root_route():
+    return redirect(url_for("login_route"))
+from rest.administrator.routes import administrator
+from rest.sidebar_navigation import get_sidebar_navigation
 
 from rest.lecturer.routes import lecturer
 from database.connection import PostgresConnectionProvider
@@ -62,6 +68,14 @@ def create_app():
     app.register_blueprint(landing_page)
     app.register_blueprint(student_dashboard)
     app.register_blueprint(leaderboards)
+
+    @app.before_request
+    def load_session_user():
+        g.user = (
+            SimpleNamespace(role=session.get("role"), user_id=session.get("user_id"))
+            if "user_id" in session
+            else None
+        )
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
 

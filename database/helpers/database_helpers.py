@@ -17,22 +17,22 @@ def row_to_company_info(row):
     )
 
 def get_assigned_tests(student_id):
-	"""Return tests assigned to a student that they have not completed."""
-	fields = ("test_id", "test_name", "subject_name", "question_count", "assigned_at")
+	"""Return tests a student has not completed."""
+	fields = ("test_id", "test_name", "subject_name", "question_count")
 	query = """
-		SELECT t.test_id, t.title, s.name, t.question_count, a.assigned_at
-		FROM test_assignments AS a
-		JOIN tests AS t ON t.test_id = a.test_id
+		SELECT t.test_id, t.title, s.name, t.question_count
+		FROM tests AS t
 		JOIN subjects AS s ON s.subject_id = t.subject_id
-		WHERE a.student_id = %s
+		JOIN test_assignments AS assignment ON assignment.test_id = t.test_id
+		WHERE assignment.student_id = %s
 		  AND NOT EXISTS (
 			  SELECT 1
 			  FROM test_attempts AS attempt
-			  WHERE attempt.test_id = a.test_id
-				AND attempt.user_id = a.student_id
+			  WHERE attempt.test_id = t.test_id
+				AND attempt.user_id = assignment.student_id
 				AND attempt.completed_at IS NOT NULL
 		  )
-		ORDER BY a.assigned_at DESC, t.title
+		ORDER BY t.title
 	"""
 	return _fetch_rows(query, (student_id,), fields)
 
@@ -49,14 +49,11 @@ def get_completed_tests(student_id):
 	)
 	query = """
 		SELECT attempt.attempt_id, t.title, attempt.completed_at,
-			   COUNT(DISTINCT answer.question_id), attempt.percentage,
-			   attempt.total_points
+			   t.question_count, attempt.percentage, attempt.total_points
 		FROM test_attempts AS attempt
 		JOIN tests AS t ON t.test_id = attempt.test_id
-		LEFT JOIN attempt_answers AS answer ON answer.attempt_id = attempt.attempt_id
 		WHERE attempt.user_id = %s
 		  AND attempt.completed_at IS NOT NULL
-		GROUP BY attempt.attempt_id, t.title
 		ORDER BY attempt.completed_at DESC
 	"""
 	return _fetch_rows(query, (student_id,), fields)

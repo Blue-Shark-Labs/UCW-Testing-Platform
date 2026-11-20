@@ -12,11 +12,11 @@ load_dotenv(PROJECT_ROOT / "dev.env")
 
 class PostgresConnectionProvider:
     """Provides PostgreSQL cursors via a context manager.
-    
-        Connection details are read from the DATABASE_URL (host), DATABASE_NAME,
-        DATABASE_USER, and PASSWORD environment variables, falling back to local
-        development defaults. USERNAME in .env remains supported for compatibility
-        with existing configurations and avoids Windows' built-in USERNAME value.
+
+    Connection details are read from the DATABASE_URL (host), DATABASE_NAME,
+    DATABASE_USER, and PASSWORD environment variables, falling back to local
+    development defaults. USERNAME in .env remains supported for compatibility
+    with existing configurations and avoids Windows' built-in USERNAME value.
     """
 
     def __init__(self, conninfo: str | None = None):
