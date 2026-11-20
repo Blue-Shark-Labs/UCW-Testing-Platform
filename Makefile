@@ -3,7 +3,7 @@
 setup-db:
 	python3 -m database.migrations.migrate
 
-## seed-student-dashboard: Add sample student dashboard data (run after setup-db).
+## seed-student-dashboard: Add sample student dashboard data (run after setup-db and seed-dev-users).
 .PHONY: seed-student-dashboard
 seed-student-dashboard:
 	python3 -m database.migrations.seed_student_dashboard
@@ -16,6 +16,10 @@ seed-dev-users:
 .PHONY: submit-expired-attempts
 submit-expired-attempts:
 	python3 -m scripts.submit_expired_attempts
+## migrate-dev-db: Migrate all development data.
+.PHONY: migrate-dev-db
+migrate-dev-db:
+	@$(MAKE) setup-db seed-dev-users seed-student-dashboard
 ## seed-dev-data: Import data/users.json and data/subjects.json (dev/nonprod only).
 .PHONY: seed-dev-data
 seed-dev-data:

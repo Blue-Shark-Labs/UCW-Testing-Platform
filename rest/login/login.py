@@ -1,4 +1,5 @@
 from flask import redirect, render_template, request, session, url_for
+from rest.administrator.administrator import administrator_view_subjects_route
 
 from database.connection import PostgresConnectionProvider
 from usecase.authenticate_user import (
@@ -9,9 +10,9 @@ from usecase.authenticate_user import (
 )
 
 ROLE_DASHBOARD_ENDPOINTS = {
-    "student": "student_dashboard_route",
+    "student": "student_dashboard.student_dashboard_route",
     "lecturer": "lecturer_dashboard_route",
-    "admin": "admin_dashboard_route",
+    "admin": "administrator.administrator_view_subjects_route",
 }
 
 # Shown for every failure so real and unknown emails get identical responses.

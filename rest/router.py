@@ -4,9 +4,8 @@
 and translate HTTP requests into database-layer calls. 
 """
 
-from flask import Blueprint, Flask, g, redirect, request, session, url_for
 import os
-
+from flask import Blueprint, Flask, g, redirect, request, session, url_for
 from dotenv import load_dotenv
 from types import SimpleNamespace
 
@@ -84,24 +83,16 @@ def create_app():
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
-    app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
-    app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
 
     @app.before_request
-    def set_test_user():
-        if "user_id" in session:
-            g.user = SimpleNamespace(
-                role=session.get("role"),
-                name=session.get("name", "Student"),
-                user_id=session["user_id"],
-            )
-        elif app.testing or app.debug:
-            g.user = SimpleNamespace(
-                role="student",
-                name="Michael James",
-                user_id="00000000-0000-4000-8000-000000000001",
+    def load_session_user():
+        g.user = (
+            SimpleNamespace(role=session.get("role"), user_id=session.get("user_id"))
+            if "user_id" in session
+            else None
+        )
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
 

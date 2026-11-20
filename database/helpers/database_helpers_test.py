@@ -17,7 +17,7 @@ class FakeConnectionProvider:
         yield self.cursor_mock
 
 
-def test_get_assigned_tests_uses_attempt_user_id(monkeypatch):
+def test_get_assigned_tests_filters_by_assignment_and_attempt_user_id(monkeypatch):
     rows = [("42", "Algebra Basics", "Mathematics", 10)]
     provider = FakeConnectionProvider(rows)
     monkeypatch.setattr(database_helpers, "PostgresConnectionProvider", lambda: provider)
@@ -26,8 +26,7 @@ def test_get_assigned_tests_uses_attempt_user_id(monkeypatch):
 
     query, parameters = provider.cursor_mock.execute.call_args.args
     assert "FROM tests AS t" in query
-    assert "JOIN test_assignments AS assignment" in query
-    assert "assignment.student_id = %s" in query
+    assert "test_assignments" not in query
     assert "attempt.user_id = %s" in query
     assert "attempt.student_id" not in query
     assert parameters == ("7", "7")
@@ -54,6 +53,9 @@ def test_get_completed_tests_uses_attempt_user_id(monkeypatch):
     assert "attempt.user_id = %s" in query
     assert "attempt.student_id" not in query
     assert "attempt.completed_at IS NOT NULL" in query
+    assert "t.question_count" in query
+    assert "attempt_answers" not in query
+    assert "GROUP BY" not in query
     assert parameters == ("7",)
     assert result == [
         {

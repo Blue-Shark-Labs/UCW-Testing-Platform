@@ -47,16 +47,17 @@ class TestCreateApp:
         assert b'name="password"' in response.data
 
     @pytest.mark.parametrize(
-        ("role", "visible_item", "hidden_item"),
+        ("role", "page_path", "visible_item", "hidden_item"),
         [
-            ("student", b"Assigned Tests", b"User Management"),
-            ("lecturer", b"Test Management", b"Assigned Tests"),
-            ("admin", b"User Management", b"Assigned Tests"),
-            ("student", b"Assigned Tests", b">Home<"),
+            ("student", "/dashboard/student", b"<span>Tests</span>", b"User Management"),
+            ("lecturer", "/dashboard/lecturer", b"Quiz Management", b"<span>Tests</span>"),
+            ("admin", "/administrator/create-user", b"User Management", b"<span>Tests</span>"),
+            ("student", "/dashboard/student", b"Subject Leaderboards", b"Quiz Management"),
         ],
     )
+    
     def test_sidebar_items_are_selected_by_session_role(
-        self, client, monkeypatch, role, visible_item, hidden_item
+        self, client, monkeypatch, role, page_path, visible_item, hidden_item
     ):
         # ARRANGE
         class FakeCursor:
@@ -83,8 +84,8 @@ class TestCreateApp:
             sess["role"] = role
 
         # ACT
-        # Login is a standalone guest page, so use a page that renders the sidebar layout.
-        response = client.get("/pr-block/")
+        # Use a page available to each role that renders the sidebar layout.
+        response = client.get(page_path)
 
         # ASSERT
         assert response.status_code == 200
