@@ -50,7 +50,7 @@ class TestCreateApp:
             ("student", b"Tests", b"User Management"),
             ("lecturer", b"Test Management", b"Tests"),
             ("admin", b"User Management", b"Tests"),
-            ("student", b"Assigned Tests", b">Test Management<"),
+            ("student", b"Tests", b">Test Management<"),
         ],
     )
     def test_sidebar_items_are_selected_by_session_role(

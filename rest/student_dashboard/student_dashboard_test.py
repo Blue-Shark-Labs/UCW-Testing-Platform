@@ -60,8 +60,28 @@ class TestStudentDashboardRoutes:
         assert b"No tests to complete." in response.data
         assert b"No completed tests yet." in response.data
 
-    def test_test_lists_require_student_role(self, client):
-        _log_in(client, "lecturer", user_id="lecturer-id")
+    def test_test_lists_require_student_role(self, client, monkeypatch):
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                pass
+
+            def fetchone(self):
+                return ("Test", "Lecturer", "lecturer")
+
+        class FakeConnectionProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr(
+            "rest.router.PostgresConnectionProvider", FakeConnectionProvider
+        )
+        _log_in(client, "lecturer", user_id=STUDENT_ID)
 
         response = client.get("/student-dashboard/")
 

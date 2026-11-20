@@ -62,13 +62,15 @@ class TestAdministratorRoutes:
             sess["user_id"] = "11111111-1111-1111-1111-111111111111"
             sess["role"] = "admin"
 
-    def test_activate_deactivate_route_accepts_hidden_post_fields(
     def test_admin_routes_redirect_anonymous_users_to_login(self, client):
+        with client.session_transaction() as session:
+            session.clear()
+
         response = client.get("/administrator/users")
 
         assert response.status_code == 302
         assert response.headers["Location"] == "/login"
-
+    
     def test_admin_routes_forbid_database_non_admin_even_if_session_says_admin(
         self, client, monkeypatch
     ):
