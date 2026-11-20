@@ -1,8 +1,33 @@
 from datetime import datetime
 
+import pytest
+
 from rest.student_dashboard import student_dashboard as dashboard_module
 
 STUDENT_ID = "00000000-0000-4000-8000-000000000001"
+
+
+@pytest.fixture(autouse=True)
+def stub_session_user_db(monkeypatch):
+    """Prevent load_session_user() in rest/router.py from hitting PostgreSQL during unit tests."""
+    class FakeCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            pass
+
+        def fetchone(self):
+            return ("Test", "Student", "student")
+
+    class FakeConnectionProvider:
+        def cursor(self):
+            return FakeCursor()
+
+    monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
 
 
 def _log_in(client, role, user_id=STUDENT_ID):

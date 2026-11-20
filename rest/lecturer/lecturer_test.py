@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID
 
 import pytest
+import rest.lecturer.quiz_management as quiz_mgmt_module
 import rest.lecturer.student_management as student_mgmt_module
 from werkzeug.security import check_password_hash
 
@@ -207,3 +208,161 @@ class TestLecturerStudentManagementRoutes:
 
         assert response.status_code == 302
         assert response.headers["Location"] == "/login"
+
+class TestLecturerQuizManagementRoutes:
+    def _login_as_lecturer(self, client):
+        with client.session_transaction() as sess:
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+            sess["role"] = "lecturer"
+
+    def test_quiz_management_renders_quizzes_and_question_pool(self, app, monkeypatch):
+        subject_id = "650e8400-e29b-41d4-a716-446655440001"
+        monkeypatch.setattr(
+            quiz_mgmt_module,
+            "list_quizzes",
+            lambda: [
+                {
+                    "test_id": "22222222-2222-2222-2222-222222222222",
+                    "subject_id": subject_id,
+                    "subject_name": "Marine Biology",
+                    "title": "Reef Ecology Quiz",
+                    "description": "Introductory coral reef assessment",
+                    "question_count": 5,
+                    "time_limit_minutes": 20,
+                    "is_active": True,
+                    "attempt_count": 3,
+                }
+            ],
+        )
+        monkeypatch.setattr(
+            quiz_mgmt_module,
+            "list_subjects_with_pool_counts",
+            lambda: [
+                {
+                    "subject_id": subject_id,
+                    "name": "Marine Biology",
+                    "is_active": True,
+                    "question_count": 12,
+                }
+            ],
+        )
+        monkeypatch.setattr(
+            quiz_mgmt_module,
+            "list_questions",
+            lambda: [
+                {
+                    "question_id": "33333333-3333-3333-3333-333333333333",
+                    "subject_id": subject_id,
+                    "subject_name": "Marine Biology",
+                    "question_text": "Which organism builds coral reefs?",
+                    "options": [
+                        {"option_id": "44444444-4444-4444-4444-444444444444", "option_text": "Stony corals", "is_correct": True},
+                        {"option_id": "55555555-5555-5555-5555-555555555555", "option_text": "Kelp", "is_correct": False},
+                    ],
+                }
+            ],
+        )
+
+        with app.test_request_context("/lecturer/quiz-management"):
+            html = quiz_mgmt_module.quiz_management_route()
+
+        assert "Reef Ecology Quiz" in html
+        assert "Marine Biology" in html
+        assert "20 mins" in html
+        assert "Locked" in html
+        assert "Which organism builds coral reefs?" in html
+
+    def test_create_question_validates_and_calls_db(self, client, monkeypatch):
+        self._login_as_lecturer(client)
+        subject_id = UUID("650e8400-e29b-41d4-a716-446655440001")
+        created = {}
+
+        def fake_create_question(sid, text, options):
+            created.update(subject_id=sid, question_text=text, options=options)
+            return UUID("33333333-3333-3333-3333-333333333333")
+
+        monkeypatch.setattr(quiz_mgmt_module, "create_question", fake_create_question)
+
+        response = client.post(
+            "/lecturer/question/create",
+            data={
+                "subject_id": str(subject_id),
+                "question_text": "What is the primary driver of ocean tides?",
+                "option_1": "Lunar gravity",
+                "option_2": "Underwater volcanoes",
+                "option_3": "Trade winds",
+                "option_4": "",
+                "correct_option": "1",
+            },
+        )
+
+        assert response.status_code == 302
+        assert created["subject_id"] == subject_id
+        assert created["question_text"] == "What is the primary driver of ocean tides?"
+        assert created["options"] == [
+            ("Lunar gravity", True),
+            ("Underwater volcanoes", False),
+            ("Trade winds", False),
+        ]
+
+    def test_create_quiz_calls_db_with_parsed_fields(self, client, monkeypatch):
+        self._login_as_lecturer(client)
+        subject_id = UUID("650e8400-e29b-41d4-a716-446655440001")
+        created = {}
+
+        def fake_create_quiz(**kwargs):
+            created.update(kwargs)
+            return UUID("22222222-2222-2222-2222-222222222222")
+
+        monkeypatch.setattr(quiz_mgmt_module, "create_quiz", fake_create_quiz)
+
+        response = client.post(
+            "/lecturer/quiz/create",
+            data={
+                "title": "Oceanography Basics",
+                "description": "Week 1 check",
+                "subject_id": str(subject_id),
+                "question_count": "5",
+                "time_limit_minutes": "",
+            },
+        )
+
+        assert response.status_code == 302
+        assert created["title"] == "Oceanography Basics"
+        assert created["subject_id"] == subject_id
+        assert created["question_count"] == 5
+        assert created["time_limit_minutes"] is None
+
+    def test_toggle_quiz_status_calls_db(self, client, monkeypatch):
+        self._login_as_lecturer(client)
+        test_id = UUID("22222222-2222-2222-2222-222222222222")
+        toggled = []
+        monkeypatch.setattr(
+            quiz_mgmt_module,
+            "toggle_quiz_status",
+            lambda tid: toggled.append(tid) or False,
+        )
+
+        response = client.post(f"/lecturer/quiz/{test_id}/toggle-status")
+
+        assert response.status_code == 302
+        assert toggled == [test_id]
+
+    def test_delete_quiz_passes_confirmation_flag(self, client, monkeypatch):
+        self._login_as_lecturer(client)
+        test_id = UUID("22222222-2222-2222-2222-222222222222")
+        calls = []
+
+        def fake_delete_quiz(tid, confirmed):
+            calls.append((tid, confirmed))
+            return "archived", "Reef Ecology Quiz"
+
+        monkeypatch.setattr(quiz_mgmt_module, "delete_quiz", fake_delete_quiz)
+
+        response = client.post(
+            f"/lecturer/quiz/{test_id}/delete",
+            data={"confirmed": "true"},
+        )
+
+        assert response.status_code == 302
+        assert calls == [(test_id, True)]
