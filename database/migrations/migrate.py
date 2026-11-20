@@ -139,6 +139,13 @@ SCHEMA_STATEMENTS = [
         points_awarded INT CHECK (points_awarded IN (30, -10, 0))
     );
     """,
+    
+    # Add missing columns to existing databases
+    "ALTER TABLE tests ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';",
+    "ALTER TABLE tests ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;",
+    "ALTER TABLE tests ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;",
+    "ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT FALSE;",
+
     # Singleton row (company_info_id = 'main') holding the landing page's product
     # and contact info; TEXT key keeps the seed INSERT's ON CONFLICT target stable.
     """

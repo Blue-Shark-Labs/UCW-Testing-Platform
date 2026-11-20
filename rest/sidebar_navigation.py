@@ -31,9 +31,9 @@ _NAVIGATION_BY_ROLE = {
                     "endpoint": "lecturer.lecturer_management_route",
                 },
                 {
-                    "label": "Test Management",
+                    "label": "Quiz Management",
                     "icon": "file",
-                    "endpoint": "lecturer_tests.test_management_route",
+                    "endpoint": "lecturer.quiz_management_route",
                 },
             ],
         },

@@ -48,11 +48,12 @@ class TestCreateApp:
         ("role", "visible_item", "hidden_item"),
         [
             ("student", b"Assigned Tests", b"User Management"),
-            ("lecturer", b"Test Management", b"Assigned Tests"),
+            ("lecturer", b"Quiz Management", b"Assigned Tests"),
             ("admin", b"User Management", b"Assigned Tests"),
             ("student", b"Assigned Tests", b">Home<"),
         ],
     )
+    
     def test_sidebar_items_are_selected_by_session_role(
         self, client, monkeypatch, role, visible_item, hidden_item
     ):
