@@ -1,0 +1,124 @@
+{
+    "users": [
+        {
+            "userId": 1001,
+            "firstName": "Emelia",
+            "lastName": "Carter",
+            "email": "amelia.carter@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "lecturer",
+            "mfaEnabled": false,
+            "mfaSecret": null,
+            "isDisabled": false,
+            "lastLoginAt": "2026-10-29 09:15:00"
+        },
+        {
+            "userId": 1005,
+            "firstName": "Sophie",
+            "lastName": "Williams",
+            "email": "sophie.williams@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "admin",
+            "mfaEnabled": true,
+            "mfaSecret": null,
+            "isDisabled": true,
+            "lastLoginAt": "2026-11-02 16:20:00"
+        },
+        {
+            "userId": 1002,
+            "firstName": "Oliver",
+            "lastName": "Bennett",
+            "email": "oliver.bennett@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "lecturer",
+            "mfaEnabled": true,
+            "mfaSecret": null,
+            "isDisabled": false,
+            "lastLoginAt": "2026-10-30 14:42:00"
+        },
+        {
+            "userId": 1003,
+            "firstName": "Priya",
+            "lastName": "Shah",
+            "email": "priya.shah@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "lecturer",
+            "mfaEnabled": false,
+            "mfaSecret": null,
+            "isDisabled": true,
+            "lastLoginAt": "2026-10-27 11:05:00"
+        },
+        {
+            "userId": 1009,
+            "firstName": "Thomas",
+            "lastName": "Reed",
+            "email": "thomas.reed@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "admin",
+            "mfaEnabled": false,
+            "mfaSecret": null,
+            "isDisabled": false,
+            "lastLoginAt": "2026-11-01 10:30:00"
+        },
+        {
+            "userId": 1004,
+            "firstName": "Daniel",
+            "lastName": "Morgan",
+            "email": "daniel.morgan@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "lecturer",
+            "mfaEnabled": false,
+            "mfaSecret": null,
+            "isDisabled": true,
+            "lastLoginAt": null
+        },
+        {
+            "userId": 1006,
+            "firstName": "Charlotte",
+            "lastName": "Evans",
+            "email": "charlotte.evans@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "lecturer",
+            "mfaEnabled": true,
+            "mfaSecret": null,
+            "isDisabled": false,
+            "lastLoginAt": "2026-10-31 10:20:00"
+        },
+        {
+            "userId": 1007,
+            "firstName": "James",
+            "lastName": "Wilson",
+            "email": "james.wilson@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "lecturer",
+            "mfaEnabled": false,
+            "mfaSecret": null,
+            "isDisabled": false,
+            "lastLoginAt": "2026-10-28 13:45:00"
+        },
+        {
+            "userId": 1008,
+            "firstName": "Hannah",
+            "lastName": "Roberts",
+            "email": "hannah.roberts@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "lecturer",
+            "mfaEnabled": true,
+            "mfaSecret": null,
+            "isDisabled": false,
+            "lastLoginAt": "2026-11-01 08:30:00"
+        },
+        {
+            "userId": 1010,
+            "firstName": "William",
+            "lastName": "Harris",
+            "email": "william.harris@example.com",
+            "passwordHash": "REPLACE_WITH_BCRYPT_HASH",
+            "role": "admin",
+            "mfaEnabled": false,
+            "mfaSecret": null,
+            "isDisabled": false,
+            "lastLoginAt": null
+        }
+    ]
+}

@@ -12,11 +12,16 @@ seed-student-dashboard:
 seed-dev-users:
 	python3 -m database.migrations.seed_dev_users
 
+## seed-dev-data: Import data/users.json and data/subjects.json (dev/nonprod only).
+.PHONY: seed-dev-data
+seed-dev-data:
+	python3 -m database.migrations.seed_dev_data
+
 ## db-shell: Open the PostgreSQL shell.
 .PHONY: db-shell
 db-shell:
 	set -a; [ -f .env ] && . ./.env; set +a; \
-	PGPASSWORD="$$PASSWORD" psql -h "$${DATABASE_URL:-localhost}" -p "$${DATABASE_PORT:-5432}" -U "$${USERNAME:-postgres}" "$${DATABASE_NAME:-reinforcement_testing}"
+	PGPASSWORD="$$PASSWORD" psql -h "$${DATABASE_URL:-localhost}" -p "$${DATABASE_PORT:-5432}" -U "$${DATABASE_USER:-$${USERNAME:-postgres}}" "$${DATABASE_NAME:-reinforcement_testing}"
 
 # Pinned to v3: matches the tailwind.config.js/@tailwind directive setup used here.
 export TAILWINDCSS_VERSION ?= v3.4.13
