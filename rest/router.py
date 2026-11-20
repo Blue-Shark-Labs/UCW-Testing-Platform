@@ -4,15 +4,16 @@
 and translate HTTP requests into database-layer calls. 
 """
 
+from flask import Blueprint, Flask, g, redirect, request, session, url_for
 import os
 
-from flask import Blueprint, Flask, g, redirect, request, session, url_for
 from dotenv import load_dotenv
 from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
-from rest.dashboard.student_dashboard import student_dashboard_route
+from rest.dashboard.student_dashboard import student_dashboard_route as dashboard_student_route
+from rest.dashboard.leaderboards import leaderboards
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.logout import logout_route
@@ -22,6 +23,8 @@ from rest.student_dashboard.student_dashboard import (
     student_statistics_route,
     student_test_lists_route,
 )
+from rest.student_dashboard.student_dashboard import student_dashboard_route
+from rest.administrator.routes import administrator
 from rest.sidebar_navigation import get_sidebar_navigation
 
 student_dashboard = Blueprint(
@@ -50,7 +53,9 @@ statistics.add_url_rule(
     view_func=student_statistics_export_route,
     methods=["GET"],
 )
-
+student_dashboard.add_url_rule(
+    "/", endpoint="student_dashboard_route", view_func=student_dashboard_route, methods=["GET"]
+)
 
 def root_route():
     return redirect(url_for("login_route"))
@@ -85,10 +90,10 @@ def create_app():
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
-    app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
     app.register_blueprint(student_dashboard)
     app.register_blueprint(statistics)
+    app.register_blueprint(leaderboards)
 
     @app.before_request
     def load_session_user():

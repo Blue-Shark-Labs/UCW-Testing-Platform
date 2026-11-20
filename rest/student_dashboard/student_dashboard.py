@@ -3,9 +3,10 @@ from collections import defaultdict
 from datetime import datetime
 from io import StringIO
 
-from flask import abort, g, make_response, redirect, render_template, url_for
+from flask import abort, g, make_response, redirect, render_template, url_for, session
 
 from database.helpers.database_helpers import get_assigned_tests, get_completed_tests
+from rest.helpers.rest_helpers import login_required
 
 _CHART_WIDTH = 720
 _CHART_HEIGHT = 240
@@ -19,10 +20,14 @@ def student_test_lists_route():
     student_id = _student_id()
     assigned_tests = get_assigned_tests(student_id) if student_id else []
     completed_tests = get_completed_tests(student_id) if student_id else []
+@login_required(role="student")
+def student_dashboard_route():
+    # Only ever read the student's own data, from the signed session.
+    student_id = session["user_id"]
     return render_template(
         "student_dashboard/page.html",
-        assigned_tests=assigned_tests,
-        completed_tests=completed_tests,
+        assigned_tests=get_assigned_tests(student_id),
+        completed_tests=get_completed_tests(student_id),
     )
 
 
