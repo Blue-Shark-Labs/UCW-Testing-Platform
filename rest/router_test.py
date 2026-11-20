@@ -53,6 +53,7 @@ class TestCreateApp:
             ("student", "/dashboard/student", b"Assigned Tests", b">Home<"),
         ],
     )
+    
     def test_sidebar_items_are_selected_by_session_role(
         self, client, monkeypatch, role, page_path, visible_item, hidden_item
     ):
