@@ -47,10 +47,10 @@ class TestCreateApp:
     @pytest.mark.parametrize(
         ("role", "page_path", "visible_item", "hidden_item"),
         [
-            ("student", "/dashboard/student", b"Assigned Tests", b"User Management"),
-            ("lecturer", "/dashboard/lecturer", b"Quiz Management", b"Assigned Tests"),
-            ("admin", "/administrator/create-user", b"User Management", b"Assigned Tests"),
-            ("student", "/dashboard/student", b"Assigned Tests", b">Home<"),
+            ("student", "/dashboard/student", b"<span>Tests</span>", b"User Management"),
+            ("lecturer", "/dashboard/lecturer", b"Quiz Management", b"<span>Tests</span>"),
+            ("admin", "/administrator/create-user", b"User Management", b"<span>Tests</span>"),
+            ("student", "/dashboard/student", b"Subject Leaderboards", b"Quiz Management"),
         ],
     )
     
