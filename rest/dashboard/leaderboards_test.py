@@ -1,6 +1,31 @@
 from uuid import UUID
 
+import pytest
+
 from rest.dashboard import leaderboards as leaderboards_module
+
+
+@pytest.fixture(autouse=True)
+def stub_session_user_db(monkeypatch):
+    """Prevent load_session_user() in rest/router.py from hitting PostgreSQL."""
+    class FakeCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            pass
+
+        def fetchone(self):
+            return ("Test", "Student", "student")
+
+    class FakeConnectionProvider:
+        def cursor(self):
+            return FakeCursor()
+
+    monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
 
 
 SUBJECTS = [
