@@ -48,7 +48,6 @@ def create_app():
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
-    app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
