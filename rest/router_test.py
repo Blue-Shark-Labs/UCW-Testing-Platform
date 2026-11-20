@@ -78,6 +78,8 @@ class TestCreateApp:
                 return FakeCursor()
 
         monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+        monkeypatch.setattr("rest.student_dashboard.student_dashboard.get_assigned_tests", lambda student_id: [])
+        monkeypatch.setattr("rest.student_dashboard.student_dashboard.get_completed_tests", lambda student_id: [])
 
         with client.session_transaction() as sess:
             sess["user_id"] = "11111111-1111-1111-1111-111111111111"

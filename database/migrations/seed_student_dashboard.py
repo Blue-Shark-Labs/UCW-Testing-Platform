@@ -607,6 +607,95 @@ SEED_STATEMENTS = [
     """,
 ]
 
+ALGEBRA_TEST_ID = "00000000-0000-4000-8000-000000000020"
+COMPUTING_TEST_ID = "00000000-0000-4000-8000-000000000021"
+
+# (user_id, first_name, last_name, student_number)
+LEADERBOARD_STUDENTS = [
+    ("00000000-0000-4000-8000-000000000002", "Priya", "Patel", "DEMO-002"),
+    ("00000000-0000-4000-8000-000000000003", "Tom", "Baker", "DEMO-003"),
+    ("00000000-0000-4000-8000-000000000004", "Aisha", "Khan", "DEMO-004"),
+    ("00000000-0000-4000-8000-000000000005", "Grace", "Okafor", "DEMO-005"),
+    ("00000000-0000-4000-8000-000000000006", "Owen", "Hughes", "DEMO-006"),
+    ("00000000-0000-4000-8000-000000000007", "Ben", "Carter", "DEMO-007"),
+]
+
+# (attempt_id, test_id, user_id, completed_at, percentage, total_points)
+# Points follow +30 correct / -10 incorrect. Tom ties Michael in Computing to
+# exercise tie-breaking, Grace has two Algebra attempts to exercise aggregation,
+# and six Computing entrants exercise the top-five limit.
+LEADERBOARD_ATTEMPTS = [
+    ("00000000-0000-4000-8000-000000000080", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000002", "2026-11-01 10:20:00", 80.00, 220),
+    ("00000000-0000-4000-8000-000000000081", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000003", "2026-11-01 11:15:00", 90.00, 260),
+    ("00000000-0000-4000-8000-000000000082", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000004", "2026-11-02 09:40:00", 100.00, 300),
+    ("00000000-0000-4000-8000-000000000083", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000005", "2026-11-02 13:10:00", 70.00, 180),
+    ("00000000-0000-4000-8000-000000000084", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000005", "2026-11-05 13:10:00", 80.00, 220),
+    ("00000000-0000-4000-8000-000000000085", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000006", "2026-11-03 15:00:00", 60.00, 140),
+    ("00000000-0000-4000-8000-000000000086", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000007", "2026-11-03 16:30:00", 50.00, 100),
+    ("00000000-0000-4000-8000-000000000087", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000002", "2026-11-01 14:25:00", 100.00, 150),
+    ("00000000-0000-4000-8000-000000000088", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000003", "2026-11-02 10:05:00", 80.00, 110),
+    ("00000000-0000-4000-8000-000000000089", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000004", "2026-11-02 11:45:00", 60.00, 70),
+    ("00000000-0000-4000-8000-000000000090", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000005", "2026-11-03 09:30:00", 40.00, 30),
+    ("00000000-0000-4000-8000-000000000091", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000006", "2026-11-04 12:00:00", 20.00, -10),
+]
+
+
+def _seed_leaderboard_data(cur):
+    for user_id, first_name, last_name, student_number in LEADERBOARD_STUDENTS:
+        cur.execute(
+            """
+            INSERT INTO users (user_id, first_name, last_name, email, password_hash, role)
+            VALUES (%s, %s, %s, %s, 'seed-data-only', 'student')
+            ON CONFLICT (user_id) DO UPDATE SET
+                first_name = EXCLUDED.first_name,
+                last_name = EXCLUDED.last_name,
+                email = EXCLUDED.email,
+                password_hash = EXCLUDED.password_hash,
+                role = EXCLUDED.role;
+            """,
+            (user_id, first_name, last_name, f"{first_name}.{last_name}@example.test".lower()),
+        )
+        cur.execute(
+            """
+            INSERT INTO students (user_id, student_number, course_title, is_approved)
+            VALUES (%s, %s, 'BSc Computing', TRUE)
+            ON CONFLICT (user_id) DO UPDATE SET
+                student_number = EXCLUDED.student_number,
+                course_title = EXCLUDED.course_title,
+                is_approved = EXCLUDED.is_approved;
+            """,
+            (user_id, student_number),
+        )
+
+    for attempt_id, test_id, user_id, completed_at, percentage, total_points in LEADERBOARD_ATTEMPTS:
+        cur.execute(
+            """
+            INSERT INTO test_assignments (test_id, student_id, assigned_at)
+            VALUES (%s, %s, TIMESTAMP '2026-10-29 09:00:00')
+            ON CONFLICT (test_id, student_id) DO NOTHING;
+            """,
+            (test_id, user_id),
+        )
+        cur.execute(
+            """
+            INSERT INTO test_attempts (
+                attempt_id, test_id, user_id, started_at, completed_at, percentage, total_points
+            )
+            VALUES (
+                %s, %s, %s,
+                %s::timestamp - INTERVAL '20 minutes', %s::timestamp, %s, %s
+            )
+            ON CONFLICT (attempt_id) DO UPDATE SET
+                test_id = EXCLUDED.test_id,
+                user_id = EXCLUDED.user_id,
+                started_at = EXCLUDED.started_at,
+                completed_at = EXCLUDED.completed_at,
+                percentage = EXCLUDED.percentage,
+                total_points = EXCLUDED.total_points;
+            """,
+            (attempt_id, test_id, user_id, completed_at, completed_at, percentage, total_points),
+        )
+
 
 def seed_student_dashboard():
     provider = PostgresConnectionProvider()

@@ -40,6 +40,12 @@ def _log_in(client, role, user_id=STUDENT_ID):
 
 
 class TestStudentDashboardRoutes:
+    def test_dashboard_requires_student_login(self, client):
+        response = client.get("/student-dashboard/")
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/login"
+
     def test_dashboard_shows_assigned_and_completed_tests_together(self, client, monkeypatch):
         submitted_for = []
         monkeypatch.setattr(

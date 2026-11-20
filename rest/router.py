@@ -4,8 +4,8 @@
 and translate HTTP requests into database-layer calls. 
 """
 
-import os
 from flask import Blueprint, Flask, g, redirect, request, session, url_for
+import os
 from dotenv import load_dotenv
 from types import SimpleNamespace
 
@@ -24,6 +24,7 @@ from rest.student_dashboard.testing import (
     submit_test_route,
     take_test_route,
 )
+from rest.administrator.routes import administrator
 from rest.sidebar_navigation import get_sidebar_navigation
 
 student_dashboard = Blueprint(
@@ -50,7 +51,6 @@ student_dashboard.add_url_rule(
     view_func=submit_test_route,
     methods=["POST"],
 )
-
 
 def root_route():
     return redirect(url_for("login_route"))
@@ -97,6 +97,7 @@ def create_app():
     app.register_blueprint(landing_page)
     app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
+    app.register_blueprint(leaderboards)
 
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
