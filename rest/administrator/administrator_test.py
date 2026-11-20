@@ -1,16 +1,51 @@
 # To Run: pytest rest/administrator/administrator_test.py
 
 from uuid import UUID
-
 import pytest
-
 import rest.administrator.administrator as administrator_module
 from werkzeug.security import check_password_hash
 
 
+@pytest.fixture(autouse=True)
+def stub_session_user_db(monkeypatch):
+    class FakeCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            pass
+
+        def fetchone(self):
+            return ("Test", "Admin", "admin")
+
+    class FakeConnectionProvider:
+        def cursor(self):
+            return FakeCursor()
+
+    monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+
+
+@pytest.fixture
+def admin_client(client):
+    with client.session_transaction() as session:
+        session["user_id"] = "11111111-1111-1111-1111-111111111111"
+        session["role"] = "admin"
+    return client
+
+
 class TestAdministratorRoutes:
-    @pytest.fixture(autouse=True)
-    def login_as_admin(self, client, monkeypatch):
+    def test_admin_routes_redirect_anonymous_users_to_login(self, client):
+        response = client.get("/administrator/users")
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/login"
+
+    def test_admin_routes_forbid_database_non_admin_even_if_session_says_admin(
+        self, client, monkeypatch
+    ):
         class FakeCursor:
             def __enter__(self):
                 return self
@@ -22,20 +57,52 @@ class TestAdministratorRoutes:
                 pass
 
             def fetchone(self):
-                return ("Admin", "User", "admin")
+                return ("Test", "Student", "student")
 
         class FakeConnectionProvider:
             def cursor(self):
                 return FakeCursor()
 
         monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+        with client.session_transaction() as session:
+            session["user_id"] = "11111111-1111-1111-1111-111111111111"
+            session["role"] = "admin"
 
-        with client.session_transaction() as sess:
-            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
-            sess["role"] = "admin"
+        response = client.get("/administrator/users")
+
+        assert response.status_code == 403
+
+    def test_admin_routes_forbid_session_for_user_missing_from_database(
+        self, client, monkeypatch
+    ):
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                pass
+
+            def fetchone(self):
+                return None
+
+        class FakeConnectionProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+        with client.session_transaction() as session:
+            session["user_id"] = "11111111-1111-1111-1111-111111111111"
+            session["role"] = "admin"
+
+        response = client.get("/administrator/users")
+
+        assert response.status_code == 403
 
     def test_activate_deactivate_route_accepts_hidden_post_fields(
-        self, client, monkeypatch
+        self, admin_client, monkeypatch
     ):
         user_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
         calls = []
@@ -50,11 +117,11 @@ class TestAdministratorRoutes:
             fake_set_user_disabled,
         )
 
-        deactivate_response = client.post(
+        deactivate_response = admin_client.post(
             "/administrator/users/activate-deactivate-user",
             data={"userId": str(user_id), "action": "deactivate"},
         )
-        activate_response = client.post(
+        activate_response = admin_client.post(
             "/administrator/users/activate-deactivate-user",
             data={"userId": str(user_id), "action": "activate"},
         )
@@ -88,7 +155,7 @@ class TestAdministratorRoutes:
         assert "Ada Lecturer" in response
         assert "Administration Panel" in response
 
-    def test_create_subject_persists_database_fields(self, client, monkeypatch):
+    def test_create_subject_persists_database_fields(self, admin_client, monkeypatch):
         lecturer_id = "8c2c51c3-d847-4d51-8442-f46f814db3c7"
         created = {}
         monkeypatch.setattr(
@@ -114,7 +181,7 @@ class TestAdministratorRoutes:
             administrator_module, "create_subject", fake_create_subject
         )
 
-        response = client.post(
+        response = admin_client.post(
             "/administrator/create-subject",
             data={
                 "name": "Ocean Sciences",
@@ -130,7 +197,7 @@ class TestAdministratorRoutes:
         assert isinstance(created["subject_id"], UUID)
 
     def test_create_student_user_hashes_password_and_saves_profile(
-        self, client, monkeypatch
+        self, admin_client, monkeypatch
     ):
         created = {}
 
@@ -140,7 +207,7 @@ class TestAdministratorRoutes:
 
         monkeypatch.setattr(administrator_module, "create_user", fake_create_user)
 
-        response = client.post(
+        response = admin_client.post(
             "/administrator/create-user",
             data={
                 "firstName": "Sam",
@@ -160,7 +227,7 @@ class TestAdministratorRoutes:
         assert check_password_hash(args[3], "a-local-password")
 
     def test_edit_subject_updates_database_and_lecturer_assignment(
-        self, client, monkeypatch
+        self, admin_client, monkeypatch
     ):
         subject_id = UUID("650e8400-e29b-41d4-a716-446655440001")
         lecturer_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
@@ -195,7 +262,7 @@ class TestAdministratorRoutes:
             administrator_module, "update_subject", fake_update_subject
         )
 
-        response = client.post(
+        response = admin_client.post(
             f"/administrator/edit-subject/{subject_id}",
             data={
                 "isActive": "false",
@@ -215,7 +282,7 @@ class TestAdministratorRoutes:
         )
 
     def test_user_route_uses_uuid_and_updates_user_in_database(
-        self, client, monkeypatch
+        self, admin_client, monkeypatch
     ):
         user_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
         updated = {}
@@ -242,7 +309,7 @@ class TestAdministratorRoutes:
             administrator_module, "update_user", fake_update_user
         )
 
-        response = client.post(
+        response = admin_client.post(
             f"/administrator/edit-user/{user_id}",
             data={
                 "firstName": "Ada",
