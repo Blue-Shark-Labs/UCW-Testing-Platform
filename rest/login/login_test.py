@@ -52,21 +52,20 @@ class TestLoginRoute:
 
     @patch("rest.login.login.PostgresConnectionProvider")
     @patch("rest.login.login.authenticate_user")
-    def test_login_route_redirects_student_to_tests_dashboard(
+    def test_admin_login_redirects_to_administrator_subjects(
         self, mock_authenticate_user, mock_connection_provider, app
     ):
-        # ARRANGE
-        mock_authenticate_user.return_value = make_user(role="student")
+        mock_authenticate_user.return_value = make_user(role="admin")
 
-        # ACT
         with app.test_request_context(
-            "/login", method="POST", data={"email": "student@example.com", "password": "correct-password"}
+            "/login",
+            method="POST",
+            data={"email": "admin@example.com", "password": "correct-password"},
         ):
             response = login_route()
 
-        # ASSERT
         assert response.status_code == 302
-        assert response.location.endswith("/student-dashboard/")
+        assert response.location == "/administrator/subjects"
 
     @patch("rest.login.login.PostgresConnectionProvider")
     @patch("rest.login.login.authenticate_user")
