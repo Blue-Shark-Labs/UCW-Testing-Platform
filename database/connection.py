@@ -1,10 +1,13 @@
 import os
 from contextlib import contextmanager
+from pathlib import Path
 
 import psycopg
 from dotenv import dotenv_values, load_dotenv
 
-load_dotenv()
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv(PROJECT_ROOT / "dev.env")
 
 
 class PostgresConnectionProvider:

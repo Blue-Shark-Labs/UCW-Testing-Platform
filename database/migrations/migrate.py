@@ -5,9 +5,13 @@
 # Table/column names mirror the ERD, translated to snake_case (Postgres
 # lower-cases unquoted identifiers, so camelCase would require quoting
 # every reference). The connection uses the DATABASE_URL/DATABASE_NAME/
-# USERNAME/PASSWORD environment variables via the shared connection provider.
+# DATABASE_USER/PASSWORD environment variables via the shared connection provider.
 
-from database.connection import PostgresConnectionProvider
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
 
 
 SCHEMA_STATEMENTS = [
@@ -80,6 +84,13 @@ SCHEMA_STATEMENTS = [
         is_active BOOLEAN NOT NULL DEFAULT TRUE
     );
     """,
+    """
+    CREATE TABLE IF NOT EXISTS subject_lecturers (
+        subject_id UUID NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
+        user_id UUID NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        PRIMARY KEY (subject_id, user_id)
+    );
+    """,
     # Questions are drawn from the subject's question pool, not tied to a
     # specific test, so a test only records how many to present and for how long.
     """
@@ -143,6 +154,7 @@ SCHEMA_STATEMENTS = [
     "CREATE INDEX IF NOT EXISTS idx_tests_created_by ON tests(created_by);",
     "CREATE INDEX IF NOT EXISTS idx_test_assignments_student_id ON test_assignments(student_id);",
     "CREATE INDEX IF NOT EXISTS idx_test_assignments_test_id ON test_assignments(test_id);",
+    "CREATE INDEX IF NOT EXISTS idx_subject_lecturers_user_id ON subject_lecturers(user_id);",
     "CREATE INDEX IF NOT EXISTS idx_questions_subject_id ON questions(subject_id);",
     "CREATE INDEX IF NOT EXISTS idx_answer_options_question_id ON answer_options(question_id);",
     "CREATE INDEX IF NOT EXISTS idx_test_attempts_test_id ON test_attempts(test_id);",
@@ -154,6 +166,9 @@ SCHEMA_STATEMENTS = [
 
 
 def migrate():
+    load_dotenv(ROOT_DIR / "dev.env")
+    from database.connection import PostgresConnectionProvider
+
     provider = PostgresConnectionProvider()
     with provider.cursor() as cur:
         for statement in SCHEMA_STATEMENTS:
