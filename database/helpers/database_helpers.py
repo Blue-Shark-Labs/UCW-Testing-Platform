@@ -424,11 +424,13 @@ def _fetch_rows(query, parameters, fields):
 
 def row_to_user(row):
     """Maps a users table row to a User domain entity."""
-    user_id, email, password_hash, role, is_disabled = row
+    user_id, email, password_hash, role, is_disabled, is_approved, is_locked = row
     return User(
         user_id=user_id,
         email=email,
         password_hash=password_hash,
         role=role,
         is_disabled=is_disabled,
+        is_approved=is_approved,
+        is_locked=is_locked,
     )

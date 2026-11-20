@@ -6,6 +6,8 @@ and translate HTTP requests into database-layer calls.
 
 from flask import Blueprint, Flask, g, redirect, request, session, url_for
 import os
+
+from dotenv import load_dotenv
 from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
@@ -13,8 +15,8 @@ from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
 from rest.dashboard.student_dashboard import student_dashboard_route
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
+from rest.login.logout import logout_route
 from rest.login.register import register_route
-from rest.pr_block.routes import pr_block
 from rest.student_dashboard.student_dashboard import student_dashboard_route
 from rest.student_dashboard.testing import (
     save_test_answer_route,
@@ -51,6 +53,12 @@ student_dashboard.add_url_rule(
 
 def root_route():
     return redirect(url_for("login_route"))
+from rest.administrator.routes import administrator
+from rest.sidebar_navigation import get_sidebar_navigation
+
+from rest.lecturer.routes import lecturer
+from database.connection import PostgresConnectionProvider
+load_dotenv()
 
 
 def create_app():
@@ -62,17 +70,18 @@ def create_app():
 
     secret_key = os.environ.get("SECRET_KEY")
     if not secret_key:
-        raise RuntimeError("SECRET_KEY must be set.")
+        raise RuntimeError("SECRET_KEY environment variable must be set")
     app.secret_key = secret_key
     app.config.update(
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
-        SESSION_COOKIE_SECURE=True,
+        # Set SESSION_COOKIE_SECURE=false only for local http dev; browsers drop Secure cookies over http.
+        SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "true").strip().lower() != "false",
     )
 
-    app.add_url_rule("/", view_func=root_route, methods=["GET"])
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
-    app.add_url_rule("/register", view_func=register_route, methods=["GET"])
+    app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
+    app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/admin", view_func=admin_dashboard_route, methods=["GET"])
@@ -93,6 +102,34 @@ def create_app():
                 role="student",
                 name="Michael James",
                 user_id="00000000-0000-4000-8000-000000000001",
+    app.register_blueprint(administrator)
+    app.register_blueprint(lecturer)
+
+    @app.before_request
+    def load_session_user():
+        if "user_id" not in session:
+            g.user = None
+            return
+
+        connection_provider = PostgresConnectionProvider()
+
+        with connection_provider.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT first_name, last_name, role
+                FROM users
+                WHERE user_id = %s
+                """,
+                (session["user_id"],)
+            )
+            user = cursor.fetchone()
+
+        if user:
+            first_name = user[0]
+            last_name = user[1]
+            g.user = SimpleNamespace(
+                name=f"{first_name} {last_name}",
+                role=user[2]
             )
         else:
             g.user = None

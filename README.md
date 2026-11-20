@@ -62,15 +62,35 @@ Clean architecture — dependencies point inward (REST → use cases → databas
 ```bash
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # then edit DATABASE_URL if needed
+cp dev-env-template dev.env   # set DATABASE_URL, DATABASE_NAME, DATABASE_USER and PASSWORD
 make setup-db                 # create the PostgreSQL schema
 make seed-student-dashboard   # add repeatable student dashboard sample data
+make seed-dev-data            # import data/users.json and data/subjects.json
 make install-frontend         # download the standalone Tailwind CLI binary (via pytailwindcss, no Node.js)
 make build-css                # compile static/css/styles.css (or `make watch-css` while developing)
 make run                      # or: python3 app.py
 make test                     # or: pytest -v
 ```
 
-Requires a running PostgreSQL instance matching `DATABASE_URL`.
+`setup-db` and `seed-dev-data` read database settings from `dev.env` (or from
+environment variables already set in the shell). Before seeding, set
+`DEV_SEED_PASSWORD` to a local-only password; placeholder password hashes in
+`data/users.json` are replaced with hashes for that password. For PowerShell:
+
+```powershell
+$env:DEV_SEED_PASSWORD = "your-local-development-password"
+python -m database.migrations.migrate
+python -m database.migrations.seed_dev_data
+Remove-Item Env:DEV_SEED_PASSWORD
+```
+
+The importer maps the numeric JSON user IDs to stable database UUIDs and stores
+subject/lecturer links in `subject_lecturers`. Subject `code` and `updatedAt`
+fields are not imported because they are not columns in the current schema.
+Lecturer references absent from `users.json` are reported and skipped.
+
+Requires a running PostgreSQL instance matching the settings in `dev.env`.
+Use `DATABASE_USER` for the database account name; avoid `USERNAME`, which is
+predefined by Windows and may override the value loaded from an env file.
 
 ---
