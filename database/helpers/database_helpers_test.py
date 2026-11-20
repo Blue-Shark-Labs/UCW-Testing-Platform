@@ -34,6 +34,8 @@ def test_subject_leaderboard_uses_erd_student_relationship_and_approval(monkeypa
             "completed_test_count": 3,
             "average_percentage": 92.5,
             "total_points": 450,
+        }
+    ]
 def test_get_assigned_tests_filters_by_assignment_and_attempt_user_id(monkeypatch):
     rows = [("42", "Algebra Basics", "Mathematics", 10)]
     provider = FakeConnectionProvider(rows)

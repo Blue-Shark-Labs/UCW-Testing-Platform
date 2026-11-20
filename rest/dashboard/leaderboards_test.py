@@ -80,5 +80,5 @@ class TestSubjectLeaderboardsRoute:
 
 def _login_as_student(client):
     with client.session_transaction() as test_session:
-        test_session["user_id"] = "student-user-id"
+        test_session["user_id"] = "00000000-0000-4000-8000-000000000001"
         test_session["role"] = "student"
