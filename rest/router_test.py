@@ -48,7 +48,7 @@ class TestCreateApp:
         ("role", "page_path", "visible_item", "hidden_item"),
         [
             ("student", "/dashboard/student", b"Assigned Tests", b"User Management"),
-            ("lecturer", "/dashboard/lecturer", b"Test Management", b"Assigned Tests"),
+            ("lecturer", "/dashboard/lecturer", b"Quiz Management", b"Assigned Tests"),
             ("admin", "/administrator/create-user", b"User Management", b"Assigned Tests"),
             ("student", "/dashboard/student", b"Assigned Tests", b">Home<"),
         ],
