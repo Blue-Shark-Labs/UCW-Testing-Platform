@@ -82,7 +82,7 @@ class TestCreateApp:
 
         # ACT
         # Login is a standalone guest page, so use a page that renders the sidebar layout.
-        response = client.get("/pr-block/")
+        response = client.get(f"/dashboard/{role}")
 
         # ASSERT
         assert response.status_code == 200
