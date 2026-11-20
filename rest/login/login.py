@@ -10,7 +10,7 @@ from usecase.authenticate_user import (
 )
 
 ROLE_DASHBOARD_ENDPOINTS = {
-    "student": "student_dashboard_route",
+    "student": "student_dashboard.student_dashboard_route",
     "lecturer": "lecturer_dashboard_route",
     "admin": "administrator.administrator_view_subjects_route",
 }

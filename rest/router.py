@@ -6,8 +6,8 @@ and translate HTTP requests into database-layer calls.
 
 import os
 
+from flask import Blueprint, Flask, g, redirect, request, session, url_for
 from dotenv import load_dotenv
-from flask import Flask, g, request, session, url_for
 from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
@@ -17,6 +17,21 @@ from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.logout import logout_route
 from rest.login.register import register_route
+from rest.student_dashboard.student_dashboard import student_tests_route
+from rest.sidebar_navigation import get_sidebar_navigation
+
+student_dashboard = Blueprint(
+    "student_dashboard",
+    __name__,
+    url_prefix="/student-dashboard",
+)
+student_dashboard.add_url_rule(
+    "/", endpoint="student_dashboard_route", view_func=student_tests_route, methods=["GET"]
+)
+
+
+def root_route():
+    return redirect(url_for("login_route"))
 from rest.administrator.routes import administrator
 from rest.sidebar_navigation import get_sidebar_navigation
 
@@ -49,6 +64,15 @@ def create_app():
     app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
+    app.register_blueprint(student_dashboard)
+
+    @app.before_request
+    def load_session_user():
+        g.user = (
+            SimpleNamespace(role=session.get("role"), user_id=session.get("user_id"))
+            if "user_id" in session
+            else None
+        )
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
 

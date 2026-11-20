@@ -64,6 +64,7 @@ python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp dev-env-template dev.env   # set DATABASE_URL, DATABASE_NAME, DATABASE_USER and PASSWORD
 make setup-db                 # create the PostgreSQL schema
+make seed-student-dashboard   # add repeatable student dashboard sample data
 make seed-dev-data            # import data/users.json and data/subjects.json
 make install-frontend         # download the standalone Tailwind CLI binary (via pytailwindcss, no Node.js)
 make build-css                # compile static/css/styles.css (or `make watch-css` while developing)

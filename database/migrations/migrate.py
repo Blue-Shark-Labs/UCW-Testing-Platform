@@ -104,6 +104,16 @@ SCHEMA_STATEMENTS = [
     );
     """,
     """
+    CREATE TABLE IF NOT EXISTS test_assignments (
+        assignment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        test_id UUID NOT NULL REFERENCES tests(test_id) ON DELETE CASCADE,
+        student_id UUID NOT NULL REFERENCES students(user_id) ON DELETE CASCADE,
+        assigned_by UUID REFERENCES users(user_id) ON DELETE SET NULL,
+        assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (test_id, student_id)
+    );
+    """,
+    """
     CREATE TABLE IF NOT EXISTS questions (
         question_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         subject_id UUID NOT NULL REFERENCES subjects(subject_id),
@@ -175,6 +185,8 @@ SCHEMA_STATEMENTS = [
     # Indexes on foreign key columns (Postgres doesn't create these automatically).
     "CREATE INDEX IF NOT EXISTS idx_tests_subject_id ON tests(subject_id);",
     "CREATE INDEX IF NOT EXISTS idx_tests_created_by ON tests(created_by);",
+    "CREATE INDEX IF NOT EXISTS idx_test_assignments_student_id ON test_assignments(student_id);",
+    "CREATE INDEX IF NOT EXISTS idx_test_assignments_test_id ON test_assignments(test_id);",
     "CREATE INDEX IF NOT EXISTS idx_subject_lecturers_user_id ON subject_lecturers(user_id);",
     "CREATE INDEX IF NOT EXISTS idx_questions_subject_id ON questions(subject_id);",
     "CREATE INDEX IF NOT EXISTS idx_answer_options_question_id ON answer_options(question_id);",
