@@ -7,7 +7,16 @@ from rest.student_dashboard import student_dashboard as dashboard_module
 
 
 class TestStudentDashboardRoutes:
+    def test_dashboard_requires_student_login(self, client):
+        response = client.get("/student-dashboard/")
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/login"
+
     def test_dashboard_shows_assigned_and_completed_tests_together(self, client, monkeypatch):
+        with client.session_transaction() as test_session:
+            test_session["user_id"] = "11111111-1111-1111-1111-111111111111"
+            test_session["role"] = "student"
         monkeypatch.setattr(
             dashboard_module,
             "get_assigned_tests",

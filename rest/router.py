@@ -4,7 +4,7 @@
 and translate HTTP requests into database-layer calls. 
 """
 
-from flask import Blueprint, Flask, g, redirect, request, url_for
+from flask import Blueprint, Flask, g, redirect, request, session, url_for
 import os
 
 from dotenv import load_dotenv
@@ -13,7 +13,7 @@ from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
-from rest.dashboard.student_dashboard import student_dashboard_route
+from rest.dashboard.student_dashboard import student_dashboard_route as dashboard_student_route
 from rest.dashboard.leaderboards import leaderboards
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
@@ -66,12 +66,6 @@ def create_app():
     app.register_blueprint(lecturer)
 
     @app.before_request
-    def set_test_user():
-        g.user = SimpleNamespace(
-            role="student",
-            name="Michael James",
-            user_id="00000000-0000-4000-8000-000000000001",
-        )  # Change this to "lecturer" or "administrator" or "student" to test different roles - also include the name
     def load_session_user():
         if "user_id" not in session:
             g.user = None
