@@ -37,32 +37,6 @@ def admin_client(client):
 
 
 class TestAdministratorRoutes:
-    @pytest.fixture(autouse=True)
-    def login_as_admin(self, client, monkeypatch):
-        class FakeCursor:
-            def __enter__(self):
-                return self
-
-            def __exit__(self, exc_type, exc, tb):
-                return False
-
-            def execute(self, query, params=None):
-                pass
-
-            def fetchone(self):
-                return ("Admin", "User", "admin")
-
-        class FakeConnectionProvider:
-            def cursor(self):
-                return FakeCursor()
-
-        monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
-
-        with client.session_transaction() as sess:
-            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
-            sess["role"] = "admin"
-
-    def test_activate_deactivate_route_accepts_hidden_post_fields(
     def test_admin_routes_redirect_anonymous_users_to_login(self, client):
         response = client.get("/administrator/users")
 
