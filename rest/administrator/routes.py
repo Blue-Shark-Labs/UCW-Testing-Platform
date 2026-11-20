@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, abort, g, redirect, render_template, session, url_for
 
 from rest.administrator.administrator import administrator_view_subjects_route
 from rest.administrator.administrator import administrator_edit_subject_route
@@ -19,10 +19,9 @@ def require_admin_role():
     if "user_id" not in session:
         return redirect(url_for("login_route"))
     user = getattr(g, "user", None)
-    role = getattr(user, "role", None) or session.get("role")
-    if role != "admin":
-        return redirect(url_for("root_route"))
-        
+    if user is None or user.role != "admin":
+        abort(403)
+
 administrator.add_url_rule("/subjects", view_func=administrator_view_subjects_route, methods=["GET"])
 administrator.add_url_rule("/subjects/edit-subject/<uuid:subject_id>", view_func=administrator_edit_subject_route, methods=["GET", "POST"])
 administrator.add_url_rule("/subjects/create-subject", view_func=administrator_create_subject_route, methods=["GET", "POST"])
