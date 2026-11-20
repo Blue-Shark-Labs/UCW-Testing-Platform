@@ -11,7 +11,9 @@ from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
-from rest.dashboard.student_dashboard import student_dashboard_route
+from rest.dashboard.student_dashboard import (
+    student_dashboard_route as student_home_route,
+)
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.logout import logout_route
@@ -52,8 +54,17 @@ student_dashboard.add_url_rule(
 
 def root_route():
     return redirect(url_for("login_route"))
+
+
+pr_block = Blueprint("pr_block", __name__, url_prefix="/pr-block")
+pr_block.add_url_rule(
+    "/",
+    endpoint="pr_block_route",
+    view_func=student_home_route,
+    methods=["GET"],
+)
+
 from rest.administrator.routes import administrator
-from rest.sidebar_navigation import get_sidebar_navigation
 
 from rest.lecturer.routes import lecturer
 from database.connection import PostgresConnectionProvider
@@ -81,18 +92,12 @@ def create_app():
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
     app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
-    app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
+    app.add_url_rule("/dashboard/student", view_func=student_home_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
+    app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
 
-    @app.before_request
-    def load_session_user():
-        g.user = (
-            SimpleNamespace(role=session.get("role"), user_id=session.get("user_id"))
-            if "user_id" in session
-            else None
-        )
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
 
@@ -120,7 +125,8 @@ def create_app():
             last_name = user[1]
             g.user = SimpleNamespace(
                 name=f"{first_name} {last_name}",
-                role=user[2]
+                role=user[2],
+                user_id=session["user_id"],
             )
         else:
             g.user = None

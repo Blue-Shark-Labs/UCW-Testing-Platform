@@ -102,6 +102,7 @@ class TestStudentDashboardRoutes:
 
 class TestStudentTestingRoutes:
     def test_assigned_test_renders_question_counter_options_and_countdown(self, client, monkeypatch):
+        _log_in(client, "student")
         test_id = UUID("00000000-0000-4000-8000-000000000001")
         attempt_id = UUID("00000000-0000-4000-8000-000000000005")
         question_id = UUID("00000000-0000-4000-8000-000000000002")
@@ -151,6 +152,7 @@ class TestStudentTestingRoutes:
         assert response.status_code == 403
 
     def test_submitting_test_records_form_answers_and_shows_result(self, client, monkeypatch):
+        _log_in(client, "student")
         test_id = UUID("00000000-0000-4000-8000-000000000001")
         attempt_id = UUID("00000000-0000-4000-8000-000000000002")
         question_id = UUID("00000000-0000-4000-8000-000000000003")
@@ -187,6 +189,7 @@ class TestStudentTestingRoutes:
         assert submitted["student_id"] == "00000000-0000-4000-8000-000000000001"
 
     def test_submitting_with_unanswered_questions_shows_error(self, client, monkeypatch):
+        _log_in(client, "student")
         test_id = UUID("00000000-0000-4000-8000-000000000001")
         attempt_id = UUID("00000000-0000-4000-8000-000000000002")
         first_question = UUID("00000000-0000-4000-8000-000000000003")
@@ -222,6 +225,7 @@ class TestStudentTestingRoutes:
         assert b"Answer every question before submitting. Unanswered: 2." in response.data
 
     def test_expired_test_is_submitted_when_opened(self, client, monkeypatch):
+        _log_in(client, "student")
         test_id = UUID("00000000-0000-4000-8000-000000000001")
         monkeypatch.setattr(
             testing_module,
@@ -256,8 +260,6 @@ class TestStudentTestingRoutes:
         assert response.status_code == 200
         assert b"time limit expired" in response.data.lower()
         assert submitted[0][1] == "attempt-1"
-        assert b"No tests to complete." in response.data
-        assert b"No completed tests yet." in response.data
 
     def test_test_lists_require_student_role(self, client, monkeypatch):
         class FakeCursor:

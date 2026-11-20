@@ -49,7 +49,7 @@ class TestCreateApp:
     @pytest.mark.parametrize(
         ("role", "page_path", "visible_item", "hidden_item"),
         [
-            ("student", "/dashboard/student", b"<span>Tests</span>", b"User Management"),
+            ("student", "/dashboard/student", b"Assigned Tests", b"User Management"),
             ("lecturer", "/dashboard/lecturer", b"Quiz Management", b"<span>Tests</span>"),
             ("admin", "/administrator/create-user", b"User Management", b"<span>Tests</span>"),
             ("student", "/dashboard/student", b"Subject Leaderboards", b"Quiz Management"),
@@ -92,7 +92,34 @@ class TestCreateApp:
         assert visible_item in response.data
         assert hidden_item not in response.data
 
-    def test_sidebar_supported_items_are_full_row_links(self, client):
+    def test_sidebar_supported_items_are_full_row_links(
+        self, client, monkeypatch
+    ):
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                pass
+
+            def fetchone(self):
+                return ("Test", "User", "student")
+
+        class FakeConnectionProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr(
+            "rest.router.PostgresConnectionProvider",
+            FakeConnectionProvider,
+        )
+        with client.session_transaction() as sess:
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+            sess["role"] = "student"
+
         response = client.get("/pr-block/")
 
         assert response.status_code == 200

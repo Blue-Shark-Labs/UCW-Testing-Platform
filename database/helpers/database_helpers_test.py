@@ -26,10 +26,10 @@ def test_get_assigned_tests_filters_by_assignment_and_attempt_user_id(monkeypatc
 
     query, parameters = provider.cursor_mock.execute.call_args.args
     assert "FROM tests AS t" in query
-    assert "test_assignments" not in query
-    assert "attempt.user_id = %s" in query
+    assert "JOIN test_assignments AS assignment" in query
+    assert "attempt.user_id = assignment.student_id" in query
     assert "attempt.student_id" not in query
-    assert parameters == ("7", "7")
+    assert parameters == ("7",)
     assert result == [
         {
             "test_id": "42",

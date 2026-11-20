@@ -42,7 +42,7 @@ def get_assigned_tests(student_id):
 		  )
 		ORDER BY t.title
 	"""
-	return _fetch_rows(query, (student_id, student_id), fields)
+	return _fetch_rows(query, (student_id,), fields)
 
 
 def get_completed_tests(student_id):
