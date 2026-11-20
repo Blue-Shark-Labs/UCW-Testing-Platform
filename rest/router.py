@@ -11,6 +11,7 @@ from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
+from rest.dashboard.leaderboards import leaderboards
 from rest.dashboard.student_dashboard import (
     student_dashboard_route as student_home_route,
 )
