@@ -52,6 +52,23 @@ class TestLoginRoute:
 
     @patch("rest.login.login.PostgresConnectionProvider")
     @patch("rest.login.login.authenticate_user")
+    def test_admin_login_redirects_to_administrator_subjects(
+        self, mock_authenticate_user, mock_connection_provider, app
+    ):
+        mock_authenticate_user.return_value = make_user(role="admin")
+
+        with app.test_request_context(
+            "/login",
+            method="POST",
+            data={"email": "admin@example.com", "password": "correct-password"},
+        ):
+            response = login_route()
+
+        assert response.status_code == 302
+        assert response.location == "/administrator/subjects"
+
+    @patch("rest.login.login.PostgresConnectionProvider")
+    @patch("rest.login.login.authenticate_user")
     def test_login_route_shows_error_for_invalid_or_disabled_account(
         self, mock_authenticate_user, mock_connection_provider, app
     ):
