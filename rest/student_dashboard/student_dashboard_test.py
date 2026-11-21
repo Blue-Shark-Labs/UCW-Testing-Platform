@@ -95,6 +95,7 @@ class TestStudentDashboardRoutes:
         assert b'href="/student-dashboard/tests/00000000-0000-4000-8000-000000000042"' in response.data
 
     def test_dashboard_shows_empty_states(self, client, monkeypatch):
+        monkeypatch.setattr(dashboard_module, "submit_expired_test_attempts", lambda student_id: None)
         monkeypatch.setattr(dashboard_module, "get_assigned_tests", lambda student_id: [])
         monkeypatch.setattr(dashboard_module, "get_completed_tests", lambda student_id: [])
         _log_in(client, "student")
