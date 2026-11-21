@@ -20,6 +20,28 @@
   }
 }
 
+@layer components {
+  .dashboard-card {
+    @apply rounded-lg border border-app-divider bg-white p-6 shadow-sm;
+  }
+
+  .dashboard-table {
+    @apply w-full border-collapse text-left text-sm text-text-primary;
+  }
+
+  .dashboard-table th {
+    @apply bg-app-background px-4 py-3 text-xs font-medium uppercase tracking-wide text-app-quaternary;
+  }
+
+  .dashboard-table td {
+    @apply border-t border-app-divider px-4 py-3;
+  }
+
+  .dashboard-table tbody tr {
+    @apply transition-colors hover:bg-app-background;
+  }
+}
+
 /*
  * Line-height is intentionally tailored to individual elements to maintain
  * a clean, space-efficient layout. Paragraphs and other text-heavy elements
