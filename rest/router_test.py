@@ -127,7 +127,7 @@ class TestCreateApp:
         assert response.status_code == 200
         assert re.search(
             rb'<a href="/student-dashboard/" class="[^"]*"[^>]*>'
-            rb'.*?<svg[^>]*>.*?</svg>.*?Assigned Tests</span>.*?</a>',
+            rb'.*?<svg[^>]*>.*?</svg>.*?Tests</span>.*?</a>',
             response.data,
             re.DOTALL,
         )

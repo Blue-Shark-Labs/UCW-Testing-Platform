@@ -38,7 +38,15 @@ def student_dashboard_route():
     )
 
 
+def _require_student():
+    user = getattr(g, "user", None)
+    if str(getattr(user, "role", "")).lower() != "student":
+        abort(403)
+
+
+@login_required(role="student")
 def student_statistics_route():
+    _require_student()
     student_id = session["user_id"]
     completed_tests = get_completed_tests(student_id) if student_id else []
     summary = _summarize_statistics(completed_tests)
@@ -54,7 +62,9 @@ def student_statistics_route():
     )
 
 
+@login_required(role="student")
 def student_statistics_export_route():
+    _require_student()
     student_id = session["user_id"]
     completed_tests = get_completed_tests(student_id) if student_id else []
     summary = _summarize_statistics(completed_tests)

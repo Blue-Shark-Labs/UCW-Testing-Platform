@@ -11,6 +11,34 @@ from rest.student_dashboard import student_dashboard as dashboard_module
 pytestmark = pytest.mark.usefixtures("student_session")
 
 
+@pytest.fixture(autouse=True)
+def student_session(client, monkeypatch):
+    class FakeCursor:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def execute(self, query, params=None):
+            pass
+
+        def fetchone(self):
+            return ("Test", "Student", "student")
+
+    class FakeConnectionProvider:
+        def cursor(self):
+            return FakeCursor()
+
+    monkeypatch.setattr(
+        "rest.router.PostgresConnectionProvider",
+        FakeConnectionProvider,
+    )
+    with client.session_transaction() as session:
+        session["user_id"] = "00000000-0000-4000-8000-000000000001"
+        session["role"] = "student"
+
+
 def _completed_tests():
     return [
         {
