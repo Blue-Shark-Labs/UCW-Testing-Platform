@@ -3,9 +3,12 @@ from datetime import datetime
 from io import StringIO
 from types import SimpleNamespace
 
+import pytest
 from flask import g
 
 from rest.student_dashboard import student_dashboard as dashboard_module
+
+pytestmark = pytest.mark.usefixtures("student_session")
 
 
 def _completed_tests():

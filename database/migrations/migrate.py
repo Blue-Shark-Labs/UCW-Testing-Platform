@@ -149,6 +149,26 @@ SCHEMA_STATEMENTS = [
         points_awarded INT CHECK (points_awarded IN (30, -10, 0))
     );
     """,
+    """
+    CREATE OR REPLACE FUNCTION enforce_max_answer_options() RETURNS trigger AS $$
+    BEGIN
+        -- Lock the parent question so concurrent inserts can't both pass the count.
+        PERFORM 1 FROM questions WHERE question_id = NEW.question_id FOR UPDATE;
+        IF (
+            SELECT COUNT(*) FROM answer_options
+            WHERE question_id = NEW.question_id AND option_id <> NEW.option_id
+        ) >= 4 THEN
+            RAISE EXCEPTION 'A question can have at most 4 answer options';
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+    """,
+    "DROP TRIGGER IF EXISTS answer_options_max_four ON answer_options;",
+    """
+    CREATE TRIGGER answer_options_max_four
+    BEFORE INSERT OR UPDATE OF question_id ON answer_options
+    FOR EACH ROW EXECUTE FUNCTION enforce_max_answer_options();
     
     # Add missing columns to existing databases
     "ALTER TABLE tests ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';",
@@ -158,6 +178,7 @@ SCHEMA_STATEMENTS = [
 
     # Singleton row (company_info_id = 'main') holding the landing page's product
     # and contact info; TEXT key keeps the seed INSERT's ON CONFLICT target stable.
+    """,
     """
     CREATE TABLE IF NOT EXISTS company_info (
         company_info_id TEXT PRIMARY KEY DEFAULT 'main',
