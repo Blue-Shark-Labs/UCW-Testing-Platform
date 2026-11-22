@@ -64,7 +64,7 @@ def test_get_assigned_tests_filters_by_assignment_and_attempt_user_id(monkeypatc
 
 def test_get_completed_tests_uses_attempt_user_id(monkeypatch):
     completed_at = datetime(2026, 11, 5, 14, 30)
-    rows = [("81", "Algebra Basics", completed_at, 10, 92.5, 300)]
+    rows = [("81", "test-1", "Algebra Basics", "Mathematics", completed_at, 10, 92.5, 300)]
     provider = FakeConnectionProvider(rows)
     monkeypatch.setattr(database_helpers, "PostgresConnectionProvider", lambda: provider)
 
@@ -72,6 +72,7 @@ def test_get_completed_tests_uses_attempt_user_id(monkeypatch):
 
     query, parameters = provider.cursor_mock.execute.call_args.args
     assert "FROM test_attempts AS attempt" in query
+    assert "JOIN subjects AS s" in query
     assert "attempt.user_id = %s" in query
     assert "attempt.student_id" not in query
     assert "attempt.completed_at IS NOT NULL" in query
@@ -82,7 +83,9 @@ def test_get_completed_tests_uses_attempt_user_id(monkeypatch):
     assert result == [
         {
             "attempt_id": "81",
+            "test_id": "test-1",
             "test_name": "Algebra Basics",
+            "subject_name": "Mathematics",
             "completed_at": completed_at,
             "question_count": 10,
             "percentage": 92.5,
