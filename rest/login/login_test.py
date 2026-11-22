@@ -110,6 +110,24 @@ class TestLoginRoute:
         assert status_code == 429
         assert "Please try again in 15 minutes." in body
 
+    @patch("rest.login.login.PostgresConnectionProvider")
+    @patch("rest.login.login.authenticate_user")
+    def test_login_route_redirects_to_mfa_challenge_without_signing_in(
+        self, mock_authenticate_user, mock_connection_provider, client
+    ):
+        # ARRANGE
+        mock_authenticate_user.return_value = make_user(role="lecturer", mfa_enabled=True)
+
+        # ACT
+        response = client.post("/login", data={"email": "lecturer@example.com", "password": "correct-password"})
+
+        # ASSERT
+        assert response.status_code == 302
+        assert response.location == "/login/mfa"
+        with client.session_transaction() as sess:
+            assert "user_id" not in sess
+            assert sess["mfa_pending_user_id"] == "11111111-1111-1111-1111-111111111111"
+
 
 class TestAuthenticateUser:
     """Test the authenticate_user function"""
@@ -133,6 +151,22 @@ class TestAuthenticateUser:
         assert result is user
         mock_check_password_hash.assert_called_once_with(user.password_hash, "correct-password")
         mock_clear_failed_logins.assert_called_once_with(connection_provider, user.user_id)
+
+    @patch("rest.login.login.clear_failed_logins")
+    @patch("rest.login.login.check_password_hash", return_value=True)
+    @patch("rest.login.login.get_user_by_email")
+    def test_authenticate_user_keeps_failure_count_until_mfa_code_verified(
+        self, mock_get_user_by_email, _mock_check_password_hash, mock_clear_failed_logins
+    ):
+        # ARRANGE
+        mock_get_user_by_email.return_value = make_user(mfa_enabled=True)
+
+        # ACT
+        result = authenticate_user(object(), "student@example.com", "correct-password")
+
+        # ASSERT
+        assert result.mfa_enabled
+        mock_clear_failed_logins.assert_not_called()
 
     @patch("rest.login.login.get_user_by_email")
     def test_authenticate_user_returns_none_when_user_not_found(self, mock_get_user_by_email):

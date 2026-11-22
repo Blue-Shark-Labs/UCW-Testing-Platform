@@ -1,0 +1,18 @@
+{% extends 'login/login.html' %}
+
+{% block page_title %}Two-Factor Authentication{% endblock %}
+
+{% block form %}
+<form method="POST" action="{{ url_for('mfa_verify_route') }}" class="flex flex-col gap-4">
+    <p class="text-sm text-slate-600">Enter the 6-digit code from your authenticator app.</p>
+    <div class="flex flex-col gap-1">
+        <label for="code" class="text-xs font-semibold uppercase text-slate-500">Authentication code</label>
+        <input type="text" id="code" name="code" required autofocus inputmode="numeric" pattern="[0-9 ]{6,7}" maxlength="7" autocomplete="one-time-code" class="w-full rounded-md border border-app-divider px-3 py-2 text-base tracking-widest sm:text-sm">
+    </div>
+    <button type="submit" class="mt-2 w-full rounded-full bg-app-primary px-4 py-3 text-sm font-semibold text-white sm:py-2">Verify</button>
+</form>
+{% endblock %}
+
+{% block footer_link %}
+<p class="mt-4 text-center text-sm text-slate-500"><a href="{{ url_for('login_route') }}" class="font-medium text-app-primary no-underline">Back to log in</a></p>
+{% endblock %}

@@ -1,6 +1,8 @@
 Flask
 psycopg[binary]
 python-dotenv
+pyotp
+qrcode
 
 # Frontend build (standalone Tailwind CLI, no Node.js needed)
 pytailwindcss

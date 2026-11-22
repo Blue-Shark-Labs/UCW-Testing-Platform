@@ -28,6 +28,8 @@ SCHEMA_STATEMENTS = [
         role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'lecturer', 'admin')),
         mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
         mfa_secret VARCHAR(64),
+        -- Last accepted TOTP time step, so each code can only be used once.
+        mfa_last_used_step BIGINT DEFAULT NULL,
         is_disabled BOOLEAN NOT NULL DEFAULT FALSE,
         last_login_at TIMESTAMP DEFAULT NULL,
         failed_login_attempts INT NOT NULL DEFAULT 0,
@@ -37,6 +39,7 @@ SCHEMA_STATEMENTS = [
     # Backfills the lockout columns on databases created before they existed.
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT NOT NULL DEFAULT 0;",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP DEFAULT NULL;",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_last_used_step BIGINT DEFAULT NULL;",
     # One-to-one extension of users for role='student' accounts.
     """
     CREATE TABLE IF NOT EXISTS students (
