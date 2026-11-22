@@ -3,11 +3,11 @@
 setup-db:
 	python3 -m database.migrations.migrate
 
-## seed-student-dashboard: Add sample student dashboard data (run after setup-db and seed-dev-users).
+## seed-student-dashboard: Add sample tests and student attempts from database/migrations/seed_data (run after seed-dev-users).
 .PHONY: seed-student-dashboard
 seed-student-dashboard:
 	python3 -m database.migrations.seed_student_dashboard
-## seed-dev-users: Seed one login per role (dev/nonprod only).
+## seed-dev-users: Seed dev logins and sample students from database/migrations/seed_data/users.json (dev/nonprod only).
 .PHONY: seed-dev-users
 seed-dev-users:
 	python3 -m database.migrations.seed_dev_users
@@ -20,10 +20,10 @@ submit-expired-attempts:
 .PHONY: migrate-dev-db
 migrate-dev-db:
 	@$(MAKE) setup-db seed-dev-users seed-student-dashboard
-## seed-dev-data: Import data/users.json and data/subjects.json (dev/nonprod only).
-.PHONY: seed-dev-data
-seed-dev-data:
-	python3 -m database.migrations.seed_dev_data
+## clear-dev-db: Delete all data from the dev database, keeping the schema (asks for confirmation; refuses prod).
+.PHONY: clear-dev-db
+clear-dev-db:
+	python3 -m database.migrations.clear_dev_db
 
 ## db-shell: Open the PostgreSQL shell.
 .PHONY: db-shell

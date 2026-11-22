@@ -34,7 +34,7 @@ jobs:
           pip install pytest
 
       - name: Compile Python source
-        run: python -m compileall -q app.py database domain rest
+        run: python -m compileall -q app.py database rest
 
       - name: Run tests if present
         shell: bash

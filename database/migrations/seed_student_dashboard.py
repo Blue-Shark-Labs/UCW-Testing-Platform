@@ -1,690 +1,199 @@
-"""Seed repeatable sample data for manually testing student assessments.
+"""Seed repeatable sample subjects, tests, questions and student test activity.
 
-Attaches the data to the dev student created by `seed_dev_users`, so run
-`make seed-dev-users` first, then
-`python -m database.migrations.seed_student_dashboard` or
-`make seed-student-dashboard`. Never run against prod.
+Reads the JSON files in `database/migrations/seed_data/` and attaches activity
+to the students created by `seed_dev_users`, so run `make seed-dev-users`
+first, then `make seed-student-dashboard`. Never run against prod.
 """
 
+import uuid
+from collections import defaultdict
+from datetime import datetime, timedelta
+
 from database.connection import PostgresConnectionProvider
-from database.migrations.seed_dev_users import DEV_USERS
+from database.migrations.seed_data import load_seed_data
 
-DEV_STUDENT_EMAIL = next(email for _, _, email, _, role in DEV_USERS if role == "student")
+SEED_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "ucw-testing-platform:seed")
+CORRECT_POINTS = 30
+INCORRECT_POINTS = -10
 
-SEED_STATEMENTS = [
-    """
-    INSERT INTO subjects (subject_id, name, description)
-    VALUES
-        (
-            '00000000-0000-4000-8000-000000000010',
-            'Mathematics',
-            'Sample subject for student dashboard testing'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000011',
-            'Computer Science',
-            'Sample subject for student dashboard testing'
-        )
-    ON CONFLICT (subject_id) DO UPDATE SET
-        name = EXCLUDED.name,
-        description = EXCLUDED.description;
-    """,
-    """
-    INSERT INTO tests (test_id, subject_id, title, question_count, time_limit_minutes)
-    VALUES
-        (
-            '00000000-0000-4000-8000-000000000020',
-            '00000000-0000-4000-8000-000000000010',
-            'Algebra Practice',
-            10,
-            20
-        ),
-        (
-            '00000000-0000-4000-8000-000000000021',
-            '00000000-0000-4000-8000-000000000011',
-            'Introduction to Computing',
-            5,
-            15
-        ),
-        (
-            '00000000-0000-4000-8000-000000000022',
-            '00000000-0000-4000-8000-000000000010',
-            'Algebra Fundamentals',
-            10,
-            20
-        ),
-        (
-            '00000000-0000-4000-8000-000000000023',
-            '00000000-0000-4000-8000-000000000010',
-            'Functions and Graphs',
-            10,
-            20
-        ),
-        (
-            '00000000-0000-4000-8000-000000000024',
-            '00000000-0000-4000-8000-000000000010',
-            'Calculus Basics',
-            10,
-            20
-        ),
-        (
-            '00000000-0000-4000-8000-000000000025',
-            '00000000-0000-4000-8000-000000000010',
-            'Statistics Practice',
-            10,
-            20
-        ),
-        (
-            '00000000-0000-4000-8000-000000000026',
-            '00000000-0000-4000-8000-000000000011',
-            'Programming Fundamentals',
-            5,
-            15
-        ),
-        (
-            '00000000-0000-4000-8000-000000000027',
-            '00000000-0000-4000-8000-000000000011',
-            'Data Structures',
-            5,
-            15
-        ),
-        (
-            '00000000-0000-4000-8000-000000000028',
-            '00000000-0000-4000-8000-000000000011',
-            'Computer Systems',
-            5,
-            15
-        ),
-        (
-            '00000000-0000-4000-8000-000000000029',
-            '00000000-0000-4000-8000-000000000011',
-            'Database Concepts',
-            5,
-            15
-        )
-    ON CONFLICT (test_id) DO UPDATE SET
-        subject_id = EXCLUDED.subject_id,
-        title = EXCLUDED.title,
-        question_count = EXCLUDED.question_count,
-        time_limit_minutes = EXCLUDED.time_limit_minutes;
-    """,
-    """
-    INSERT INTO test_assignments (test_id, student_id, assigned_at)
-    VALUES
-        (
-            '00000000-0000-4000-8000-000000000020',
-            %(student_id)s,
-            TIMESTAMP '2026-10-30 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000021',
-            %(student_id)s,
-            TIMESTAMP '2026-10-29 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000022',
-            %(student_id)s,
-            TIMESTAMP '2026-11-08 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000023',
-            %(student_id)s,
-            TIMESTAMP '2026-11-07 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000024',
-            %(student_id)s,
-            TIMESTAMP '2026-11-06 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000025',
-            %(student_id)s,
-            TIMESTAMP '2026-11-05 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000026',
-            %(student_id)s,
-            TIMESTAMP '2026-11-04 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000027',
-            %(student_id)s,
-            TIMESTAMP '2026-11-03 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000028',
-            %(student_id)s,
-            TIMESTAMP '2026-11-02 09:00:00'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000029',
-            %(student_id)s,
-            TIMESTAMP '2026-11-01 09:00:00'
-        )
-    ON CONFLICT (test_id, student_id) DO UPDATE SET
-        assigned_at = EXCLUDED.assigned_at;
-    """,
-    """
-    INSERT INTO questions (question_id, subject_id, question_text)
-    VALUES
-        (
-            '00000000-0000-4000-8000-000000000040',
-            '00000000-0000-4000-8000-000000000011',
-            'Sample question 1'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000041',
-            '00000000-0000-4000-8000-000000000011',
-            'Sample question 2'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000042',
-            '00000000-0000-4000-8000-000000000011',
-            'Sample question 3'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000043',
-            '00000000-0000-4000-8000-000000000011',
-            'Sample question 4'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000044',
-            '00000000-0000-4000-8000-000000000011',
-            'Sample question 5'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000100',
-            '00000000-0000-4000-8000-000000000010',
-            'Solve for x: x + 7 = 12.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000101',
-            '00000000-0000-4000-8000-000000000010',
-            'Solve for x: 3x = 21.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000102',
-            '00000000-0000-4000-8000-000000000010',
-            'Solve for x: 2x + 5 = 13.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000103',
-            '00000000-0000-4000-8000-000000000010',
-            'Simplify: 4a + 3a.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000104',
-            '00000000-0000-4000-8000-000000000010',
-            'Expand: 3(x + 4).'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000105',
-            '00000000-0000-4000-8000-000000000010',
-            'Factor: x^2 + 5x + 6.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000106',
-            '00000000-0000-4000-8000-000000000010',
-            'What is the gradient of y = 2x + 3?'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000107',
-            '00000000-0000-4000-8000-000000000010',
-            'Solve for x: 5x - 4 = 16.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000108',
-            '00000000-0000-4000-8000-000000000010',
-            'What is the area of a rectangle with length 8 and width 3?'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000109',
-            '00000000-0000-4000-8000-000000000010',
-            'Simplify: 2(3x - 1) + 4.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000150',
-            '00000000-0000-4000-8000-000000000010',
-            'Solve for x: 4x + 2 = 18.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000151',
-            '00000000-0000-4000-8000-000000000010',
-            'What is the value of 6^2?'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000152',
-            '00000000-0000-4000-8000-000000000010',
-            'Simplify: 9y - 4y + 2.'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000153',
-            '00000000-0000-4000-8000-000000000010',
-            'What is the perimeter of a square with side length 5?'
-        ),
-        (
-            '00000000-0000-4000-8000-000000000154',
-            '00000000-0000-4000-8000-000000000010',
-            'Solve for x: x / 3 = 8.'
-        )
-    ON CONFLICT (question_id) DO UPDATE SET
-        subject_id = EXCLUDED.subject_id,
-        question_text = EXCLUDED.question_text;
-    """,
-    """
-    INSERT INTO answer_options (option_id, question_id, option_text, is_correct)
-    VALUES
-        ('00000000-0000-4000-8000-000000000070', '00000000-0000-4000-8000-000000000040', 'Correct answer', TRUE),
-        ('00000000-0000-4000-8000-000000000071', '00000000-0000-4000-8000-000000000040', 'Incorrect answer', FALSE),
-        ('00000000-0000-4000-8000-000000000072', '00000000-0000-4000-8000-000000000041', 'Correct answer', TRUE),
-        ('00000000-0000-4000-8000-000000000073', '00000000-0000-4000-8000-000000000041', 'Incorrect answer', FALSE),
-        ('00000000-0000-4000-8000-000000000074', '00000000-0000-4000-8000-000000000042', 'Correct answer', TRUE),
-        ('00000000-0000-4000-8000-000000000075', '00000000-0000-4000-8000-000000000042', 'Incorrect answer', FALSE),
-        ('00000000-0000-4000-8000-000000000076', '00000000-0000-4000-8000-000000000043', 'Correct answer', TRUE),
-        ('00000000-0000-4000-8000-000000000077', '00000000-0000-4000-8000-000000000043', 'Incorrect answer', FALSE),
-        ('00000000-0000-4000-8000-000000000078', '00000000-0000-4000-8000-000000000044', 'Correct answer', TRUE),
-        ('00000000-0000-4000-8000-000000000079', '00000000-0000-4000-8000-000000000044', 'Incorrect answer', FALSE),
-        ('00000000-0000-4000-8000-000000000110', '00000000-0000-4000-8000-000000000100', '5', TRUE),
-        ('00000000-0000-4000-8000-000000000111', '00000000-0000-4000-8000-000000000100', '19', FALSE),
-        ('00000000-0000-4000-8000-000000000112', '00000000-0000-4000-8000-000000000100', '-5', FALSE),
-        ('00000000-0000-4000-8000-000000000113', '00000000-0000-4000-8000-000000000100', '12', FALSE),
-        ('00000000-0000-4000-8000-000000000114', '00000000-0000-4000-8000-000000000101', '7', TRUE),
-        ('00000000-0000-4000-8000-000000000115', '00000000-0000-4000-8000-000000000101', '3', FALSE),
-        ('00000000-0000-4000-8000-000000000116', '00000000-0000-4000-8000-000000000101', '18', FALSE),
-        ('00000000-0000-4000-8000-000000000117', '00000000-0000-4000-8000-000000000101', '24', FALSE),
-        ('00000000-0000-4000-8000-000000000118', '00000000-0000-4000-8000-000000000102', '4', TRUE),
-        ('00000000-0000-4000-8000-000000000119', '00000000-0000-4000-8000-000000000102', '9', FALSE),
-        ('00000000-0000-4000-8000-000000000120', '00000000-0000-4000-8000-000000000102', '8', FALSE),
-        ('00000000-0000-4000-8000-000000000121', '00000000-0000-4000-8000-000000000102', '18', FALSE),
-        ('00000000-0000-4000-8000-000000000122', '00000000-0000-4000-8000-000000000103', '7a', TRUE),
-        ('00000000-0000-4000-8000-000000000123', '00000000-0000-4000-8000-000000000103', '12a', FALSE),
-        ('00000000-0000-4000-8000-000000000124', '00000000-0000-4000-8000-000000000103', 'a', FALSE),
-        ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000103', '7', FALSE),
-        ('00000000-0000-4000-8000-000000000126', '00000000-0000-4000-8000-000000000104', '3x + 12', TRUE),
-        ('00000000-0000-4000-8000-000000000127', '00000000-0000-4000-8000-000000000104', '3x + 4', FALSE),
-        ('00000000-0000-4000-8000-000000000128', '00000000-0000-4000-8000-000000000104', 'x + 12', FALSE),
-        ('00000000-0000-4000-8000-000000000129', '00000000-0000-4000-8000-000000000104', '7x', FALSE),
-        ('00000000-0000-4000-8000-000000000130', '00000000-0000-4000-8000-000000000105', '(x + 2)(x + 3)', TRUE),
-        ('00000000-0000-4000-8000-000000000131', '00000000-0000-4000-8000-000000000105', '(x - 2)(x - 3)', FALSE),
-        ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000105', '(x + 1)(x + 5)', FALSE),
-        ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000105', 'x(x + 5) + 6', FALSE),
-        ('00000000-0000-4000-8000-000000000134', '00000000-0000-4000-8000-000000000106', '2', TRUE),
-        ('00000000-0000-4000-8000-000000000135', '00000000-0000-4000-8000-000000000106', '3', FALSE),
-        ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000106', '-2', FALSE),
-        ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000106', '5', FALSE),
-        ('00000000-0000-4000-8000-000000000138', '00000000-0000-4000-8000-000000000107', '4', TRUE),
-        ('00000000-0000-4000-8000-000000000139', '00000000-0000-4000-8000-000000000107', '2', FALSE),
-        ('00000000-0000-4000-8000-000000000140', '00000000-0000-4000-8000-000000000107', '12', FALSE),
-        ('00000000-0000-4000-8000-000000000141', '00000000-0000-4000-8000-000000000107', '-4', FALSE),
-        ('00000000-0000-4000-8000-000000000142', '00000000-0000-4000-8000-000000000108', '24', TRUE),
-        ('00000000-0000-4000-8000-000000000143', '00000000-0000-4000-8000-000000000108', '11', FALSE),
-        ('00000000-0000-4000-8000-000000000144', '00000000-0000-4000-8000-000000000108', '22', FALSE),
-        ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000108', '48', FALSE),
-        ('00000000-0000-4000-8000-000000000146', '00000000-0000-4000-8000-000000000109', '6x + 2', TRUE),
-        ('00000000-0000-4000-8000-000000000147', '00000000-0000-4000-8000-000000000109', '6x - 2', FALSE),
-        ('00000000-0000-4000-8000-000000000148', '00000000-0000-4000-8000-000000000109', '5x + 2', FALSE),
-        ('00000000-0000-4000-8000-000000000149', '00000000-0000-4000-8000-000000000109', '6x + 4', FALSE),
-        ('00000000-0000-4000-8000-000000000155', '00000000-0000-4000-8000-000000000150', '4', TRUE),
-        ('00000000-0000-4000-8000-000000000156', '00000000-0000-4000-8000-000000000150', '5', FALSE),
-        ('00000000-0000-4000-8000-000000000157', '00000000-0000-4000-8000-000000000150', '16', FALSE),
-        ('00000000-0000-4000-8000-000000000158', '00000000-0000-4000-8000-000000000150', '20', FALSE),
-        ('00000000-0000-4000-8000-000000000159', '00000000-0000-4000-8000-000000000151', '36', TRUE),
-        ('00000000-0000-4000-8000-000000000160', '00000000-0000-4000-8000-000000000151', '12', FALSE),
-        ('00000000-0000-4000-8000-000000000161', '00000000-0000-4000-8000-000000000151', '18', FALSE),
-        ('00000000-0000-4000-8000-000000000162', '00000000-0000-4000-8000-000000000151', '24', FALSE),
-        ('00000000-0000-4000-8000-000000000163', '00000000-0000-4000-8000-000000000152', '5y + 2', TRUE),
-        ('00000000-0000-4000-8000-000000000164', '00000000-0000-4000-8000-000000000152', '13y', FALSE),
-        ('00000000-0000-4000-8000-000000000165', '00000000-0000-4000-8000-000000000152', '5y - 2', FALSE),
-        ('00000000-0000-4000-8000-000000000166', '00000000-0000-4000-8000-000000000152', '9y + 2', FALSE),
-        ('00000000-0000-4000-8000-000000000167', '00000000-0000-4000-8000-000000000153', '20', TRUE),
-        ('00000000-0000-4000-8000-000000000168', '00000000-0000-4000-8000-000000000153', '10', FALSE),
-        ('00000000-0000-4000-8000-000000000169', '00000000-0000-4000-8000-000000000153', '25', FALSE),
-        ('00000000-0000-4000-8000-000000000170', '00000000-0000-4000-8000-000000000153', '15', FALSE),
-        ('00000000-0000-4000-8000-000000000171', '00000000-0000-4000-8000-000000000154', '24', TRUE),
-        ('00000000-0000-4000-8000-000000000172', '00000000-0000-4000-8000-000000000154', '11', FALSE),
-        ('00000000-0000-4000-8000-000000000173', '00000000-0000-4000-8000-000000000154', '5', FALSE),
-        ('00000000-0000-4000-8000-000000000174', '00000000-0000-4000-8000-000000000154', '27', FALSE)
-    ON CONFLICT (option_id) DO UPDATE SET
-        question_id = EXCLUDED.question_id,
-        option_text = EXCLUDED.option_text,
-        is_correct = EXCLUDED.is_correct;
-    """,
-    """
-    INSERT INTO test_attempts (
-        attempt_id, test_id, user_id, started_at, completed_at, percentage, total_points
+
+def build_attempt(email, test, completed, question_pool, default_duration_minutes):
+    """Derive a completed attempt and its answers from a `correct` answer count."""
+    question_count = test["questionCount"]
+    correct = completed["correct"]
+    if not 0 <= correct <= question_count:
+        raise ValueError(f"{email}: correct must be 0-{question_count} for {test['key']}.")
+    if len(question_pool) < question_count:
+        raise ValueError(f"Not enough questions in the pool for {test['key']}.")
+
+    completed_at = datetime.fromisoformat(completed["completedAt"])
+    duration = completed.get("durationMinutes", default_duration_minutes)
+    attempt_id = uuid.uuid5(
+        SEED_NAMESPACE, f"attempt:{email}:{test['key']}:{completed['completedAt']}"
     )
-    VALUES (
-        '00000000-0000-4000-8000-000000000050',
-        '00000000-0000-4000-8000-000000000021',
-        %(student_id)s,
-        TIMESTAMP '2026-10-31 14:00:00',
-        TIMESTAMP '2026-10-31 14:30:00',
-        80.00,
-        110
+    # Rotate the pool per attempt so students miss different questions.
+    offset = attempt_id.int % len(question_pool)
+    questions = (question_pool[offset:] + question_pool[:offset])[:question_count]
+
+    answers = []
+    for index, question in enumerate(questions):
+        is_correct = index < correct
+        option = next(o for o in question["options"] if o["isCorrect"] == is_correct)
+        answers.append({
+            "answer_attempt_id": uuid.uuid5(
+                SEED_NAMESPACE, f"answer:{attempt_id}:{question['questionId']}"
+            ),
+            "question_id": question["questionId"],
+            "selected_option_id": option["optionId"],
+            "points_awarded": CORRECT_POINTS if is_correct else INCORRECT_POINTS,
+        })
+
+    return {
+        "attempt_id": attempt_id,
+        "test_id": test["testId"],
+        "started_at": completed_at - timedelta(minutes=duration),
+        "completed_at": completed_at,
+        "percentage": round(correct * 100 / question_count, 2),
+        "total_points": correct * CORRECT_POINTS + (question_count - correct) * INCORRECT_POINTS,
+        "answers": answers,
+    }
+
+
+def build_activity_plan(tests, questions, activity):
+    """Resolve test_activity.json into per-student assignments and attempts."""
+    tests_by_key = {test["key"]: test for test in tests}
+    pools = defaultdict(list)
+    for question in questions:
+        pools[question["subject"]].append(question)
+
+    plan = []
+    for student in activity["students"]:
+        email = student["email"]
+        assigned_keys = (
+            list(tests_by_key)
+            if student["assignedTests"] == "all"
+            else student["assignedTests"]
+        )
+        unknown = set(assigned_keys) - set(tests_by_key)
+        if unknown:
+            raise ValueError(f"{email}: unknown tests {sorted(unknown)}.")
+
+        attempts = []
+        for completed in student["completedTests"]:
+            if completed["test"] not in assigned_keys:
+                raise ValueError(f"{email}: {completed['test']} is completed but not assigned.")
+            test = tests_by_key[completed["test"]]
+            attempts.append(build_attempt(
+                email,
+                test,
+                completed,
+                pools[test["subject"]],
+                activity["defaultDurationMinutes"],
+            ))
+
+        plan.append({
+            "email": email,
+            "assigned_test_ids": [tests_by_key[key]["testId"] for key in assigned_keys],
+            "attempts": attempts,
+        })
+    return plan
+
+
+def _seed_catalogue(cur, subjects, tests, questions):
+    subject_ids = {subject["key"]: subject["subjectId"] for subject in subjects}
+    cur.executemany(
+        """
+        INSERT INTO subjects (subject_id, name, description, is_active)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (subject_id) DO UPDATE SET
+            name = EXCLUDED.name,
+            description = EXCLUDED.description,
+            is_active = EXCLUDED.is_active;
+        """,
+        [(s["subjectId"], s["name"], s["description"], s.get("isActive", True)) for s in subjects],
     )
-    ON CONFLICT (attempt_id) DO UPDATE SET
-        test_id = EXCLUDED.test_id,
-        user_id = EXCLUDED.user_id,
-        started_at = EXCLUDED.started_at,
-        completed_at = EXCLUDED.completed_at,
-        percentage = EXCLUDED.percentage,
-        total_points = EXCLUDED.total_points;
-    """,
-    """
-    INSERT INTO test_attempts (
-        attempt_id, test_id, user_id, started_at, completed_at, percentage, total_points
+    cur.executemany(
+        """
+        INSERT INTO subject_lecturers (subject_id, user_id)
+        SELECT %s, user_id FROM users WHERE email = %s AND role IN ('lecturer', 'admin')
+        ON CONFLICT (subject_id, user_id) DO NOTHING;
+        """,
+        [(s["subjectId"], email) for s in subjects for email in s.get("lecturerEmails", [])],
     )
-    VALUES
-        (
-            '00000000-0000-4000-8000-000000000051',
-            '00000000-0000-4000-8000-000000000026',
-            %(student_id)s,
-            TIMESTAMP '2026-11-04 10:00:00',
-            TIMESTAMP '2026-11-04 10:25:00',
-            100.00,
-            150
-        ),
-        (
-            '00000000-0000-4000-8000-000000000052',
-            '00000000-0000-4000-8000-000000000027',
-            %(student_id)s,
-            TIMESTAMP '2026-11-03 10:00:00',
-            TIMESTAMP '2026-11-03 10:25:00',
-            80.00,
-            110
-        ),
-        (
-            '00000000-0000-4000-8000-000000000053',
-            '00000000-0000-4000-8000-000000000028',
-            %(student_id)s,
-            TIMESTAMP '2026-11-02 10:00:00',
-            TIMESTAMP '2026-11-02 10:25:00',
-            60.00,
-            70
-        ),
-        (
-            '00000000-0000-4000-8000-000000000054',
-            '00000000-0000-4000-8000-000000000029',
-            %(student_id)s,
-            TIMESTAMP '2026-11-01 10:00:00',
-            TIMESTAMP '2026-11-01 10:25:00',
-            40.00,
-            30
-        )
-    ON CONFLICT (attempt_id) DO UPDATE SET
-        test_id = EXCLUDED.test_id,
-        user_id = EXCLUDED.user_id,
-        started_at = EXCLUDED.started_at,
-        completed_at = EXCLUDED.completed_at,
-        percentage = EXCLUDED.percentage,
-        total_points = EXCLUDED.total_points;
-    """,
-    """
-    INSERT INTO attempt_answers (
-        answer_attempt_id, attempt_id, question_id, selected_option_id, points_awarded
+    cur.executemany(
+        """
+        INSERT INTO tests (test_id, subject_id, title, question_count, time_limit_minutes)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (test_id) DO UPDATE SET
+            subject_id = EXCLUDED.subject_id,
+            title = EXCLUDED.title,
+            question_count = EXCLUDED.question_count,
+            time_limit_minutes = EXCLUDED.time_limit_minutes;
+        """,
+        [
+            (t["testId"], subject_ids[t["subject"]], t["title"], t["questionCount"], t["timeLimitMinutes"])
+            for t in tests
+        ],
     )
-    VALUES
-        (
-            '00000000-0000-4000-8000-000000000060',
-            '00000000-0000-4000-8000-000000000050',
-            '00000000-0000-4000-8000-000000000040',
-            '00000000-0000-4000-8000-000000000070',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000061',
-            '00000000-0000-4000-8000-000000000050',
-            '00000000-0000-4000-8000-000000000041',
-            '00000000-0000-4000-8000-000000000072',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000062',
-            '00000000-0000-4000-8000-000000000050',
-            '00000000-0000-4000-8000-000000000042',
-            '00000000-0000-4000-8000-000000000074',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000063',
-            '00000000-0000-4000-8000-000000000050',
-            '00000000-0000-4000-8000-000000000043',
-            '00000000-0000-4000-8000-000000000076',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000064',
-            '00000000-0000-4000-8000-000000000050',
-            '00000000-0000-4000-8000-000000000044',
-            '00000000-0000-4000-8000-000000000079',
-            -10
-        ),
-        (
-            '00000000-0000-4000-8000-000000000065',
-            '00000000-0000-4000-8000-000000000051',
-            '00000000-0000-4000-8000-000000000040',
-            '00000000-0000-4000-8000-000000000070',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000066',
-            '00000000-0000-4000-8000-000000000051',
-            '00000000-0000-4000-8000-000000000041',
-            '00000000-0000-4000-8000-000000000072',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000067',
-            '00000000-0000-4000-8000-000000000051',
-            '00000000-0000-4000-8000-000000000042',
-            '00000000-0000-4000-8000-000000000074',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000068',
-            '00000000-0000-4000-8000-000000000051',
-            '00000000-0000-4000-8000-000000000043',
-            '00000000-0000-4000-8000-000000000076',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000069',
-            '00000000-0000-4000-8000-000000000051',
-            '00000000-0000-4000-8000-000000000044',
-            '00000000-0000-4000-8000-000000000078',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000070',
-            '00000000-0000-4000-8000-000000000052',
-            '00000000-0000-4000-8000-000000000040',
-            '00000000-0000-4000-8000-000000000070',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000071',
-            '00000000-0000-4000-8000-000000000052',
-            '00000000-0000-4000-8000-000000000041',
-            '00000000-0000-4000-8000-000000000072',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000072',
-            '00000000-0000-4000-8000-000000000052',
-            '00000000-0000-4000-8000-000000000042',
-            '00000000-0000-4000-8000-000000000074',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000073',
-            '00000000-0000-4000-8000-000000000052',
-            '00000000-0000-4000-8000-000000000043',
-            '00000000-0000-4000-8000-000000000077',
-            -10
-        ),
-        (
-            '00000000-0000-4000-8000-000000000074',
-            '00000000-0000-4000-8000-000000000052',
-            '00000000-0000-4000-8000-000000000044',
-            '00000000-0000-4000-8000-000000000079',
-            -10
-        ),
-        (
-            '00000000-0000-4000-8000-000000000075',
-            '00000000-0000-4000-8000-000000000053',
-            '00000000-0000-4000-8000-000000000040',
-            '00000000-0000-4000-8000-000000000070',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000076',
-            '00000000-0000-4000-8000-000000000053',
-            '00000000-0000-4000-8000-000000000041',
-            '00000000-0000-4000-8000-000000000072',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000077',
-            '00000000-0000-4000-8000-000000000053',
-            '00000000-0000-4000-8000-000000000042',
-            '00000000-0000-4000-8000-000000000074',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000078',
-            '00000000-0000-4000-8000-000000000053',
-            '00000000-0000-4000-8000-000000000043',
-            '00000000-0000-4000-8000-000000000077',
-            -10
-        ),
-        (
-            '00000000-0000-4000-8000-000000000079',
-            '00000000-0000-4000-8000-000000000053',
-            '00000000-0000-4000-8000-000000000044',
-            '00000000-0000-4000-8000-000000000079',
-            -10
-        ),
-        (
-            '00000000-0000-4000-8000-000000000080',
-            '00000000-0000-4000-8000-000000000054',
-            '00000000-0000-4000-8000-000000000040',
-            '00000000-0000-4000-8000-000000000070',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000081',
-            '00000000-0000-4000-8000-000000000054',
-            '00000000-0000-4000-8000-000000000041',
-            '00000000-0000-4000-8000-000000000072',
-            30
-        ),
-        (
-            '00000000-0000-4000-8000-000000000082',
-            '00000000-0000-4000-8000-000000000054',
-            '00000000-0000-4000-8000-000000000042',
-            '00000000-0000-4000-8000-000000000075',
-            -10
-        ),
-        (
-            '00000000-0000-4000-8000-000000000083',
-            '00000000-0000-4000-8000-000000000054',
-            '00000000-0000-4000-8000-000000000043',
-            '00000000-0000-4000-8000-000000000077',
-            -10
-        ),
-        (
-            '00000000-0000-4000-8000-000000000084',
-            '00000000-0000-4000-8000-000000000054',
-            '00000000-0000-4000-8000-000000000044',
-            '00000000-0000-4000-8000-000000000079',
-            -10
+    cur.executemany(
+        """
+        INSERT INTO questions (question_id, subject_id, question_text)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (question_id) DO UPDATE SET
+            subject_id = EXCLUDED.subject_id,
+            question_text = EXCLUDED.question_text;
+        """,
+        [(q["questionId"], subject_ids[q["subject"]], q["text"]) for q in questions],
+    )
+    cur.executemany(
+        """
+        INSERT INTO answer_options (option_id, question_id, option_text, is_correct)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (option_id) DO UPDATE SET
+            question_id = EXCLUDED.question_id,
+            option_text = EXCLUDED.option_text,
+            is_correct = EXCLUDED.is_correct;
+        """,
+        [
+            (o["optionId"], q["questionId"], o["text"], o["isCorrect"])
+            for q in questions
+            for o in q["options"]
+        ],
+    )
+
+
+def _seed_student_activity(cur, student, assigned_at):
+    cur.execute(
+        """
+        SELECT u.user_id
+        FROM users AS u
+        JOIN students AS s ON s.user_id = u.user_id
+        WHERE u.email = %s AND u.role = 'student';
+        """,
+        (student["email"],),
+    )
+    row = cur.fetchone()
+    if row is None:
+        raise RuntimeError(
+            f"Student {student['email']} not found. Run `make seed-dev-users` first."
         )
-    ON CONFLICT (answer_attempt_id) DO UPDATE SET
-        attempt_id = EXCLUDED.attempt_id,
-        question_id = EXCLUDED.question_id,
-        selected_option_id = EXCLUDED.selected_option_id,
-        points_awarded = EXCLUDED.points_awarded;
-    """,
-]
+    student_id = row[0]
 
-ALGEBRA_TEST_ID = "00000000-0000-4000-8000-000000000020"
-COMPUTING_TEST_ID = "00000000-0000-4000-8000-000000000021"
-
-# (user_id, first_name, last_name, student_number)
-LEADERBOARD_STUDENTS = [
-    ("00000000-0000-4000-8000-000000000002", "Priya", "Patel", "DEMO-002"),
-    ("00000000-0000-4000-8000-000000000003", "Tom", "Baker", "DEMO-003"),
-    ("00000000-0000-4000-8000-000000000004", "Aisha", "Khan", "DEMO-004"),
-    ("00000000-0000-4000-8000-000000000005", "Grace", "Okafor", "DEMO-005"),
-    ("00000000-0000-4000-8000-000000000006", "Owen", "Hughes", "DEMO-006"),
-    ("00000000-0000-4000-8000-000000000007", "Ben", "Carter", "DEMO-007"),
-]
-
-# (attempt_id, test_id, user_id, completed_at, percentage, total_points)
-# Points follow +30 correct / -10 incorrect. Tom ties Michael in Computing to
-# exercise tie-breaking, Grace has two Algebra attempts to exercise aggregation,
-# and six Computing entrants exercise the top-five limit.
-LEADERBOARD_ATTEMPTS = [
-    ("00000000-0000-4000-8000-000000000080", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000002", "2026-11-01 10:20:00", 80.00, 220),
-    ("00000000-0000-4000-8000-000000000081", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000003", "2026-11-01 11:15:00", 90.00, 260),
-    ("00000000-0000-4000-8000-000000000082", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000004", "2026-11-02 09:40:00", 100.00, 300),
-    ("00000000-0000-4000-8000-000000000083", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000005", "2026-11-02 13:10:00", 70.00, 180),
-    ("00000000-0000-4000-8000-000000000084", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000005", "2026-11-05 13:10:00", 80.00, 220),
-    ("00000000-0000-4000-8000-000000000085", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000006", "2026-11-03 15:00:00", 60.00, 140),
-    ("00000000-0000-4000-8000-000000000086", ALGEBRA_TEST_ID, "00000000-0000-4000-8000-000000000007", "2026-11-03 16:30:00", 50.00, 100),
-    ("00000000-0000-4000-8000-000000000087", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000002", "2026-11-01 14:25:00", 100.00, 150),
-    ("00000000-0000-4000-8000-000000000088", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000003", "2026-11-02 10:05:00", 80.00, 110),
-    ("00000000-0000-4000-8000-000000000089", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000004", "2026-11-02 11:45:00", 60.00, 70),
-    ("00000000-0000-4000-8000-000000000090", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000005", "2026-11-03 09:30:00", 40.00, 30),
-    ("00000000-0000-4000-8000-000000000091", COMPUTING_TEST_ID, "00000000-0000-4000-8000-000000000006", "2026-11-04 12:00:00", 20.00, -10),
-]
-
-
-def _seed_leaderboard_data(cur):
-    for user_id, first_name, last_name, student_number in LEADERBOARD_STUDENTS:
-        cur.execute(
-            """
-            INSERT INTO users (user_id, first_name, last_name, email, password_hash, role)
-            VALUES (%s, %s, %s, %s, 'seed-data-only', 'student')
-            ON CONFLICT (user_id) DO UPDATE SET
-                first_name = EXCLUDED.first_name,
-                last_name = EXCLUDED.last_name,
-                email = EXCLUDED.email,
-                password_hash = EXCLUDED.password_hash,
-                role = EXCLUDED.role;
-            """,
-            (user_id, first_name, last_name, f"{first_name}.{last_name}@example.test".lower()),
-        )
-        cur.execute(
-            """
-            INSERT INTO students (user_id, student_number, course_title, is_approved)
-            VALUES (%s, %s, 'BSc Computing', TRUE)
-            ON CONFLICT (user_id) DO UPDATE SET
-                student_number = EXCLUDED.student_number,
-                course_title = EXCLUDED.course_title,
-                is_approved = EXCLUDED.is_approved;
-            """,
-            (user_id, student_number),
-        )
-
-    for attempt_id, test_id, user_id, completed_at, percentage, total_points in LEADERBOARD_ATTEMPTS:
-        cur.execute(
-            """
-            INSERT INTO test_assignments (test_id, student_id, assigned_at)
-            VALUES (%s, %s, TIMESTAMP '2026-10-29 09:00:00')
-            ON CONFLICT (test_id, student_id) DO NOTHING;
-            """,
-            (test_id, user_id),
-        )
+    cur.executemany(
+        """
+        INSERT INTO test_assignments (test_id, student_id, assigned_at)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (test_id, student_id) DO NOTHING;
+        """,
+        [(test_id, student_id, assigned_at) for test_id in student["assigned_test_ids"]],
+    )
+    for attempt in student["attempts"]:
         cur.execute(
             """
             INSERT INTO test_attempts (
                 attempt_id, test_id, user_id, started_at, completed_at, percentage, total_points
             )
-            VALUES (
-                %s, %s, %s,
-                %s::timestamp - INTERVAL '20 minutes', %s::timestamp, %s, %s
-            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (attempt_id) DO UPDATE SET
                 test_id = EXCLUDED.test_id,
                 user_id = EXCLUDED.user_id,
@@ -693,31 +202,57 @@ def _seed_leaderboard_data(cur):
                 percentage = EXCLUDED.percentage,
                 total_points = EXCLUDED.total_points;
             """,
-            (attempt_id, test_id, user_id, completed_at, completed_at, percentage, total_points),
+            (
+                attempt["attempt_id"],
+                attempt["test_id"],
+                student_id,
+                attempt["started_at"],
+                attempt["completed_at"],
+                attempt["percentage"],
+                attempt["total_points"],
+            ),
+        )
+        cur.executemany(
+            """
+            INSERT INTO attempt_answers (
+                answer_attempt_id, attempt_id, question_id, selected_option_id, points_awarded
+            )
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (answer_attempt_id) DO UPDATE SET
+                attempt_id = EXCLUDED.attempt_id,
+                question_id = EXCLUDED.question_id,
+                selected_option_id = EXCLUDED.selected_option_id,
+                points_awarded = EXCLUDED.points_awarded;
+            """,
+            [
+                (
+                    answer["answer_attempt_id"],
+                    attempt["attempt_id"],
+                    answer["question_id"],
+                    answer["selected_option_id"],
+                    answer["points_awarded"],
+                )
+                for answer in attempt["answers"]
+            ],
         )
 
 
 def seed_student_dashboard():
+    subjects = load_seed_data("subjects")["subjects"]
+    tests = load_seed_data("tests")["tests"]
+    questions = load_seed_data("questions")["questions"]
+    activity = load_seed_data("test_activity")
+    plan = build_activity_plan(tests, questions, activity)
+    assigned_at = datetime.fromisoformat(activity["defaultAssignedAt"])
+
     provider = PostgresConnectionProvider()
     with provider.cursor() as cur:
-        cur.execute(
-            """
-            SELECT u.user_id
-            FROM users AS u
-            JOIN students AS s ON s.user_id = u.user_id
-            WHERE u.email = %s AND u.role = 'student';
-            """,
-            (DEV_STUDENT_EMAIL,),
-        )
-        row = cur.fetchone()
-        if row is None:
-            raise RuntimeError(
-                f"Dev student {DEV_STUDENT_EMAIL} not found. Run `make seed-dev-users` first."
-            )
-        params = {"student_id": row[0]}
-        for statement in SEED_STATEMENTS:
-            cur.execute(statement, params)
-    print(f"Student dashboard sample data seeded for {DEV_STUDENT_EMAIL}.")
+        _seed_catalogue(cur, subjects, tests, questions)
+        for student in plan:
+            _seed_student_activity(cur, student, assigned_at)
+
+    attempt_count = sum(len(student["attempts"]) for student in plan)
+    print(f"Seeded test activity for {len(plan)} students ({attempt_count} completed attempts).")
 
 
 if __name__ == "__main__":

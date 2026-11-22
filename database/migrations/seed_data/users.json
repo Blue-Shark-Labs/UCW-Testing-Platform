@@ -1,0 +1,105 @@
+{
+  "defaultPassword": "StudentPass123!",
+  "users": [
+    { "firstName": "Ada", "lastName": "Admin", "email": "admin@dev.local", "role": "admin", "password": "AdminPass123!" },
+    { "firstName": "Lee", "lastName": "Lecturer", "email": "lecturer@dev.local", "role": "lecturer", "password": "LecturerPass123!" },
+    { "firstName": "Emelia", "lastName": "Carter", "email": "amelia.carter@example.com", "role": "lecturer", "password": "LecturerPass123!" },
+    { "firstName": "Oliver", "lastName": "Bennett", "email": "oliver.bennett@example.com", "role": "lecturer", "password": "LecturerPass123!" },
+    { "firstName": "Priya", "lastName": "Shah", "email": "priya.shah@example.com", "role": "lecturer", "password": "LecturerPass123!", "isDisabled": true },
+    { "firstName": "Daniel", "lastName": "Morgan", "email": "daniel.morgan@example.com", "role": "lecturer", "password": "LecturerPass123!", "isDisabled": true },
+    { "firstName": "Charlotte", "lastName": "Evans", "email": "charlotte.evans@example.com", "role": "lecturer", "password": "LecturerPass123!" },
+    { "firstName": "James", "lastName": "Wilson", "email": "james.wilson@example.com", "role": "lecturer", "password": "LecturerPass123!" },
+    { "firstName": "Hannah", "lastName": "Roberts", "email": "hannah.roberts@example.com", "role": "lecturer", "password": "LecturerPass123!" },
+    { "firstName": "Sophie", "lastName": "Williams", "email": "sophie.williams@example.com", "role": "admin", "password": "AdminPass123!", "isDisabled": true },
+    { "firstName": "Thomas", "lastName": "Reed", "email": "thomas.reed@example.com", "role": "admin", "password": "AdminPass123!" },
+    { "firstName": "William", "lastName": "Harris", "email": "william.harris@example.com", "role": "admin", "password": "AdminPass123!" },
+    {
+      "firstName": "Sam", "lastName": "Student", "email": "student@dev.local", "role": "student",
+      "student": { "studentNumber": "S0000001", "courseTitle": "BSc Computer Science", "isApproved": true }
+    },
+    {
+      "firstName": "Michael", "lastName": "James", "email": "michael.james@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-001", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Priya", "lastName": "Patel", "email": "priya.patel@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-002", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Tom", "lastName": "Baker", "email": "tom.baker@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-003", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Aisha", "lastName": "Khan", "email": "aisha.khan@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-004", "courseTitle": "BSc Mathematics", "isApproved": true }
+    },
+    {
+      "firstName": "Grace", "lastName": "Okafor", "email": "grace.okafor@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-005", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Owen", "lastName": "Hughes", "email": "owen.hughes@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-006", "courseTitle": "BSc Software Engineering", "isApproved": true }
+    },
+    {
+      "firstName": "Ben", "lastName": "Carter", "email": "ben.carter@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-007", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Chloe", "lastName": "Evans", "email": "chloe.evans@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-008", "courseTitle": "BSc Computer Science", "isApproved": true }
+    },
+    {
+      "firstName": "Daniel", "lastName": "Wright", "email": "daniel.wright@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-009", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Ella", "lastName": "Thompson", "email": "ella.thompson@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-010", "courseTitle": "BSc Software Engineering", "isApproved": true }
+    },
+    {
+      "firstName": "Farah", "lastName": "Ahmed", "email": "farah.ahmed@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-011", "courseTitle": "BSc Mathematics", "isApproved": true }
+    },
+    {
+      "firstName": "George", "lastName": "Lewis", "email": "george.lewis@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-012", "courseTitle": "BSc Computer Science", "isApproved": true }
+    },
+    {
+      "firstName": "Hannah", "lastName": "Scott", "email": "hannah.scott@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-013", "courseTitle": "BSc Mathematics", "isApproved": true }
+    },
+    {
+      "firstName": "Isaac", "lastName": "Green", "email": "isaac.green@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-014", "courseTitle": "BSc Computer Science", "isApproved": true }
+    },
+    {
+      "firstName": "Jade", "lastName": "Robinson", "email": "jade.robinson@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-015", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Kofi", "lastName": "Mensah", "email": "kofi.mensah@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-016", "courseTitle": "BSc Software Engineering", "isApproved": true }
+    },
+    {
+      "firstName": "Lily", "lastName": "Walker", "email": "lily.walker@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-017", "courseTitle": "BSc Computer Science", "isApproved": true }
+    },
+    {
+      "firstName": "Mohammed", "lastName": "Ali", "email": "mohammed.ali@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-018", "courseTitle": "BSc Computing", "isApproved": true }
+    },
+    {
+      "firstName": "Nia", "lastName": "Roberts", "email": "nia.roberts@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-019", "courseTitle": "BSc Mathematics", "isApproved": true }
+    },
+    {
+      "firstName": "Oliver", "lastName": "Hall", "email": "oliver.hall@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-020", "courseTitle": "BSc Software Engineering", "isApproved": true }
+    },
+    {
+      "firstName": "Ruby", "lastName": "Clarke", "email": "ruby.clarke@example.test", "role": "student",
+      "student": { "studentNumber": "DEMO-021", "courseTitle": "BSc Computing", "isApproved": false }
+    }
+  ]
+}

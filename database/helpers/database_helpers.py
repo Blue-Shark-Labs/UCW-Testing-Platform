@@ -1,8 +1,6 @@
 # Database helper functions for interacting with the PostgreSQL database.
 
-from domain.entities.company_info import CompanyInfo
 from database.connection import PostgresConnectionProvider
-from domain.entities.user import User
 
 
 class UnansweredQuestionsError(Exception):
@@ -12,17 +10,6 @@ class UnansweredQuestionsError(Exception):
 		super().__init__("Unanswered questions remain.")
 		self.question_ids = question_ids
 
-
-def row_to_company_info(row):
-    """Maps a company_info table row to a CompanyInfo domain entity."""
-    product_name, product_description, contact_email, contact_phone, contact_address = row
-    return CompanyInfo(
-        product_name=product_name,
-        product_description=product_description,
-        contact_email=contact_email,
-        contact_phone=contact_phone,
-        contact_address=contact_address,
-    )
 
 def get_assigned_tests(student_id):
 	"""Return tests a student has not completed."""
@@ -459,16 +446,3 @@ def _fetch_rows(query, parameters, fields):
 	with PostgresConnectionProvider().cursor() as cursor:
 		cursor.execute(query, parameters)
 		return [dict(zip(fields, row)) for row in cursor.fetchall()]
-
-def row_to_user(row):
-    """Maps a users table row to a User domain entity."""
-    user_id, email, password_hash, role, is_disabled, is_approved, is_locked = row
-    return User(
-        user_id=user_id,
-        email=email,
-        password_hash=password_hash,
-        role=role,
-        is_disabled=is_disabled,
-        is_approved=is_approved,
-        is_locked=is_locked,
-    )

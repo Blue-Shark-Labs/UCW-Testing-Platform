@@ -3,8 +3,7 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock
 
-from database.login.user import clear_failed_logins, get_user_by_email, record_failed_login
-from domain.entities.user import User
+from database.login.user import User, clear_failed_logins, get_user_by_email, record_failed_login
 
 
 class FakeConnectionProvider:

@@ -3,8 +3,7 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock
 
-from database.landing_page.company_info import get_company_info
-from domain.entities.company_info import CompanyInfo
+from database.landing_page.company_info import CompanyInfo, get_company_info
 
 
 class FakeConnectionProvider:

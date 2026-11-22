@@ -9,9 +9,9 @@ from database.login.student_registration import (
     INSERT_STUDENT,
     STUDENT_NUMBER_CONSTRAINT,
     DuplicateStudentNumberError,
+    StudentRegistration,
     create_student,
 )
-from domain.entities.user import StudentRegistration
 
 REGISTRATION = StudentRegistration(
     first_name="Ada",
