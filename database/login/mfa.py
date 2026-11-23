@@ -1,6 +1,12 @@
 # Query functions for a user's multi-factor authentication (TOTP) settings.
 
+import base64
+import os
 from dataclasses import dataclass
+
+from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 
 @dataclass(frozen=True)
@@ -49,6 +55,27 @@ CLAIM_MFA_STEP = """
 """
 
 
+def _fernet():
+    # Derived from SECRET_KEY, so changing it means every user has to set up MFA again.
+    key = HKDF(
+        algorithm=hashes.SHA256(), length=32, salt=None, info=b"mfa-secret-encryption"
+    ).derive(os.environ["SECRET_KEY"].encode())
+    return Fernet(base64.urlsafe_b64encode(key))
+
+
+def _encrypt(secret):
+    return _fernet().encrypt(secret.encode()).decode()
+
+
+def _decrypt(token):
+    if token is None:
+        return None
+    try:
+        return _fernet().decrypt(token.encode()).decode()
+    except InvalidToken:
+        return None
+
+
 def get_mfa_settings(connection_provider, user_id):
     """Fetches the user's MFA settings, or None if no such user exists."""
     with connection_provider.cursor() as cur:
@@ -56,13 +83,14 @@ def get_mfa_settings(connection_provider, user_id):
         row = cur.fetchone()
     if row is None:
         return None
-    return MfaSettings(*row)
+    email, role, mfa_enabled, mfa_secret, is_disabled, is_locked = row
+    return MfaSettings(email, role, mfa_enabled, _decrypt(mfa_secret), is_disabled, is_locked)
 
 
 def save_pending_mfa_secret(connection_provider, user_id, secret):
-    """Stores a new secret for a user who has not yet enabled MFA."""
+    """Stores a new secret (encrypted) for a user who has not yet enabled MFA."""
     with connection_provider.cursor() as cur:
-        cur.execute(SAVE_PENDING_MFA_SECRET, (secret, user_id))
+        cur.execute(SAVE_PENDING_MFA_SECRET, (_encrypt(secret), user_id))
 
 
 def enable_mfa(connection_provider, user_id):

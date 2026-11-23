@@ -27,7 +27,8 @@ SCHEMA_STATEMENTS = [
         -- no inline enum type, and a named enum would complicate future value changes.
         role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'lecturer', 'admin')),
         mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-        mfa_secret VARCHAR(64),
+        -- Fernet-encrypted TOTP secret (key derived from SECRET_KEY).
+        mfa_secret TEXT,
         -- Last accepted TOTP time step, so each code can only be used once.
         mfa_last_used_step BIGINT DEFAULT NULL,
         is_disabled BOOLEAN NOT NULL DEFAULT FALSE,
@@ -40,6 +41,7 @@ SCHEMA_STATEMENTS = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT NOT NULL DEFAULT 0;",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP DEFAULT NULL;",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_last_used_step BIGINT DEFAULT NULL;",
+    "ALTER TABLE users ALTER COLUMN mfa_secret TYPE TEXT;",
     # One-to-one extension of users for role='student' accounts.
     """
     CREATE TABLE IF NOT EXISTS students (

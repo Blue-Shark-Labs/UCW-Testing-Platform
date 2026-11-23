@@ -3,6 +3,7 @@ psycopg[binary]
 python-dotenv
 pyotp
 qrcode
+cryptography
 
 # Frontend build (standalone Tailwind CLI, no Node.js needed)
 pytailwindcss
