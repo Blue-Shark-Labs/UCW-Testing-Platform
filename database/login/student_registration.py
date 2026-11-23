@@ -1,6 +1,19 @@
 # Persistence for self-registered student accounts.
 
+from dataclasses import dataclass
+
 from psycopg.errors import UniqueViolation
+
+
+@dataclass(frozen=True)
+class StudentRegistration:
+    first_name: str
+    last_name: str
+    email: str
+    student_number: str
+    course_title: str
+    password: str
+
 
 STUDENT_NUMBER_CONSTRAINT = "idx_students_student_number"
 

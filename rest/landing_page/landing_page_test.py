@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from domain.entities.company_info import CompanyInfo
+from database.landing_page.company_info import CompanyInfo
 from rest.landing_page.landing_page import landing_page_route
 
 
@@ -10,10 +10,10 @@ class TestLandingPageRoute:
     """Test the landing_page_route function"""
 
     @patch("rest.landing_page.landing_page.PostgresConnectionProvider")
-    @patch("rest.landing_page.landing_page.get_landing_page_content")
-    def test_landing_page_route_renders(self, mock_get_landing_page_content, mock_connection_provider, app):
+    @patch("rest.landing_page.landing_page.get_company_info")
+    def test_landing_page_route_renders(self, mock_get_company_info, mock_connection_provider, app):
         # ARRANGE
-        mock_get_landing_page_content.return_value = CompanyInfo(
+        mock_get_company_info.return_value = CompanyInfo(
             product_name="Reinforcement Testing Platform",
             product_description="An adaptive testing platform.",
             contact_email="contact@bluesharklabs.com",
@@ -27,4 +27,4 @@ class TestLandingPageRoute:
 
         # ASSERT
         assert "Landing Page" in response
-        mock_get_landing_page_content.assert_called_once_with(mock_connection_provider.return_value)
+        mock_get_company_info.assert_called_once_with(mock_connection_provider.return_value)
