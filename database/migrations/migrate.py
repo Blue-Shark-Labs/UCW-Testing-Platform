@@ -170,7 +170,7 @@ SCHEMA_STATEMENTS = [
     BEFORE INSERT OR UPDATE OF question_id ON answer_options
     FOR EACH ROW EXECUTE FUNCTION enforce_max_answer_options();
     """,
-    # Add missing columns to existing databases
+    # Add missing columns to existing databases.
     "ALTER TABLE tests ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';",
     "ALTER TABLE tests ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;",
     "ALTER TABLE tests ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;",

@@ -76,18 +76,18 @@
                 <span data-save-text></span>
             </p>
             <div class="mt-3 flex flex-wrap justify-between gap-3">
-                <button class="inline-flex items-center gap-2 rounded-lg border border-app-quaternary bg-white px-5 py-3 font-medium text-text-primary hover:bg-app-background focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary disabled:cursor-not-allowed disabled:opacity-50"
-                        type="button" data-previous disabled>
+                <button class="hidden items-center gap-2 rounded-lg border border-app-quaternary bg-white px-5 py-3 font-medium text-text-primary hover:bg-app-background focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                        type="button" data-previous hidden>
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
                     Previous
                 </button>
                 <div class="flex gap-3">
-                    <button class="inline-flex items-center gap-2 rounded-lg bg-app-secondary px-5 py-3 font-medium text-text-primary hover:bg-app-ternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
-                            type="button" data-next>
+                    <button class="hidden items-center gap-2 rounded-lg bg-app-secondary px-5 py-3 font-medium text-text-primary hover:bg-app-ternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                            type="button" data-next hidden>
                         Next question
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
-                    <button class="inline-flex items-center gap-2 rounded-lg bg-app-primary px-5 py-3 font-medium text-white hover:bg-app-quaternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                    <button class="hidden items-center gap-2 rounded-lg bg-app-primary px-5 py-3 font-medium text-white hover:bg-app-quaternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
                             type="submit" data-submit hidden>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                         Submit test
@@ -121,16 +121,23 @@
             let submitting = false;
             let timeExpired = false;
 
+            const setButtonVisible = (button, isVisible) => {
+                button.hidden = !isVisible;
+                button.classList.toggle("hidden", !isVisible);
+                button.classList.toggle("inline-flex", isVisible);
+            };
+
             const showQuestion = (index) => {
+                if (index < 0 || index >= questions.length) return;
                 currentIndex = index;
                 questions.forEach((question, questionIndex) => {
                     question.hidden = questionIndex !== currentIndex;
                 });
                 currentQuestion.textContent = String(currentIndex + 1);
                 progress.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
-                previousButton.disabled = currentIndex === 0;
-                nextButton.hidden = currentIndex === questions.length - 1;
-                submitButton.hidden = currentIndex !== questions.length - 1;
+                setButtonVisible(previousButton, currentIndex > 0);
+                setButtonVisible(nextButton, currentIndex < questions.length - 1);
+                setButtonVisible(submitButton, currentIndex === questions.length - 1);
             };
 
             previousButton.addEventListener("click", () => showQuestion(currentIndex - 1));
