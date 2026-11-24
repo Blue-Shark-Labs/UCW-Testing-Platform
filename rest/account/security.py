@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 from flask import flash, redirect, render_template, request, session, url_for
 
 from database.connection import PostgresConnectionProvider
@@ -9,7 +11,7 @@ from database.login.mfa import (
     save_pending_mfa_secret,
 )
 from rest.helpers.rest_helpers import login_required
-from rest.login.mfa import INVALID_CODE_MESSAGE
+from rest.login.mfa import INVALID_CODE_MESSAGE, MFA_RESET_MESSAGE
 from rest.login.totp import generate_mfa_secret, matching_time_step, provisioning_qr_data_uri
 
 SECURITY_TEMPLATE = "account/security.html"
@@ -34,9 +36,18 @@ def _verified_step(connection_provider, user_id, secret):
     return step is not None and claim_mfa_step(connection_provider, user_id, step)
 
 
+def _load_settings(connection_provider, user_id):
+    settings = get_mfa_settings(connection_provider, user_id)
+    if settings.needs_reenrolment:
+        disable_mfa(connection_provider, user_id)
+        flash(MFA_RESET_MESSAGE, "info")
+        settings = replace(settings, mfa_enabled=False)
+    return settings
+
+
 @login_required()
 def security_settings_route():
-    settings = get_mfa_settings(PostgresConnectionProvider(), session["user_id"])
+    settings = _load_settings(PostgresConnectionProvider(), session["user_id"])
     return render_template(SECURITY_TEMPLATE, mfa_enabled=settings.mfa_enabled)
 
 
@@ -44,7 +55,7 @@ def security_settings_route():
 def mfa_setup_route():
     connection_provider = PostgresConnectionProvider()
     user_id = session["user_id"]
-    settings = get_mfa_settings(connection_provider, user_id)
+    settings = _load_settings(connection_provider, user_id)
     if settings.mfa_enabled:
         return _redirect_to_settings()
     secret = generate_mfa_secret()
@@ -56,7 +67,7 @@ def mfa_setup_route():
 def mfa_enable_route():
     connection_provider = PostgresConnectionProvider()
     user_id = session["user_id"]
-    settings = get_mfa_settings(connection_provider, user_id)
+    settings = _load_settings(connection_provider, user_id)
     if settings.mfa_enabled or not settings.mfa_secret:
         return _redirect_to_settings()
     if not _verified_step(connection_provider, user_id, settings.mfa_secret):
@@ -70,7 +81,7 @@ def mfa_enable_route():
 def mfa_disable_route():
     connection_provider = PostgresConnectionProvider()
     user_id = session["user_id"]
-    settings = get_mfa_settings(connection_provider, user_id)
+    settings = _load_settings(connection_provider, user_id)
     if not settings.mfa_enabled:
         return _redirect_to_settings()
     if not _verified_step(connection_provider, user_id, settings.mfa_secret):

@@ -47,13 +47,13 @@ def authenticate_user(connection_provider, email, password):
     return user
 
 
-def start_user_session(user_id, role):
-    """Signs the user in and redirects to their role's dashboard."""
+def start_user_session(user_id, role, endpoint=None):
+    """Signs the user in and redirects to the given endpoint, or their role's dashboard."""
     # Clearing first prevents session fixation from any pre-login session data.
     session.clear()
     session["user_id"] = str(user_id)
     session["role"] = role
-    return redirect(url_for(ROLE_DASHBOARD_ENDPOINTS[role]))
+    return redirect(url_for(endpoint or ROLE_DASHBOARD_ENDPOINTS[role]))
 
 
 def login_route():

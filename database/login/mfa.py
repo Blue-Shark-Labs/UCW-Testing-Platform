@@ -19,6 +19,11 @@ class MfaSettings:
     is_disabled: bool
     is_locked: bool
 
+    @property
+    def needs_reenrolment(self):
+        """True when MFA is on but the stored secret can't be decrypted (e.g. SECRET_KEY changed)."""
+        return self.mfa_enabled and self.mfa_secret is None
+
 
 SELECT_MFA_SETTINGS = """
     SELECT email, role, mfa_enabled, mfa_secret, is_disabled,
@@ -56,7 +61,7 @@ CLAIM_MFA_STEP = """
 
 
 def _fernet():
-    # Derived from SECRET_KEY, so changing it means every user has to set up MFA again.
+    # Derived from SECRET_KEY, so changing it makes stored secrets unreadable (see needs_reenrolment).
     key = HKDF(
         algorithm=hashes.SHA256(), length=32, salt=None, info=b"mfa-secret-encryption"
     ).derive(os.environ["SECRET_KEY"].encode())

@@ -7,7 +7,7 @@ import pytest
 
 from database.login.mfa import MfaSettings
 from rest.login.login import LOCKOUT_MINUTES, MAX_FAILED_ATTEMPTS
-from rest.login.mfa import INVALID_CODE_MESSAGE, MFA_PENDING_TTL_SECONDS
+from rest.login.mfa import INVALID_CODE_MESSAGE, MFA_PENDING_TTL_SECONDS, MFA_RESET_MESSAGE
 
 USER_ID = "11111111-1111-1111-1111-111111111111"
 
@@ -54,11 +54,35 @@ class TestMfaVerifyRoute:
         with client.session_transaction() as sess:
             assert "mfa_pending_user_id" not in sess
 
-    def test_renders_code_form(self, _provider, pending_client):
+    @patch("rest.login.mfa.get_mfa_settings")
+    def test_renders_code_form(self, mock_get_settings, _provider, pending_client):
+        mock_get_settings.return_value = make_settings()
+
         response = pending_client.get("/login/mfa")
 
         assert response.status_code == 200
         assert b'name="code"' in response.data
+
+    @patch("rest.login.mfa.record_failed_login")
+    @patch("rest.login.mfa.clear_failed_logins")
+    @patch("rest.login.mfa.disable_mfa")
+    @patch("rest.login.mfa.get_mfa_settings")
+    def test_unreadable_secret_resets_mfa_and_signs_user_in(
+        self, mock_get_settings, mock_disable, mock_clear, mock_record, provider, pending_client
+    ):
+        mock_get_settings.return_value = make_settings(mfa_secret=None)
+
+        response = pending_client.get("/login/mfa")
+
+        assert response.status_code == 302
+        assert response.location == "/account/security"
+        mock_disable.assert_called_once_with(provider.return_value, USER_ID)
+        mock_clear.assert_called_once_with(provider.return_value, USER_ID)
+        mock_record.assert_not_called()
+        with pending_client.session_transaction() as sess:
+            assert sess["user_id"] == USER_ID
+            assert "mfa_pending_user_id" not in sess
+            assert sess["_flashes"] == [("info", MFA_RESET_MESSAGE)]
 
     @patch("rest.login.mfa.clear_failed_logins")
     @patch("rest.login.mfa.claim_mfa_step", return_value=True)

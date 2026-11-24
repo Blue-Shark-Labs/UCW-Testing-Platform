@@ -5,7 +5,7 @@ DATABASE_USER=WS381566_nonprod_admin
 PASSWORD=
 
 #Session secret (signs the login session cookie and encrypts MFA secrets;
-#changing it means users with MFA must set it up again)
+#changing it turns MFA off for existing users, who are asked to set it up again)
 SECRET_KEY=
 
 #Local dev runs over http, so the session cookie can't be Secure-only

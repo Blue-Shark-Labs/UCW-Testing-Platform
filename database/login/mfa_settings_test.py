@@ -55,3 +55,4 @@ class TestMfaSecretEncryption:
 
         # ASSERT
         assert result.mfa_secret is None
+        assert result.needs_reenrolment

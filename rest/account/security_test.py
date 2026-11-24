@@ -122,3 +122,20 @@ class TestSecuritySettingsRoute:
 
         assert response.status_code == 400
         mock_disable.assert_not_called()
+
+    @patch("rest.account.security.save_pending_mfa_secret")
+    @patch("rest.account.security.disable_mfa")
+    @patch("rest.account.security.get_mfa_settings")
+    def test_unreadable_secret_is_reset_so_user_can_set_up_again(
+        self, mock_get_settings, mock_disable, mock_save, provider, signed_in_client
+    ):
+        mock_get_settings.return_value = make_settings(mfa_enabled=True, mfa_secret=None)
+
+        response = signed_in_client.post("/account/security/mfa/setup")
+
+        body = response.get_data(as_text=True)
+        assert response.status_code == 200
+        assert "data:image/svg+xml;base64," in body
+        assert "could no longer be read" in body
+        mock_disable.assert_called_once_with(provider.return_value, USER_ID)
+        mock_save.assert_called_once()
