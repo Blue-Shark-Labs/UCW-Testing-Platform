@@ -23,7 +23,7 @@ def stub_session_user_db(monkeypatch):
             pass
 
         def fetchone(self):
-            return None
+            return ("Test", "Lecturer", "lecturer")
 
     class FakeConnectionProvider:
         def cursor(self):
@@ -32,12 +32,88 @@ def stub_session_user_db(monkeypatch):
     monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
 
 
-class TestLecturerStudentManagementRoutes:
-    def _login_as_lecturer(self, client):
+@pytest.fixture
+def lecturer_client(client):
+    with client.session_transaction() as sess:
+        sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+        sess["role"] = "lecturer"
+    return client
+
+
+class TestLecturerAuthorization:
+    def test_lecturer_routes_redirect_anonymous_users_to_login(self, client):
+        with client.session_transaction() as sess:
+            sess.clear()
+
+        response = client.get("/lecturer/student-management")
+
+        assert response.status_code == 302
+        assert response.headers["Location"] == "/login"
+
+    def test_lecturer_routes_forbid_database_non_lecturer_even_if_session_says_lecturer(
+        self, client, monkeypatch
+    ):
+        """FR-83: Database role claim overrides spoofed session role and returns HTTP 403."""
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                pass
+
+            def fetchone(self):
+                return ("Test", "Student", "student")
+
+        class FakeConnectionProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
         with client.session_transaction() as sess:
             sess["user_id"] = "11111111-1111-1111-1111-111111111111"
             sess["role"] = "lecturer"
 
+        response = client.get("/lecturer/student-management")
+
+        assert response.status_code == 403
+
+    def test_lecturer_routes_forbid_session_for_user_missing_from_database(
+        self, client, monkeypatch
+    ):
+        """FR-83: Session referencing a missing/deleted user returns HTTP 403."""
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                pass
+
+            def fetchone(self):
+                return None
+
+        class FakeConnectionProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+        with client.session_transaction() as sess:
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+            sess["role"] = "lecturer"
+
+        response = client.post(
+            "/lecturer/approve-student/1cf03c86-74c1-4da8-b411-c6d62c64da70"
+        )
+
+        assert response.status_code == 403
+
+
+class TestLecturerStudentManagementRoutes:
     def test_student_management_renders_student_number_and_statuses(
         self, app, monkeypatch
     ):
@@ -67,6 +143,7 @@ class TestLecturerStudentManagementRoutes:
             ),
         ]
         monkeypatch.setattr(student_mgmt_module, "list_students", lambda: rows)
+        monkeypatch.setattr(student_mgmt_module, "get_class_progress_summary", lambda: [])
 
         with app.test_request_context("/lecturer/student-management"):
             html = student_mgmt_module.lecturer_management_route()
@@ -75,11 +152,11 @@ class TestLecturerStudentManagementRoutes:
         assert "ID: S0000001" in html
         assert "BSc Computer Science" in html
         assert "Pending Approval" in html
+        assert "Reject" in html
 
     def test_create_student_hashes_password_and_calls_db(
-        self, client, monkeypatch
+        self, lecturer_client, monkeypatch
     ):
-        self._login_as_lecturer(client)
         created = {}
 
         def fake_create_student(first_name, last_name, email, password_hash, course):
@@ -96,7 +173,7 @@ class TestLecturerStudentManagementRoutes:
             student_mgmt_module, "create_student", fake_create_student
         )
 
-        response = client.post(
+        response = lecturer_client.post(
             "/lecturer/student/create",
             data={
                 "first_name": "Jane",
@@ -114,8 +191,7 @@ class TestLecturerStudentManagementRoutes:
         assert created["course"] == "Computer Science"
         assert check_password_hash(created["password_hash"], "Student123!")
 
-    def test_edit_student_updates_student_record(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_edit_student_updates_student_record(self, lecturer_client, monkeypatch):
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         updated = {}
 
@@ -127,7 +203,7 @@ class TestLecturerStudentManagementRoutes:
             student_mgmt_module, "update_student", fake_update_student
         )
 
-        response = client.post(
+        response = lecturer_client.post(
             f"/lecturer/student/{student_id}/edit",
             data={
                 "first_name": "Samuel",
@@ -144,23 +220,54 @@ class TestLecturerStudentManagementRoutes:
             "Software Engineering",
         )
 
-    def test_approve_student_calls_approve(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_approve_student_calls_approve_and_sends_notification_email(
+        self, lecturer_client, monkeypatch
+    ):
+        """FR-56 & FR-57: Approving a student activates their account and dispatches email."""
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         approved = []
+        emailed = []
+
         monkeypatch.setattr(
             student_mgmt_module,
             "approve_student",
-            lambda sid: approved.append(sid) or True,
+            lambda sid: approved.append(sid) or {
+                "email": "sam@dev.local",
+                "first_name": "Sam",
+                "last_name": "Student",
+            },
+        )
+        monkeypatch.setattr(
+            student_mgmt_module,
+            "send_student_approval_email",
+            lambda email, first_name: emailed.append((email, first_name)) or True,
         )
 
-        response = client.post(f"/lecturer/approve-student/{student_id}")
+        response = lecturer_client.post(f"/lecturer/approve-student/{student_id}")
 
         assert response.status_code == 302
         assert approved == [student_id]
+        assert emailed == [("sam@dev.local", "Sam")]
 
-    def test_toggle_student_status_calls_toggle(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_reject_student_declines_pending_registration(
+        self, lecturer_client, monkeypatch
+    ):
+        """FR-56: Lecturer can reject a pending student registration."""
+        student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
+        rejected = []
+
+        monkeypatch.setattr(
+            student_mgmt_module,
+            "reject_student",
+            lambda sid: rejected.append(sid) or ("rejected", ("Alex", "Pending")),
+        )
+
+        response = lecturer_client.post(f"/lecturer/reject-student/{student_id}")
+
+        assert response.status_code == 302
+        assert rejected == [student_id]
+
+    def test_toggle_student_status_calls_toggle(self, lecturer_client, monkeypatch):
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         toggled = []
         monkeypatch.setattr(
@@ -169,25 +276,28 @@ class TestLecturerStudentManagementRoutes:
             lambda sid: toggled.append(sid) or True,
         )
 
-        response = client.post(f"/lecturer/toggle-student-status/{student_id}")
+        response = lecturer_client.post(f"/lecturer/toggle-student-status/{student_id}")
 
         assert response.status_code == 302
         assert toggled == [student_id]
 
-    def test_delete_student_handles_existing_attempts(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_delete_student_anonymises_when_existing_attempts(
+        self, lecturer_client, monkeypatch
+    ):
+        """NFR-05: Terminating a student with attempts anonymises PII in GDPR compliance."""
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         monkeypatch.setattr(
             student_mgmt_module,
             "delete_student",
-            lambda sid: ("has_attempts", None),
+            lambda sid: ("anonymised", ("Sam", "Student")),
         )
 
-        response = client.post(f"/lecturer/student/{student_id}/delete")
+        response = lecturer_client.post(f"/lecturer/student/{student_id}/delete")
         assert response.status_code == 302
 
-    def test_delete_student_deletes_user_when_no_attempts(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_delete_student_deletes_user_when_no_attempts(
+        self, lecturer_client, monkeypatch
+    ):
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
         monkeypatch.setattr(
             student_mgmt_module,
@@ -195,26 +305,71 @@ class TestLecturerStudentManagementRoutes:
             lambda sid: ("deleted", ("Sam", "Student")),
         )
 
-        response = client.post(f"/lecturer/student/{student_id}/delete")
+        response = lecturer_client.post(f"/lecturer/student/{student_id}/delete")
         assert response.status_code == 302
 
-    def test_non_lecturer_cannot_access_mutation_routes(self, client):
-        with client.session_transaction() as sess:
-            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
-            sess["role"] = "student"
-
+    def test_student_progress_class_list_and_detail_history_and_chart(
+        self, lecturer_client, monkeypatch
+    ):
+        """FR-63, FR-64, FR-65: Aggregate class list, detailed test history, and trajectory chart."""
         student_id = UUID("1cf03c86-74c1-4da8-b411-c6d62c64da70")
-        response = client.post(f"/lecturer/approve-student/{student_id}")
 
-        assert response.status_code == 302
-        assert response.headers["Location"] == "/login"
+        class_summary = [
+            {
+                "student_id": str(student_id),
+                "first_name": "Sam",
+                "last_name": "Student",
+                "name": "Sam Student",
+                "email": "sam@dev.local",
+                "student_number": "S0000001",
+                "course_title": "BSc Computer Science",
+                "completed_tests": 2,
+                "cumulative_points": 210,
+                "average_percentage": 85.0,
+            }
+        ]
+        monkeypatch.setattr(
+            student_mgmt_module, "get_class_progress_summary", lambda: class_summary
+        )
+
+        # FR-63: Aggregate class view
+        list_resp = lecturer_client.get("/lecturer/student-progress")
+        assert list_resp.status_code == 200
+        assert b"Sam Student" in list_resp.data
+        assert b"210 pts" in list_resp.data
+        assert b"85.0%" in list_resp.data
+
+        # FR-64 & FR-65: Detailed student history & visual trajectory chart
+        attempt_entry = {
+            "attempt_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "test_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+            "test_name": "Algorithms Midterm",
+            "subject_name": "Computer Science",
+            "completed_at": datetime(2026, 11, 20, 14, 30),
+            "completed_date_str": "20 Nov 2026, 14:30",
+            "short_date_str": "20 Nov",
+            "question_count": 10,
+            "percentage": 85.0,
+            "total_points": 210,
+        }
+        monkeypatch.setattr(
+            student_mgmt_module,
+            "get_student_progress_detail",
+            lambda sid: {
+                "student": class_summary[0],
+                "trajectory": [attempt_entry],
+                "history": [attempt_entry],
+            },
+        )
+
+        detail_resp = lecturer_client.get(f"/lecturer/student-progress/{student_id}")
+        assert detail_resp.status_code == 200
+        assert b"Algorithms Midterm" in detail_resp.data
+        assert b"20 Nov 2026, 14:30" in detail_resp.data
+        assert b"trajectoryChart" in detail_resp.data
+
 
 class TestLecturerQuizManagementRoutes:
-    def _login_as_lecturer(self, client):
-        with client.session_transaction() as sess:
-            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
-            sess["role"] = "lecturer"
-
     def test_quiz_management_renders_quizzes_and_question_pool(self, app, monkeypatch):
         subject_id = "650e8400-e29b-41d4-a716-446655440001"
         monkeypatch.setattr(
@@ -270,10 +425,55 @@ class TestLecturerQuizManagementRoutes:
         assert "Marine Biology" in html
         assert "20 mins" in html
         assert "Locked" in html
+        assert "Stats" in html
         assert "Which organism builds coral reefs?" in html
 
-    def test_create_question_validates_and_calls_db(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_quiz_statistics_route_renders_summary_and_attempts(
+        self, lecturer_client, monkeypatch
+    ):
+        """FR-75: Contextual view statistics action displays quiz analytics."""
+        test_id = UUID("22222222-2222-2222-2222-222222222222")
+        monkeypatch.setattr(
+            quiz_mgmt_module,
+            "get_quiz_statistics",
+            lambda tid: {
+                "quiz": {
+                    "test_id": str(test_id),
+                    "title": "Reef Ecology Quiz",
+                    "description": "Introductory coral reef assessment",
+                    "subject_name": "Marine Biology",
+                    "question_count": 5,
+                    "time_limit_minutes": 20,
+                    "is_active": True,
+                },
+                "summary": {
+                    "completed_count": 1,
+                    "avg_percentage": 80.0,
+                    "avg_points": 110.0,
+                    "highest_percentage": 80.0,
+                    "lowest_percentage": 80.0,
+                },
+                "attempts": [
+                    {
+                        "attempt_id": "99999999-9999-9999-9999-999999999999",
+                        "student_name": "Sam Student",
+                        "student_number": "S0000001",
+                        "completed_at": "22 Nov 2026, 10:15",
+                        "percentage": 80.0,
+                        "total_points": 110,
+                    }
+                ],
+            },
+        )
+
+        response = lecturer_client.get(f"/lecturer/quiz/{test_id}/statistics")
+        assert response.status_code == 200
+        assert b"Reef Ecology Quiz" in response.data
+        assert b"Locked Attempt History" in response.data
+        assert b"Sam Student" in response.data
+        assert b"80.0%" in response.data
+
+    def test_create_question_validates_and_calls_db(self, lecturer_client, monkeypatch):
         subject_id = UUID("650e8400-e29b-41d4-a716-446655440001")
         created = {}
 
@@ -283,7 +483,7 @@ class TestLecturerQuizManagementRoutes:
 
         monkeypatch.setattr(quiz_mgmt_module, "create_question", fake_create_question)
 
-        response = client.post(
+        response = lecturer_client.post(
             "/lecturer/question/create",
             data={
                 "subject_id": str(subject_id),
@@ -305,8 +505,7 @@ class TestLecturerQuizManagementRoutes:
             ("Trade winds", False),
         ]
 
-    def test_create_quiz_calls_db_with_parsed_fields(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_create_quiz_calls_db_with_parsed_fields(self, lecturer_client, monkeypatch):
         subject_id = UUID("650e8400-e29b-41d4-a716-446655440001")
         created = {}
 
@@ -316,7 +515,7 @@ class TestLecturerQuizManagementRoutes:
 
         monkeypatch.setattr(quiz_mgmt_module, "create_quiz", fake_create_quiz)
 
-        response = client.post(
+        response = lecturer_client.post(
             "/lecturer/quiz/create",
             data={
                 "title": "Oceanography Basics",
@@ -333,8 +532,7 @@ class TestLecturerQuizManagementRoutes:
         assert created["question_count"] == 5
         assert created["time_limit_minutes"] is None
 
-    def test_toggle_quiz_status_calls_db(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_toggle_quiz_status_calls_db(self, lecturer_client, monkeypatch):
         test_id = UUID("22222222-2222-2222-2222-222222222222")
         toggled = []
         monkeypatch.setattr(
@@ -343,13 +541,12 @@ class TestLecturerQuizManagementRoutes:
             lambda tid: toggled.append(tid) or False,
         )
 
-        response = client.post(f"/lecturer/quiz/{test_id}/toggle-status")
+        response = lecturer_client.post(f"/lecturer/quiz/{test_id}/toggle-status")
 
         assert response.status_code == 302
         assert toggled == [test_id]
 
-    def test_delete_quiz_passes_confirmation_flag(self, client, monkeypatch):
-        self._login_as_lecturer(client)
+    def test_delete_quiz_passes_confirmation_flag(self, lecturer_client, monkeypatch):
         test_id = UUID("22222222-2222-2222-2222-222222222222")
         calls = []
 
@@ -359,7 +556,7 @@ class TestLecturerQuizManagementRoutes:
 
         monkeypatch.setattr(quiz_mgmt_module, "delete_quiz", fake_delete_quiz)
 
-        response = client.post(
+        response = lecturer_client.post(
             f"/lecturer/quiz/{test_id}/delete",
             data={"confirmed": "true"},
         )

@@ -136,7 +136,7 @@ def create_app():
         with connection_provider.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT first_name, last_name, role
+                SELECT first_name, last_name, role, is_disabled
                 FROM users
                 WHERE user_id = %s
                 """,
@@ -144,17 +144,19 @@ def create_app():
             )
             user = cursor.fetchone()
 
-        if user:
-            first_name = user[0]
-            last_name = user[1]
-            g.user = SimpleNamespace(
-                name=f"{first_name} {last_name}",
-                role=user[2],
-                user_id=session["user_id"],
-            )
-        else:
+        is_disabled = bool(user[3]) if user and len(user) > 3 else False
+        if not user or is_disabled:
             g.user = None
+            return
 
+        first_name = user[0]
+        last_name = user[1]
+        g.user = SimpleNamespace(
+            name=f"{first_name} {last_name}",
+            role=user[2],
+            user_id=session["user_id"],
+        )
+    
     @app.context_processor
     def inject_sidebar_navigation():
         # g is Flasks global context for the current request, it can be used to store user information

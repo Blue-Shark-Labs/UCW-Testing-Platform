@@ -110,6 +110,7 @@ def start_or_resume_test_attempt(test_id, student_id):
 				 AND previous_attempt.user_id = %s
 				 AND previous_attempt.completed_at IS NOT NULL
 				WHERE q.subject_id = %s
+				  AND q.is_deleted = FALSE
 				  AND EXISTS (
 					  SELECT 1
 					  FROM (

@@ -29,7 +29,7 @@ _NAVIGATION_BY_ROLE = {
             ],
         },
         {"label": "Courses/Subjects", "icon": "book", "endpoint": "administrator.administrator_view_subjects_route"},
-        {"label": "Student Progress", "icon": "chart", "endpoint": "student_progress_route"},
+        {"label": "Student Progress", "icon": "chart", "endpoint": "lecturer.student_progress_route"},
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
     "admin": [
