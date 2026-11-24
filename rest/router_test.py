@@ -126,24 +126,25 @@ class TestCreateApp:
 
         assert response.status_code == 200
         assert re.search(
-            rb'<a href="/student-dashboard/" class="[^"]*"[^>]*>'
+            rb'<a\s+href="/student-dashboard/"\s+class="[^"]*"[^>]*>'
             rb'.*?<svg[^>]*>.*?</svg>.*?Tests</span>.*?</a>',
             response.data,
             re.DOTALL,
         )
         assert re.search(
-            rb'<a href="/pr-block/" class="[^"]*"[^>]*>'
+            rb'<a\s+href="/pr-block/"\s+class="[^"]*"[^>]*>'
             rb'.*?<svg[^>]*>.*?</svg>.*?Home</span>.*?</a>',
             response.data,
             re.DOTALL,
         )
         assert b'href="#"' not in response.data
         assert re.search(
-            rb'<a href="/leaderboards" class="[^"]*"[^>]*>'
+            rb'<a\s+href="/leaderboards"\s+class="[^"]*"[^>]*>'
             rb'.*?<svg[^>]*>.*?</svg>.*?Subject Leaderboards</span>.*?</a>',
             response.data,
             re.DOTALL,
         )
+
     def test_session_cookie_is_secure_by_default(self, monkeypatch):
         # ARRANGE
         monkeypatch.delenv("SESSION_COOKIE_SECURE", raising=False)

@@ -40,41 +40,57 @@
     <div class="flex flex-col w-full gap-1.5 overflow-y-auto min-h-0 flex-1 pr-1" id="nav-items">
         {% for item in sidebar_items %}
             {% if item.children %}
-                <div class="w-full flex flex-col items-start justify-items-center p-2 {{ 'sidebar-nav-item-active' if item.active else '' }}" id="nav-item">
-                    <div class="flex items-center justify-items-start w-full gap-5" id="nav-item-header">
-                        {{ nav_icon(item.icon, item.active, 18) }}
-                        <span class="text-xs font-normal text-text-primary">{{ item.label }}</span>
-                    </div>
-                    <div class="w-full flex flex-col items-start justify-start pl-5 mt-5 gap-3" id="nav-items-dropdown">
-                        {% for child in item.children %}
-                            {% if child.href %}
-                                <a href="{{ child.href }}" class="flex items-center justify-items-start w-full gap-5 p-2 no-underline {{ 'sidebar-nav-item-dropdown-active' if child.active else 'sidebar-nav-item-dropdown-hover-action' }}" id="nav-item-dropdown" {% if child.active %}aria-current="page"{% endif %}>
-                                    {{ nav_icon(child.icon, child.active, 12) }}
-                                    <span class="text-xs font-light text-text-primary">{{ child.label }}</span>
-                                </a>
-                            {% else %}
-                                <div class="flex items-center justify-items-start w-full gap-5 p-2 opacity-50" id="nav-item-dropdown" aria-disabled="true">
-                                    {{ nav_icon(child.icon, false, 12) }}
-                                    <span class="text-xs font-light text-text-primary">{{ child.label }}</span>
-                                </div>
-                            {% endif %}
-                        {% endfor %}
+                <!-- Parent Dropdown Item -->
+                <div class="w-full flex flex-col">
+                    <button type="button" 
+                            onclick="toggleSidebarDropdown(this)"
+                            class="w-full flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer border border-transparent
+                                   {% if item.active %} bg-slate-50 text-slate-900 font-semibold {% else %} text-slate-600 hover:bg-slate-50 hover:text-slate-900 {% endif %}">
+                        <div class="flex items-center gap-3">
+                            {{ nav_icon(item.icon, item.active, 18) }}
+                            <span class="text-xs">{{ item.label }}</span>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200 dropdown-chevron {% if item.active %} rotate-180 {% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Sub-options Animated Container -->
+                    <div class="grid transition-[grid-template-rows] duration-300 ease-in-out dropdown-content {% if item.active %} grid-rows-[1fr] {% else %} grid-rows-[0fr] {% endif %}">
+                        <div class="overflow-hidden pl-6 space-y-1 pt-1">
+                            {% for child in item.children %}
+                                {% if child.href %}
+                                    <a href="{{ child.href }}" 
+                                       class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs transition-all no-underline
+                                              {% if child.active %} bg-blue-50/70 text-app-primary font-semibold {% else %} text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-normal {% endif %}"
+                                       {% if child.active %}aria-current="page"{% endif %}>
+                                        {{ nav_icon(child.icon, child.active, 14) }}
+                                        <span>{{ child.label }}</span>
+                                    </a>
+                                {% else %}
+                                    <div class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-slate-400 opacity-50" aria-disabled="true">
+                                        {{ nav_icon(child.icon, false, 14) }}
+                                        <span>{{ child.label }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             {% else %}
+                <!-- Standard Single Nav Item -->
                 {% if item.href %}
-                    <a href="{{ item.href }}" class="w-full flex flex-col items-start justify-items-center p-2 no-underline {{ 'sidebar-nav-item-active' if item.active else 'sidebar-nav-item-hover-action' }}" {% if item.active %}aria-current="page"{% endif %}>
-                        <div class="flex items-center justify-items-start w-full gap-5">
-                            {{ nav_icon(item.icon, item.active, 18) }}
-                            <span class="text-xs font-normal text-text-primary">{{ item.label }}</span>
-                        </div>
+                    <a href="{{ item.href }}" 
+                       class="w-full flex items-center gap-3 p-2.5 rounded-xl text-xs transition-all no-underline border border-transparent
+                              {% if item.active %} bg-slate-100 text-slate-900 font-semibold border-slate-200 {% else %} text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-normal {% endif %}"
+                       {% if item.active %}aria-current="page"{% endif %}>
+                        {{ nav_icon(item.icon, item.active, 18) }}
+                        <span>{{ item.label }}</span>
                     </a>
                 {% else %}
-                    <div class="w-full flex flex-col items-start justify-items-center p-2 opacity-50" aria-disabled="true">
-                        <div class="flex items-center justify-items-start w-full gap-5">
-                            {{ nav_icon(item.icon, false, 18) }}
-                            <span class="text-xs font-normal text-text-primary">{{ item.label }}</span>
-                        </div>
+                    <div class="w-full flex items-center gap-3 p-2.5 rounded-xl text-xs text-slate-400 opacity-50 border border-transparent" aria-disabled="true">
+                        {{ nav_icon(item.icon, false, 18) }}
+                        <span>{{ item.label }}</span>
                     </div>
                 {% endif %}
             {% endif %}
@@ -87,12 +103,12 @@
             <h4 class="shrink-0 text-[11px] font-bold uppercase tracking-wider text-slate-400">Profile</h4>
         </div>
         <div class="w-full flex items-center justify-between p-1 rounded-xl">
-            <div class="flex items-center gap-2.5 p-1.5 rounded-lg text-slate-800">
+            <button type="button" class="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-100 transition-all text-slate-800 bg-transparent border-0 cursor-pointer">
                 <div class="flex items-center justify-center bg-blue-100 text-app-primary rounded-full h-8 w-8 text-xs font-bold">
                     {{ profile_initials }}
                 </div>
                 <span class="text-xs font-medium">{{ g.user.name if g.user else 'User' }}</span>
-            </div>
+            </button>
             <form method="post" action="{{ url_for('logout_route') }}">
                 <button type="submit"
                    id="logout-section"
