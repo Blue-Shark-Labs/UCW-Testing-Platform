@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Account{% endblock %}
+
+{% block page_title %}Security{% endblock %}
+
+{% block header_page_specific_content %}
+{% endblock %}
+
+{% block content %}
+    {% set code_input_classes = "w-full rounded-lg border border-slate-200 px-3 py-3 text-sm tracking-widest text-slate-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100" %}
+    {% set primary_button_classes = "rounded-full bg-app-primary px-4 py-2 text-sm font-semibold text-white" %}
+    <div class="mb-4 flex flex-col items-start justify-center">
+        <h1 class="mb-2 text-3xl font-extrabold text-text-primary">Security</h1>
+        <p class="text-text-primary/50">Manage how you sign in to your account.</p>
+    </div>
+    <div class="w-full py-4 sm:py-8">
+        <div class="mx-auto w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex items-center justify-between border-b border-slate-200 pb-5">
+                <div>
+                    <h2 class="text-md font-bold text-slate-900">Two-factor authentication</h2>
+                    <p class="mt-1 text-xs text-slate-500">Require a code from an authenticator app (such as Google Authenticator or Microsoft Authenticator) when you log in.</p>
+                </div>
+                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ 'bg-green-50 text-green-700' if mfa_enabled else 'bg-slate-100 text-slate-600' }}">{{ 'On' if mfa_enabled else 'Off' }}</span>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                <p role="status" class="mb-4 rounded-md px-3 py-2 text-sm {{ 'bg-green-50 text-green-800' if category == 'success' else 'bg-slate-50 text-slate-700' }}">{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+            {% if error %}
+            <p class="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</p>
+            {% endif %}
+
+            {% if mfa_enabled %}
+            <form method="POST" action="{{ url_for('account.mfa_disable_route') }}" class="flex max-w-sm flex-col gap-3">
+                <label for="code" class="text-sm font-semibold text-slate-800">Enter a current code to turn off two-factor authentication</label>
+                <input type="text" id="code" name="code" required inputmode="numeric" pattern="[0-9 ]{6,7}" maxlength="7" autocomplete="one-time-code" class="{{ code_input_classes }}">
+                <button type="submit" class="self-start rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600">Turn off</button>
+            </form>
+            {% elif setup_secret %}
+            <div class="flex flex-col gap-6 sm:flex-row">
+                <img src="{{ qr_code }}" alt="QR code for your authenticator app" class="h-48 w-48 rounded-md border border-slate-200 p-2">
+                <div class="flex max-w-sm flex-col gap-3">
+                    <p class="text-sm text-slate-700">1. Scan the QR code with your authenticator app.</p>
+                    <p class="text-sm text-slate-700">Can't scan it? Enter this key instead:</p>
+                    <code class="break-all rounded-md bg-slate-50 px-3 py-2 text-sm">{{ setup_secret }}</code>
+                    <form method="POST" action="{{ url_for('account.mfa_enable_route') }}" class="flex flex-col gap-3">
+                        <label for="code" class="text-sm text-slate-700">2. Enter the 6-digit code the app shows.</label>
+                        <input type="text" id="code" name="code" required autofocus inputmode="numeric" pattern="[0-9 ]{6,7}" maxlength="7" autocomplete="one-time-code" class="{{ code_input_classes }}">
+                        <button type="submit" class="self-start {{ primary_button_classes }}">Turn on</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <form method="POST" action="{{ url_for('account.mfa_setup_route') }}">
+                <button type="submit" class="{{ primary_button_classes }}">Set up two-factor authentication</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

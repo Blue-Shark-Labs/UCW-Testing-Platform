@@ -1,4 +1,6 @@
 from flask import redirect, render_template, request, session, url_for
+import time
+
 from werkzeug.security import check_password_hash
 from rest.administrator.administrator import administrator_view_subjects_route
 
@@ -38,8 +40,20 @@ def authenticate_user(connection_provider, email, password):
     if not check_password_hash(user.password_hash, password):
         record_failed_login(connection_provider, user.user_id, MAX_FAILED_ATTEMPTS, LOCKOUT_MINUTES)
         return None
-    clear_failed_logins(connection_provider, user.user_id)
+    # MFA users keep their failure count until the code is verified, so the password
+    # step can't be used to reset the limit on code guesses.
+    if not user.mfa_enabled:
+        clear_failed_logins(connection_provider, user.user_id)
     return user
+
+
+def start_user_session(user_id, role, endpoint=None):
+    """Signs the user in and redirects to the given endpoint, or their role's dashboard."""
+    # Clearing first prevents session fixation from any pre-login session data.
+    session.clear()
+    session["user_id"] = str(user_id)
+    session["role"] = role
+    return redirect(url_for(endpoint or ROLE_DASHBOARD_ENDPOINTS[role]))
 
 
 def login_route():
@@ -62,9 +76,10 @@ def login_route():
                 warning=LOCKOUT_POLICY_WARNING,
                 email=email,
             )
-        # Clearing first prevents session fixation from any pre-login session data.
-        session.clear()
-        session["user_id"] = str(user.user_id)
-        session["role"] = user.role
-        return redirect(url_for(ROLE_DASHBOARD_ENDPOINTS[user.role]))
+        if user.mfa_enabled:
+            session.clear()
+            session["mfa_pending_user_id"] = str(user.user_id)
+            session["mfa_pending_since"] = int(time.time())
+            return redirect(url_for("mfa_verify_route"))
+        return start_user_session(user.user_id, user.role)
     return render_template("login/login.html")
