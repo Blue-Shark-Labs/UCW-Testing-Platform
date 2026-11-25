@@ -23,6 +23,8 @@ from rest.lecturer.student_management import (
     toggle_student_status_route,
 )
 
+from rest.lecturer.view_subjects import lecturer_view_subjects_route
+
 lecturer = Blueprint(
     "lecturer",
     __name__,
@@ -61,3 +63,6 @@ lecturer.add_url_rule("/quiz/<uuid:test_id>/statistics", view_func=quiz_statisti
 lecturer.add_url_rule("/question/create", view_func=create_question_route, methods=["POST"])
 lecturer.add_url_rule("/question/<uuid:question_id>/edit", view_func=edit_question_route, methods=["POST"])
 lecturer.add_url_rule("/question/<uuid:question_id>/delete", view_func=delete_question_route, methods=["POST"])
+
+# View Subjects
+lecturer.add_url_rule("/subjects", view_func=lecturer_view_subjects_route, methods=["GET"])

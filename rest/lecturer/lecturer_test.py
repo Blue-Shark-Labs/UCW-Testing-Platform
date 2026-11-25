@@ -6,6 +6,7 @@ from uuid import UUID
 import pytest
 import rest.lecturer.quiz_management as quiz_mgmt_module
 import rest.lecturer.student_management as student_mgmt_module
+import rest.lecturer.view_subjects as view_subjects_module
 from werkzeug.security import check_password_hash
 
 
@@ -563,3 +564,28 @@ class TestLecturerQuizManagementRoutes:
 
         assert response.status_code == 302
         assert calls == [(test_id, True)]
+
+class TestLecturerSubjectsRoutes:
+    def test_view_subjects_renders_assigned_subjects(self, lecturer_client, monkeypatch):
+        monkeypatch.setattr(
+            view_subjects_module,
+            "list_lecturer_subjects",
+            lambda lecturer_id, search="": [
+                {
+                    "subject_id": "650e8400-e29b-41d4-a716-446655440001",
+                    "name": "Marine Biology",
+                    "description": "Coral reef and ocean ecosystems",
+                    "is_active": True,
+                    "lecturer_names": ["Test Lecturer"],
+                    "question_count": 14,
+                    "quiz_count": 2,
+                }
+            ],
+        )
+
+        response = lecturer_client.get("/lecturer/subjects")
+        assert response.status_code == 200
+        assert b"My Subjects" in response.data
+        assert b"Marine Biology" in response.data
+        assert b"14 questions" in response.data
+        assert b"2 quizzes" in response.data

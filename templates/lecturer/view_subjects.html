@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Lecturer{% endblock %}
+
+{% block page_title %}Courses / Subjects{% endblock %}
+
+{% block header_page_specific_content %}
+{% endblock %}
+
+{% block content %}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 w-full">
+        <div class="flex flex-col items-start justify-center">
+            <h1 class="mb-2 text-3xl font-extrabold text-text-primary">My Subjects</h1>
+            <p class="text-text-primary/50">View the subjects assigned to you, question pool sizes, and linked assessments.</p>
+        </div>
+        <a href="{{ url_for('lecturer.quiz_management_route') }}"
+           class="inline-flex items-center justify-center gap-2 bg-app-primary hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-md shadow-md shadow-blue-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+            <span>Go to Quiz Management</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="py-4 sm:py-8 w-full">
+        <div class="mx-auto w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                <div class="flex items-baseline gap-2">
+                    <h2 class="text-md font-bold text-slate-900">Assigned subjects</h2>
+                    <span class="text-xs font-medium text-app-primary">{{ subjects | length }} {{ 'subject' if (subjects | length) == 1 else 'subjects' }}</span>
+                </div>
+                <form method="GET" action="{{ url_for('lecturer.lecturer_view_subjects_route') }}" class="relative w-full sm:w-64">
+                    <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="7" stroke-width="1.5"/>
+                        <path d="m16 16 4 4" stroke-width="1.5"/>
+                    </svg>
+                    <input
+                        type="search"
+                        name="q"
+                        value="{{ search }}"
+                        placeholder="Search by name or description"
+                        class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                    >
+                </form>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+                <table class="w-full min-w-[750px] border-collapse text-left">
+                    <thead class="bg-slate-50">
+                        <tr class="border-b border-slate-200">
+                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Subject name</th>
+                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Description</th>
+                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Teaching Team</th>
+                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Question Pool</th>
+                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Quizzes</th>
+                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Status</th>
+                            <th class="px-3 py-3 text-right text-xs font-semibold text-slate-500">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 bg-white">
+                        {% for subject in subjects %}
+                        <tr>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-slate-900">{{ subject.name }}</td>
+                            <td class="px-3 py-4 text-sm text-slate-500">{{ subject.description or "No description provided." }}</td>
+                            <td class="px-3 py-4 text-sm text-slate-500">{{ subject.lecturer_names | join(", ") if subject.lecturer_names else "Assigned to you" }}</td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-700">
+                                <span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                                    {{ subject.question_count }} {{ 'question' if subject.question_count == 1 else 'questions' }}
+                                </span>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-700">
+                                <span class="inline-flex items-center rounded-md bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-app-primary">
+                                    {{ subject.quiz_count }} {{ 'quiz' if subject.quiz_count == 1 else 'quizzes' }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-4">
+                                <div class="flex items-center justify-start px-2 py-1 rounded-md w-fit {% if subject.is_active %}text-green-500 bg-green-500/10{% else %}text-red-500 bg-red-500/10{% endif %}">
+                                    <div class="h-2 w-2 mr-2 rounded-sm {% if subject.is_active %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
+                                    <span class="text-sm font-medium">{% if subject.is_active %}Active{% else %}Archived{% endif %}</span>
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-right">
+                                <a href="{{ url_for('lecturer.quiz_management_route') }}"
+                                   class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-app-primary hover:border-blue-200 transition">
+                                    <span>Manage Quizzes</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="px-4 py-10 text-center text-xs text-slate-400">
+                                {% if search %}
+                                    No assigned subjects match "{{ search }}".
+                                {% else %}
+                                    No subjects are currently assigned to your account. Contact an administrator to be assigned to a subject.
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% include 'partials/footer.html' %}
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}
