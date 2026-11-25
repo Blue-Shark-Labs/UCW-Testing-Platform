@@ -10,4 +10,6 @@ pytailwindcss
 
 # Testing
 pytest
+# Browser tests in e2e/ also need: playwright install chromium
+pytest-playwright
 gunicorn
