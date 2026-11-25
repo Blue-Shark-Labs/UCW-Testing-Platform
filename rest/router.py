@@ -19,6 +19,7 @@ from rest.dashboard.student_dashboard import (
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.logout import logout_route
+from rest.login.mfa import mfa_verify_route
 from rest.login.register import register_route
 from rest.student_dashboard.student_dashboard import (
     student_dashboard_route,
@@ -89,6 +90,7 @@ pr_block.add_url_rule(
 from rest.administrator.routes import administrator
 
 from rest.lecturer.routes import lecturer
+from rest.account.routes import account
 from database.connection import PostgresConnectionProvider
 load_dotenv()
 
@@ -112,6 +114,7 @@ def create_app():
     )
 
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
+    app.add_url_rule("/login/mfa", view_func=mfa_verify_route, methods=["GET", "POST"])
     app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
     app.add_url_rule("/dashboard/student", view_func=student_home_route, methods=["GET"])
@@ -124,6 +127,7 @@ def create_app():
 
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
+    app.register_blueprint(account)
 
     @app.before_request
     def load_session_user():
