@@ -418,3 +418,87 @@ def delete_question(question_id: UUID) -> bool:
             RETURNING question_id;
         """, (question_id,))
         return cur.fetchone() is not None
+
+def get_quiz_statistics(test_id: UUID) -> dict | None:
+    """FR-75: Returns summary metrics and completed attempt records for a quiz."""
+    provider = PostgresConnectionProvider()
+    with provider.cursor() as cur:
+        cur.execute("""
+            SELECT
+                t.test_id,
+                t.title,
+                t.description,
+                s.name AS subject_name,
+                t.question_count,
+                t.time_limit_minutes,
+                t.is_active
+            FROM tests t
+            JOIN subjects s ON s.subject_id = t.subject_id
+            WHERE t.test_id = %s
+              AND t.is_archived = FALSE;
+        """, (test_id,))
+        quiz_row = cur.fetchone()
+        if quiz_row is None:
+            return None
+
+        cur.execute("""
+            SELECT
+                ta.attempt_id,
+                u.first_name,
+                u.last_name,
+                COALESCE(st.student_number, 'N/A'),
+                ta.completed_at,
+                ta.percentage,
+                ta.total_points
+            FROM test_attempts ta
+            JOIN users u ON u.user_id = ta.user_id
+            LEFT JOIN students st ON st.user_id = u.user_id
+            WHERE ta.test_id = %s
+              AND ta.completed_at IS NOT NULL
+            ORDER BY ta.completed_at DESC;
+        """, (test_id,))
+        attempts = [
+            {
+                "attempt_id": str(row[0]),
+                "student_name": f"{row[1]} {row[2]}".strip(),
+                "student_number": row[3],
+                "completed_at": row[4].strftime("%d %b %Y, %H:%M") if row[4] else "In Progress",
+                "percentage": float(row[5]) if row[5] is not None else 0.0,
+                "total_points": int(row[6]) if row[6] is not None else 0,
+            }
+            for row in cur.fetchall()
+        ]
+
+        completed_count = len(attempts)
+        avg_percentage = (
+            round(sum(a["percentage"] for a in attempts) / completed_count, 1)
+            if completed_count > 0
+            else None
+        )
+        avg_points = (
+            round(sum(a["total_points"] for a in attempts) / completed_count, 1)
+            if completed_count > 0
+            else None
+        )
+        highest_percentage = max((a["percentage"] for a in attempts), default=None)
+        lowest_percentage = min((a["percentage"] for a in attempts), default=None)
+
+        return {
+            "quiz": {
+                "test_id": str(quiz_row[0]),
+                "title": quiz_row[1],
+                "description": quiz_row[2] or "",
+                "subject_name": quiz_row[3],
+                "question_count": int(quiz_row[4]),
+                "time_limit_minutes": quiz_row[5],
+                "is_active": bool(quiz_row[6]),
+            },
+            "summary": {
+                "completed_count": completed_count,
+                "avg_percentage": avg_percentage,
+                "avg_points": avg_points,
+                "highest_percentage": highest_percentage,
+                "lowest_percentage": lowest_percentage,
+            },
+            "attempts": attempts,
+        }

@@ -161,6 +161,15 @@
                         </td>
                         <td class="px-3 py-3 text-right whitespace-nowrap">
                             <div class="inline-flex items-center gap-1 justify-end">
+                                <!-- View Quiz Statistics (FR-75) -->
+                                <a href="{{ url_for('lecturer.quiz_statistics_route', test_id=quiz.test_id) }}"
+                                   class="flex flex-col items-center justify-center w-14 h-11 rounded-xl bg-transparent border border-transparent hover:bg-indigo-50/80 transition-all group no-underline"
+                                   title="View Quiz Statistics">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                    <span class="mt-0.5 text-[9.5px] font-medium text-slate-500 group-hover:text-indigo-600 transition-colors">Stats</span>
+                                </a>
                                 <!-- Edit Quiz -->
                                 <button type="button"
                                         data-test-id="{{ quiz.test_id }}"

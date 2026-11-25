@@ -14,6 +14,7 @@ from database.lecturer.quizzes import (
     toggle_quiz_status,
     update_question,
     update_quiz,
+    get_quiz_statistics,
 )
 
 
@@ -303,3 +304,16 @@ def delete_question_route(question_id):
         flash("A database error occurred while removing the question.", "error")
 
     return redirect(url_for("lecturer.quiz_management_route", tab="questions"))
+
+def quiz_statistics_route(test_id):
+    stats_data = get_quiz_statistics(test_id)
+    if stats_data is None:
+        flash("Quiz not found.", "error")
+        return redirect(url_for("lecturer.quiz_management_route"))
+
+    return render_template(
+        "lecturer/quiz_statistics.html",
+        quiz=stats_data["quiz"],
+        summary=stats_data["summary"],
+        attempts=stats_data["attempts"],
+    )
