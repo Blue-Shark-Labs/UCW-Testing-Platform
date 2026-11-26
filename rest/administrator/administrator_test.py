@@ -210,8 +210,9 @@ class TestAdministratorRoutes:
         )
 
         response = admin_client.post(
-            "/administrator/create-subject",
+            "/administrator/subjects",
             data={
+                "action": "create",
                 "name": "Ocean Sciences",
                 "description": "Marine environments",
                 "lecturerId": [lecturer_id],
@@ -223,6 +224,50 @@ class TestAdministratorRoutes:
         assert created["description"] == "Marine environments"
         assert created["lecturer_ids"] == [UUID(lecturer_id)]
         assert isinstance(created["subject_id"], UUID)
+
+    def test_create_subject_modal_renders_from_subjects_page(
+        self, admin_client, monkeypatch
+    ):
+        monkeypatch.setattr(administrator_module, "list_subjects", lambda *args: ([], 0))
+        monkeypatch.setattr(administrator_module, "list_available_lecturers", lambda: [])
+
+        response = admin_client.get("/administrator/subjects?modal=create")
+
+        assert response.status_code == 200
+        assert b'id="subject-modal"' in response.data
+        assert b'name="action" value="create"' in response.data
+        assert b'Upon creation this subject will automatically become active.' in response.data
+        assert b'name="action" value="edit"' not in response.data
+
+    def test_edit_subject_modal_renders_existing_subject(
+        self, admin_client, monkeypatch
+    ):
+        subject_id = UUID("650e8400-e29b-41d4-a716-446655440001")
+        monkeypatch.setattr(administrator_module, "list_subjects", lambda *args: ([], 0))
+        monkeypatch.setattr(administrator_module, "list_available_lecturers", lambda: [])
+        monkeypatch.setattr(
+            administrator_module,
+            "get_subject",
+            lambda _subject_id: {
+                "subjectId": str(subject_id),
+                "name": "Ocean Sciences",
+                "description": "Marine environments",
+                "isActive": True,
+                "lecturers": [],
+            },
+        )
+
+        response = admin_client.get(
+            f"/administrator/subjects?modal=edit&subject_id={subject_id}"
+        )
+
+        assert response.status_code == 200
+        assert b'id="subject-modal"' in response.data
+        assert b'name="action" value="edit"' in response.data
+        assert b'name="subject_id"' in response.data
+        assert b'value="Ocean Sciences"' in response.data
+        assert b'name="isActive"' in response.data
+        assert b'name="action" value="create"' not in response.data
 
     def test_create_student_user_hashes_password_and_saves_profile(
         self, admin_client, monkeypatch
@@ -236,8 +281,9 @@ class TestAdministratorRoutes:
         monkeypatch.setattr(administrator_module, "create_user", fake_create_user)
 
         response = admin_client.post(
-            "/administrator/create-user",
+            "/administrator/users",
             data={
+                "action": "create",
                 "firstName": "Sam",
                 "lastName": "Student",
                 "email": "sam@example.test",
@@ -253,6 +299,47 @@ class TestAdministratorRoutes:
         assert args[0:3] == ("Sam", "Student", "sam@example.test")
         assert args[4:] == ("student", "S12345", "Marine Science")
         assert check_password_hash(args[3], "a-local-password")
+
+    def test_create_user_modal_renders_from_users_page(self, admin_client, monkeypatch):
+        monkeypatch.setattr(administrator_module, "list_users", lambda *args: ([], 0))
+
+        response = admin_client.get("/administrator/users?modal=create")
+
+        assert response.status_code == 200
+        assert b'id="user-modal"' in response.data
+        assert b'name="action" value="create"' in response.data
+        assert b'name="password"' in response.data
+        assert b'name="action" value="edit"' not in response.data
+
+    def test_edit_user_modal_renders_existing_user(self, admin_client, monkeypatch):
+        user_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
+        monkeypatch.setattr(administrator_module, "list_users", lambda *args: ([], 0))
+        monkeypatch.setattr(
+            administrator_module,
+            "get_user",
+            lambda _user_id: {
+                "userId": str(user_id),
+                "firstName": "Ada",
+                "lastName": "Lecturer",
+                "email": "ada@example.test",
+                "role": "lecturer",
+                "isDisabled": True,
+                "lastLoginAt": "",
+                "studentNumber": "",
+                "courseTitle": "",
+            },
+        )
+
+        response = admin_client.get(
+            f"/administrator/users?modal=edit&user_id={user_id}"
+        )
+
+        assert response.status_code == 200
+        assert b'id="user-modal"' in response.data
+        assert b'name="action" value="edit"' in response.data
+        assert b'name="user_id"' in response.data
+        assert b'value="Ada"' in response.data
+        assert b'name="password"' not in response.data
 
     def test_edit_subject_updates_database_and_lecturer_assignment(
         self, admin_client, monkeypatch
@@ -291,8 +378,10 @@ class TestAdministratorRoutes:
         )
 
         response = admin_client.post(
-            f"/administrator/edit-subject/{subject_id}",
+            "/administrator/subjects",
             data={
+                "action": "edit",
+                "subject_id": str(subject_id),
                 "isActive": "false",
                 "name": "Ocean Systems",
                 "description": "Updated description",
@@ -338,8 +427,10 @@ class TestAdministratorRoutes:
         )
 
         response = admin_client.post(
-            f"/administrator/edit-user/{user_id}",
+            "/administrator/users",
             data={
+                "action": "edit",
+                "user_id": str(user_id),
                 "firstName": "Ada",
                 "lastName": "Byron",
                 "email": "ada@example.test",

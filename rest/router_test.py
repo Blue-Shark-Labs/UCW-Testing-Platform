@@ -51,7 +51,7 @@ class TestCreateApp:
         [
             ("student", "/dashboard/student", b"Tests", b"User Management"),
             ("lecturer", "/dashboard/lecturer", b"Quiz Management", b"<span>Tests</span>"),
-            ("admin", "/administrator/create-user", b"User Management", b"<span>Tests</span>"),
+            ("admin", "/administrator/users", b"User Management", b"<span>Tests</span>"),
             ("student", "/dashboard/student", b"Subject Leaderboards", b"Quiz Management"),
         ],
     )
@@ -61,6 +61,8 @@ class TestCreateApp:
     ):
         # ARRANGE
         class FakeCursor:
+            query = ""
+
             def __enter__(self):
                 return self
 
@@ -68,16 +70,25 @@ class TestCreateApp:
                 return False
 
             def execute(self, query, params=None):
-                pass
+                self.query = query.lower()
 
             def fetchone(self):
+                if "count(*)" in self.query:
+                    return (0,)
                 return ("Test", "User", role)
+
+            def fetchall(self):
+                return []
 
         class FakeConnectionProvider:
             def cursor(self):
                 return FakeCursor()
 
         monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+        monkeypatch.setattr(
+            "database.administrator.users.PostgresConnectionProvider",
+            FakeConnectionProvider,
+        )
         monkeypatch.setattr("rest.student_dashboard.student_dashboard.get_assigned_tests", lambda student_id: [])
         monkeypatch.setattr("rest.student_dashboard.student_dashboard.get_completed_tests", lambda student_id: [])
 
