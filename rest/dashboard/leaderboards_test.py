@@ -68,6 +68,12 @@ class TestSubjectLeaderboardsRoute:
         assert b"450" in response.data
         assert b"92.5% average" in response.data
         assert b'name="subject_id"' in response.data
+        assert b"View leaderboard" in response.data
+        assert b'onchange="this.form.submit()"' not in response.data
+        assert b"Selecting a subject immediately loads its leaderboard." not in response.data
+        assert response.data.index(b'<label for="subject_id"') < response.data.index(b"View leaderboard")
+        assert b'class="flex flex-row items-end gap-2 sm:min-w-56"' in response.data
+        assert b"aria-labelledby=\"leaderboard-heading\"" in response.data
         assert b"selected" in response.data
         assert b'href="/leaderboards"' in response.data
 

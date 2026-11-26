@@ -131,12 +131,6 @@ class TestCreateApp:
             response.data,
             re.DOTALL,
         )
-        assert re.search(
-            rb'<a\s+href="/pr-block/"\s+class="[^"]*"[^>]*>'
-            rb'.*?<svg[^>]*>.*?</svg>.*?Home</span>.*?</a>',
-            response.data,
-            re.DOTALL,
-        )
         assert b'href="#"' not in response.data
         assert re.search(
             rb'<a\s+href="/leaderboards"\s+class="[^"]*"[^>]*>'

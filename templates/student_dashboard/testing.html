@@ -4,10 +4,12 @@
 
 {% block page_title %}{{ attempt.test_name }}{% endblock %}
 
-{% block header_page_specific_content %}{% endblock %}
+{% block title %}{{ attempt.test_name }} | Reinforcement Testing Platform{% endblock %}
+
+{% block header_page_specific_content %}<a class="app-skip-link" href="#student-page-main">Skip to main content</a>{% endblock %}
 
 {% block content %}
-    <div class="w-full max-w-4xl text-text-primary">
+    <div id="student-page-main" tabindex="-1" class="app-skip-target w-full max-w-4xl text-text-primary">
         <div class="mb-8 flex flex-wrap items-start justify-between gap-4">
             <div>
                 <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-app-quinary/40 px-3 py-1 text-sm font-medium text-text-primary">
@@ -19,19 +21,21 @@
             {% if attempt.time_limit_minutes is not none %}
                 <div class="group flex items-center gap-3 rounded-xl border border-app-divider bg-white px-4 py-3 shadow-sm data-[low-time]:border-red-600 data-[low-time]:bg-red-50"
                      role="timer"
+                     aria-labelledby="countdown-label"
                      data-countdown="{{ attempt.seconds_remaining }}">
                     <span class="flex h-10 w-10 items-center justify-center rounded-full bg-app-primary/10 text-app-primary group-data-[low-time]:bg-red-100 group-data-[low-time]:text-red-700">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </span>
                     <span class="text-right">
-                        <span class="block text-sm font-medium text-app-quaternary group-data-[low-time]:text-red-700" data-countdown-label>Time remaining</span>
+                        <span id="countdown-label" class="block text-sm font-medium text-slate-700 group-data-[low-time]:text-red-700" data-countdown-label>Time remaining</span>
                         <span class="text-xl font-bold tabular-nums group-data-[low-time]:text-red-700" data-countdown-display></span>
                     </span>
                 </div>
+                <p class="sr-only" data-countdown-announcement role="status"></p>
             {% endif %}
         </div>
 
-        <form method="post" action="{{ submit_url }}" data-test-form data-save-url="{{ save_answer_url }}">
+        <form method="post" action="{{ submit_url }}" aria-label="Test responses" data-test-form data-save-url="{{ save_answer_url }}">
             {% if error %}
                 <p class="mb-4 flex items-center gap-2 rounded-lg border border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-700" role="alert">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -49,15 +53,18 @@
             </div>
 
             {% for question in attempt.questions %}
-                <section class="rounded-xl border border-app-divider bg-white p-6 shadow-sm"
+                <section id="question-panel-{{ question.question_id }}"
+                         aria-labelledby="question-heading-{{ question.question_id }}"
+                         class="rounded-xl border border-app-divider bg-white p-6 shadow-sm"
                          data-question-index="{{ loop.index0 }}"
                          {% if not loop.first %}hidden{% endif %}>
-                    <h2 class="mb-6 text-xl font-medium">{{ question.question_text }}</h2>
+                    <h2 id="question-heading-{{ question.question_id }}" tabindex="-1" class="mb-6 text-xl font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-app-primary">{{ question.question_text }}</h2>
                     <fieldset class="space-y-3">
-                        <legend class="sr-only">Choose one answer</legend>
+                        <legend class="sr-only">{{ question.question_text }} Choose one answer</legend>
                         {% for option in question.options %}
-                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-app-divider p-4 transition-colors hover:border-app-secondary hover:bg-app-background has-[:checked]:border-app-primary has-[:checked]:bg-app-ternary/20 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-app-primary">
-                                <input class="mt-1 h-4 w-4 accent-app-primary focus:outline-none"
+                            <label for="answer-{{ question.question_id }}-{{ option.option_id }}" class="flex cursor-pointer items-start gap-3 rounded-lg border border-app-divider p-4 transition-colors hover:border-app-secondary hover:bg-app-background has-[:checked]:border-app-primary has-[:checked]:bg-app-ternary/20 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-app-primary">
+                                <input id="answer-{{ question.question_id }}-{{ option.option_id }}"
+                                       class="mt-1 h-4 w-4 accent-app-primary focus:outline-none"
                                        type="radio"
                                        name="answer_{{ question.question_id }}"
                                        value="{{ option.option_id }}"
@@ -82,12 +89,12 @@
                     Previous
                 </button>
                 <div class="flex gap-3">
-                    <button class="hidden items-center gap-2 rounded-lg bg-app-secondary px-5 py-3 font-medium text-text-primary hover:bg-app-ternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                    <button class="hidden items-center gap-2 rounded-lg bg-app-primary px-5 py-3 font-medium text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
                             type="button" data-next hidden>
                         Next question
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
-                    <button class="hidden items-center gap-2 rounded-lg bg-app-primary px-5 py-3 font-medium text-white hover:bg-app-quaternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                    <button class="hidden items-center gap-2 rounded-lg bg-app-primary px-5 py-3 font-medium text-white hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
                             type="submit" data-submit hidden>
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
                         Submit test
@@ -111,6 +118,7 @@
             const saveText = form.querySelector("[data-save-text]");
             const savedIcon = form.querySelector('[data-save-icon="saved"]');
             const errorIcon = form.querySelector('[data-save-icon="error"]');
+            const countdownAnnouncement = document.querySelector("[data-countdown-announcement]");
             const setSaveStatus = (message, isError) => {
                 saveText.textContent = message;
                 savedIcon.hidden = isError;
@@ -127,7 +135,7 @@
                 button.classList.toggle("inline-flex", isVisible);
             };
 
-            const showQuestion = (index) => {
+            const showQuestion = (index, moveFocus = false) => {
                 if (index < 0 || index >= questions.length) return;
                 currentIndex = index;
                 questions.forEach((question, questionIndex) => {
@@ -138,10 +146,13 @@
                 setButtonVisible(previousButton, currentIndex > 0);
                 setButtonVisible(nextButton, currentIndex < questions.length - 1);
                 setButtonVisible(submitButton, currentIndex === questions.length - 1);
+                if (moveFocus) {
+                    questions[currentIndex].querySelector("h2").focus();
+                }
             };
 
-            previousButton.addEventListener("click", () => showQuestion(currentIndex - 1));
-            nextButton.addEventListener("click", () => showQuestion(currentIndex + 1));
+            previousButton.addEventListener("click", () => showQuestion(currentIndex - 1, true));
+            nextButton.addEventListener("click", () => showQuestion(currentIndex + 1, true));
 
             form.querySelectorAll('input[type="radio"]').forEach((input) => {
                 input.addEventListener("change", () => {
@@ -182,7 +193,7 @@
                             `Answer every question before submitting. Unanswered: ${unanswered.map((index) => index + 1).join(", ")}.`,
                             true,
                         );
-                        showQuestion(unanswered[0]);
+                        showQuestion(unanswered[0], true);
                         return;
                     }
                 }
@@ -205,8 +216,12 @@
                         timer.setAttribute("data-low-time", "");
                         label.textContent = "Time almost up";
                     }
+                    if (seconds === 60) {
+                        countdownAnnouncement.textContent = "One minute remaining.";
+                    }
                     if (seconds <= 0) {
                         timeExpired = true;
+                        countdownAnnouncement.textContent = "Time is up. Submitting your test.";
                         form.requestSubmit();
                         return;
                     }

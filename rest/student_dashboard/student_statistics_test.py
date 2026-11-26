@@ -88,6 +88,8 @@ def test_statistics_page_shows_totals_average_chart_and_highlights(client, monke
     assert b"73.3%" in response.data
     assert b"Grades over time" in response.data
     assert b"<polyline" in response.data
+    assert b"<caption>Grades chart data</caption>" in response.data
+    assert b"<th scope=\"col\">Score</th>" in response.data
     assert b"Algebra Check" in response.data
     assert b"Biology Check" in response.data
     assert b'href="/statistics/export.csv"' in response.data
