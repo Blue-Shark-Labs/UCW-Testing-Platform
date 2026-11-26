@@ -64,11 +64,6 @@ body > div.grid > main {
     padding: 1rem;
 }
 
-.app-skip-target:focus {
-    outline: 2px solid var(--color-app-primary);
-    outline-offset: 4px;
-}
-
 .app-page-header {
     display: flex;
     min-height: 4rem;

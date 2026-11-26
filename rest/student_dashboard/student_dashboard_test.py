@@ -229,6 +229,34 @@ class TestStudentTestingRoutes:
         assert submitted["answers"] == {str(question_id): option_id}
         assert submitted["student_id"] == "00000000-0000-4000-8000-000000000001"
 
+    def test_retrying_completed_submission_shows_existing_result(self, client, monkeypatch):
+        _log_in(client, "student")
+        test_id = UUID("00000000-0000-4000-8000-000000000023")
+        attempt_id = UUID("5ba6e19a-f670-4579-9ce0-61b410083584")
+        monkeypatch.setattr(testing_module, "submit_test_attempt", lambda *args: None)
+        monkeypatch.setattr(
+            testing_module,
+            "get_completed_test_result",
+            lambda submitted_test_id, submitted_attempt_id, student_id: {
+                "test_name": "Functions and Graphs",
+                "question_count": 10,
+                "correct_count": 8,
+                "percentage": 80.0,
+                "total_points": 200,
+                "timed_out": False,
+            },
+        )
+
+        response = client.post(
+            f"/student-dashboard/tests/{test_id}/attempts/{attempt_id}/submit",
+            data={},
+        )
+
+        assert response.status_code == 200
+        assert b"Functions and Graphs" in response.data
+        assert b"8 / 10" in response.data
+        assert b"200" in response.data
+
     def test_submitting_with_unanswered_questions_shows_error(self, client, monkeypatch):
         _log_in(client, "student")
         test_id = UUID("00000000-0000-4000-8000-000000000001")

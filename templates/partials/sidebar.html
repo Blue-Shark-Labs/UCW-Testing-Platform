@@ -101,12 +101,12 @@
             <p class="shrink-0 text-[11px] font-bold uppercase tracking-wider text-slate-600">Profile</p>
         </div>
         <div class="w-full flex items-center justify-between p-1 rounded-xl">
-            <button type="button" class="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-slate-100 transition-all text-slate-800 bg-transparent border-0 cursor-pointer">
-                <div class="flex items-center justify-center bg-blue-100 text-app-primary rounded-full h-8 w-8 text-xs font-bold">
+            <div class="flex items-center gap-2.5 p-1.5 rounded-lg text-slate-800">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full border border-text-primary bg-app-background text-text-primary text-xs font-bold">
                     {{ profile_initials }}
                 </div>
                 <span class="text-xs font-medium">{{ g.user.name if g.user else 'User' }}</span>
-            </button>
+            </div>
             <form method="post" action="{{ url_for('logout_route') }}">
                 <button type="submit"
                    id="logout-section"
