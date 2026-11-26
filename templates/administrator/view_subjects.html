@@ -12,7 +12,7 @@
     <div class="flex items-center justify-between mb-4 w-full">
         <div class="flex flex-col items-start justify-center">
             <h1 class="mb-2 text-3xl font-extrabold text-text-primary">Subjects</h1>
-            <p class="text-text-primary/50">Manage the subjects available across Blue Shark Labs.</p>
+            <p class="text-text-primary/80">Manage the subjects available across Blue Shark Labs.</p>
         </div>
         <a href="{{ url_for('administrator.administrator_view_subjects_route', modal='create', q=search, page=pagination.page) }}" class="inline-flex items-center justify-center gap-2 bg-app-primary hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-md shadow-md shadow-blue-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
@@ -55,8 +55,8 @@
                             <td class="px-3 py-4 text-sm text-slate-500">{{ subject.description }}</td>
                             <td class="px-3 py-4 text-sm text-slate-500">{{ subject.lecturerNames | join(", ") if subject.lecturerNames else "No lecturers assigned" }}</td>
                             <td class="px-3 py-4">
-                                <div class="flex items-center justify-start px-2 py-1 rounded-md w-fit {% if subject.isActive %}text-green-500 bg-green-500/10{% else %}text-red-500 bg-red-500/10{% endif %}">
-                                    <div class="h-2 w-2 mr-2 rounded-sm {% if subject.isActive %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
+                                <div class="flex items-center justify-start px-2 py-1 rounded-md w-fit {% if subject.isActive %}text-green-700 bg-green-500/10{% else %}text-red-700 bg-red-500/10{% endif %}">
+                                    <div class="h-2 w-2 mr-2 rounded-sm {% if subject.isActive %}bg-green-400{% else %}bg-red-500{% endif %}"></div>
                                     <h4 class="text-sm font-medium">{% if subject.isActive == true %}Active{% else %}Archived{% endif %}</h4>
                                 </div>
                             </td>
