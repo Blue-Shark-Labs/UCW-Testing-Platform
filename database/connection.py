@@ -26,8 +26,8 @@ class PostgresConnectionProvider:
     def _build_conninfo() -> str:
         dotenv_config = dotenv_values()
         database_user = (
-            os.environ.get("DATABASE_USER")
-            or dotenv_config.get("DATABASE_USER")
+            os.environ.get("DATABASE_USERNAME")
+            or dotenv_config.get("DATABASE_USERNAME")
             or dotenv_config.get("USERNAME")
             or os.environ.get("USERNAME")
             or "postgres"
