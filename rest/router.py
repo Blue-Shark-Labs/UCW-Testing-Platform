@@ -183,7 +183,10 @@ def create_app():
 
         def prepare_item(item):
             endpoint = item.get("endpoint")
-            item["active"] = endpoint == request.endpoint
+            item["active"] = (
+                endpoint == request.endpoint
+                or request.endpoint in item.get("active_endpoints", ())
+            )
             item["href"] = (
                 url_for(endpoint)
                 if endpoint in app.view_functions

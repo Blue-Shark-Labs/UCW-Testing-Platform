@@ -51,6 +51,36 @@ class TestLecturerAuthorization:
         assert response.status_code == 302
         assert response.headers["Location"] == "/login"
 
+    def test_lecturer_routes_allow_database_admin_role(
+        self, client, monkeypatch
+    ):
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                pass
+
+            def fetchone(self):
+                return ("Test", "Admin", "admin")
+
+        class FakeConnectionProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+        monkeypatch.setattr(view_subjects_module, "list_lecturer_subjects", lambda *args, **kwargs: [])
+        with client.session_transaction() as sess:
+            sess["user_id"] = "11111111-1111-1111-1111-111111111111"
+            sess["role"] = "lecturer"
+
+        response = client.get("/lecturer/subjects")
+
+        assert response.status_code == 200
+
     def test_lecturer_routes_forbid_database_non_lecturer_even_if_session_says_lecturer(
         self, client, monkeypatch
     ):
