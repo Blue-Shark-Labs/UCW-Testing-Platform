@@ -1,7 +1,7 @@
 from flask import render_template
 
 from database.connection import PostgresConnectionProvider
-from usecase.get_landing_page_content import get_landing_page_content
+from database.landing_page.company_info import get_company_info
 
 # Page-authored marketing content: not modeled in the database, so it's hardcoded here.
 CAROUSEL_SLIDES = [
@@ -41,7 +41,7 @@ GALLERY_IMAGES = [
 
 def landing_page_route():
     connection_provider = PostgresConnectionProvider()
-    company_info = get_landing_page_content(connection_provider)
+    company_info = get_company_info(connection_provider)
     return render_template(
         "landing_page/landing-page.html",
         company_info=company_info,

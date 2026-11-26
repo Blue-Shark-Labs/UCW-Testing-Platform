@@ -1,0 +1,211 @@
+{
+  "defaultAssignedAt": "2026-10-29T09:00:00",
+  "defaultDurationMinutes": 12,
+  "students": [
+    {
+      "email": "student@dev.local",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "introduction-to-computing", "correct": 4, "completedAt": "2026-10-31T14:30:00" },
+        { "test": "data-structures", "correct": 4, "completedAt": "2026-11-03T10:25:00" },
+        { "test": "programming-fundamentals", "correct": 5, "completedAt": "2026-11-04T10:25:00" }
+      ]
+    },
+    {
+      "email": "michael.james@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 9, "completedAt": "2026-11-01T09:30:00" },
+        { "test": "introduction-to-computing", "correct": 4, "completedAt": "2026-11-01T14:00:00" },
+        { "test": "programming-fundamentals", "correct": 4, "completedAt": "2026-11-05T09:30:00" }
+      ]
+    },
+    {
+      "email": "priya.patel@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 8, "completedAt": "2026-11-01T10:20:00" },
+        { "test": "introduction-to-computing", "correct": 5, "completedAt": "2026-11-01T14:25:00" },
+        { "test": "algebra-fundamentals", "correct": 9, "completedAt": "2026-11-05T09:30:00" },
+        { "test": "programming-fundamentals", "correct": 5, "completedAt": "2026-11-06T11:00:00" },
+        { "test": "functions-and-graphs", "correct": 8, "completedAt": "2026-11-08T13:15:00" },
+        { "test": "data-structures", "correct": 4, "completedAt": "2026-11-10T15:40:00" },
+        { "test": "calculus-basics", "correct": 9, "completedAt": "2026-11-12T10:05:00" }
+      ]
+    },
+    {
+      "email": "tom.baker@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 9, "completedAt": "2026-11-01T11:15:00" },
+        { "test": "introduction-to-computing", "correct": 4, "completedAt": "2026-11-02T10:05:00" },
+        { "test": "algebra-fundamentals", "correct": 7, "completedAt": "2026-11-04T14:20:00" },
+        { "test": "data-structures", "correct": 3, "completedAt": "2026-11-09T16:10:00" }
+      ]
+    },
+    {
+      "email": "aisha.khan@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 10, "completedAt": "2026-11-02T09:40:00" },
+        { "test": "introduction-to-computing", "correct": 3, "completedAt": "2026-11-02T11:45:00" },
+        { "test": "algebra-fundamentals", "correct": 10, "completedAt": "2026-11-03T10:00:00" },
+        { "test": "functions-and-graphs", "correct": 9, "completedAt": "2026-11-06T09:15:00" },
+        { "test": "calculus-basics", "correct": 10, "completedAt": "2026-11-09T09:45:00" },
+        { "test": "statistics-practice", "correct": 9, "completedAt": "2026-11-14T11:30:00" }
+      ]
+    },
+    {
+      "email": "grace.okafor@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 7, "completedAt": "2026-11-02T13:10:00" },
+        { "test": "introduction-to-computing", "correct": 2, "completedAt": "2026-11-03T09:30:00" },
+        { "test": "algebra-practice", "correct": 8, "completedAt": "2026-11-05T13:10:00" },
+        { "test": "statistics-practice", "correct": 6, "completedAt": "2026-11-11T14:00:00" }
+      ]
+    },
+    {
+      "email": "owen.hughes@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 6, "completedAt": "2026-11-03T15:00:00" },
+        { "test": "introduction-to-computing", "correct": 1, "completedAt": "2026-11-04T12:00:00" },
+        { "test": "programming-fundamentals", "correct": 2, "completedAt": "2026-11-07T10:30:00" }
+      ]
+    },
+    {
+      "email": "ben.carter@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 5, "completedAt": "2026-11-03T16:30:00" }
+      ]
+    },
+    {
+      "email": "chloe.evans@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "introduction-to-computing", "correct": 5, "completedAt": "2026-11-01T09:50:00" },
+        { "test": "programming-fundamentals", "correct": 5, "completedAt": "2026-11-03T13:20:00" },
+        { "test": "data-structures", "correct": 5, "completedAt": "2026-11-05T15:00:00" },
+        { "test": "computer-systems", "correct": 4, "completedAt": "2026-11-08T10:10:00" },
+        { "test": "database-concepts", "correct": 5, "completedAt": "2026-11-12T16:45:00" },
+        { "test": "algebra-practice", "correct": 6, "completedAt": "2026-11-15T11:00:00" }
+      ]
+    },
+    {
+      "email": "daniel.wright@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 7, "completedAt": "2026-10-30T10:15:00" },
+        { "test": "algebra-fundamentals", "correct": 8, "completedAt": "2026-11-01T10:15:00" },
+        { "test": "functions-and-graphs", "correct": 6, "completedAt": "2026-11-03T10:15:00" },
+        { "test": "calculus-basics", "correct": 5, "completedAt": "2026-11-05T10:15:00" },
+        { "test": "statistics-practice", "correct": 7, "completedAt": "2026-11-07T10:15:00" },
+        { "test": "introduction-to-computing", "correct": 4, "completedAt": "2026-11-09T10:15:00" },
+        { "test": "programming-fundamentals", "correct": 3, "completedAt": "2026-11-11T10:15:00" },
+        { "test": "data-structures", "correct": 4, "completedAt": "2026-11-13T10:15:00" },
+        { "test": "computer-systems", "correct": 3, "completedAt": "2026-11-15T10:15:00" },
+        { "test": "database-concepts", "correct": 4, "completedAt": "2026-11-17T10:15:00" }
+      ]
+    },
+    {
+      "email": "ella.thompson@example.test",
+      "assignedTests": "all",
+      "completedTests": []
+    },
+    {
+      "email": "farah.ahmed@example.test",
+      "assignedTests": ["algebra-practice", "algebra-fundamentals", "functions-and-graphs", "calculus-basics", "statistics-practice"],
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 9, "completedAt": "2026-11-04T09:20:00" },
+        { "test": "algebra-fundamentals", "correct": 8, "completedAt": "2026-11-06T09:20:00" },
+        { "test": "functions-and-graphs", "correct": 10, "completedAt": "2026-11-10T09:20:00" }
+      ]
+    },
+    {
+      "email": "george.lewis@example.test",
+      "assignedTests": ["introduction-to-computing", "programming-fundamentals", "data-structures", "computer-systems", "database-concepts"],
+      "completedTests": [
+        { "test": "introduction-to-computing", "correct": 3, "completedAt": "2026-11-02T15:30:00" },
+        { "test": "programming-fundamentals", "correct": 4, "completedAt": "2026-11-05T15:30:00" },
+        { "test": "data-structures", "correct": 2, "completedAt": "2026-11-09T15:30:00" },
+        { "test": "computer-systems", "correct": 3, "completedAt": "2026-11-13T15:30:00" }
+      ]
+    },
+    {
+      "email": "hannah.scott@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 4, "completedAt": "2026-10-31T12:00:00" },
+        { "test": "algebra-fundamentals", "correct": 6, "completedAt": "2026-11-06T12:00:00" },
+        { "test": "functions-and-graphs", "correct": 8, "completedAt": "2026-11-12T12:00:00" },
+        { "test": "calculus-basics", "correct": 10, "completedAt": "2026-11-18T12:00:00" }
+      ]
+    },
+    {
+      "email": "isaac.green@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "introduction-to-computing", "correct": 5, "completedAt": "2026-11-01T16:00:00" },
+        { "test": "programming-fundamentals", "correct": 4, "completedAt": "2026-11-06T16:00:00" },
+        { "test": "data-structures", "correct": 3, "completedAt": "2026-11-11T16:00:00" },
+        { "test": "computer-systems", "correct": 2, "completedAt": "2026-11-16T16:00:00" },
+        { "test": "database-concepts", "correct": 1, "completedAt": "2026-11-20T16:00:00" }
+      ]
+    },
+    {
+      "email": "jade.robinson@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 8, "completedAt": "2026-11-07T14:45:00" },
+        { "test": "introduction-to-computing", "correct": 4, "completedAt": "2026-11-07T15:30:00" },
+        { "test": "statistics-practice", "correct": 9, "completedAt": "2026-11-17T10:10:00" }
+      ]
+    },
+    {
+      "email": "kofi.mensah@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 0, "completedAt": "2026-11-08T09:00:00" },
+        { "test": "introduction-to-computing", "correct": 0, "completedAt": "2026-11-08T09:30:00" }
+      ]
+    },
+    {
+      "email": "lily.walker@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "programming-fundamentals", "correct": 5, "completedAt": "2026-11-09T11:20:00" },
+        { "test": "data-structures", "correct": 5, "completedAt": "2026-11-14T11:20:00" },
+        { "test": "algebra-fundamentals", "correct": 7, "completedAt": "2026-11-19T11:20:00" }
+      ]
+    },
+    {
+      "email": "mohammed.ali@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 10, "completedAt": "2026-11-01T08:45:00" },
+        { "test": "introduction-to-computing", "correct": 5, "completedAt": "2026-11-01T09:15:00" }
+      ]
+    },
+    {
+      "email": "nia.roberts@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "calculus-basics", "correct": 3, "completedAt": "2026-11-10T13:00:00" },
+        { "test": "statistics-practice", "correct": 4, "completedAt": "2026-11-16T13:00:00" },
+        { "test": "database-concepts", "correct": 2, "completedAt": "2026-11-18T13:00:00" }
+      ]
+    },
+    {
+      "email": "oliver.hall@example.test",
+      "assignedTests": "all",
+      "completedTests": [
+        { "test": "algebra-practice", "correct": 6, "completedAt": "2026-11-12T17:00:00" },
+        { "test": "introduction-to-computing", "correct": 3, "completedAt": "2026-11-12T17:30:00" },
+        { "test": "programming-fundamentals", "correct": 3, "completedAt": "2026-11-19T17:00:00" },
+        { "test": "functions-and-graphs", "correct": 5, "completedAt": "2026-11-20T09:00:00" }
+      ]
+    }
+  ]
+}

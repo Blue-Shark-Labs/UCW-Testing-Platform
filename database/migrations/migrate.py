@@ -27,7 +27,10 @@ SCHEMA_STATEMENTS = [
         -- no inline enum type, and a named enum would complicate future value changes.
         role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'lecturer', 'admin')),
         mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-        mfa_secret VARCHAR(64),
+        -- Fernet-encrypted TOTP secret (key derived from SECRET_KEY).
+        mfa_secret TEXT,
+        -- Last accepted TOTP time step, so each code can only be used once.
+        mfa_last_used_step BIGINT DEFAULT NULL,
         is_disabled BOOLEAN NOT NULL DEFAULT FALSE,
         last_login_at TIMESTAMP DEFAULT NULL,
         failed_login_attempts INT NOT NULL DEFAULT 0,
@@ -37,6 +40,8 @@ SCHEMA_STATEMENTS = [
     # Backfills the lockout columns on databases created before they existed.
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INT NOT NULL DEFAULT 0;",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP DEFAULT NULL;",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_last_used_step BIGINT DEFAULT NULL;",
+    "ALTER TABLE users ALTER COLUMN mfa_secret TYPE TEXT;",
     # One-to-one extension of users for role='student' accounts.
     """
     CREATE TABLE IF NOT EXISTS students (
@@ -149,13 +154,32 @@ SCHEMA_STATEMENTS = [
         points_awarded INT CHECK (points_awarded IN (30, -10, 0))
     );
     """,
-    
-    # Add missing columns to existing databases
+    """
+    CREATE OR REPLACE FUNCTION enforce_max_answer_options() RETURNS trigger AS $$
+    BEGIN
+        -- Lock the parent question so concurrent inserts can't both pass the count.
+        PERFORM 1 FROM questions WHERE question_id = NEW.question_id FOR UPDATE;
+        IF (
+            SELECT COUNT(*) FROM answer_options
+            WHERE question_id = NEW.question_id AND option_id <> NEW.option_id
+        ) >= 4 THEN
+            RAISE EXCEPTION 'A question can have at most 4 answer options';
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+    """,
+    "DROP TRIGGER IF EXISTS answer_options_max_four ON answer_options;",
+    """
+    CREATE TRIGGER answer_options_max_four
+    BEFORE INSERT OR UPDATE OF question_id ON answer_options
+    FOR EACH ROW EXECUTE FUNCTION enforce_max_answer_options();
+    """,
+    # Add missing columns to existing databases.
     "ALTER TABLE tests ADD COLUMN IF NOT EXISTS description TEXT NOT NULL DEFAULT '';",
     "ALTER TABLE tests ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;",
     "ALTER TABLE tests ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;",
     "ALTER TABLE questions ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT FALSE;",
-
     # Singleton row (company_info_id = 'main') holding the landing page's product
     # and contact info; TEXT key keeps the seed INSERT's ON CONFLICT target stable.
     """

@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Student{% endblock %}
+
+{% block page_title %}{{ attempt.test_name }}{% endblock %}
+
+{% block header_page_specific_content %}{% endblock %}
+
+{% block content %}
+    <div class="w-full max-w-4xl text-text-primary">
+        <div class="mb-8 flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-app-quinary/40 px-3 py-1 text-sm font-medium text-text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="text-app-quaternary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    {{ attempt.subject_name }}
+                </p>
+                <h1 class="text-2xl font-bold">{{ attempt.test_name }}</h1>
+            </div>
+            {% if attempt.time_limit_minutes is not none %}
+                <div class="group flex items-center gap-3 rounded-xl border border-app-divider bg-white px-4 py-3 shadow-sm data-[low-time]:border-red-600 data-[low-time]:bg-red-50"
+                     role="timer"
+                     data-countdown="{{ attempt.seconds_remaining }}">
+                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-app-primary/10 text-app-primary group-data-[low-time]:bg-red-100 group-data-[low-time]:text-red-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </span>
+                    <span class="text-right">
+                        <span class="block text-sm font-medium text-app-quaternary group-data-[low-time]:text-red-700" data-countdown-label>Time remaining</span>
+                        <span class="text-xl font-bold tabular-nums group-data-[low-time]:text-red-700" data-countdown-display></span>
+                    </span>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="post" action="{{ submit_url }}" data-test-form data-save-url="{{ save_answer_url }}">
+            {% if error %}
+                <p class="mb-4 flex items-center gap-2 rounded-lg border border-red-600 bg-red-50 px-4 py-3 text-sm font-medium text-red-700" role="alert">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    {{ error }}
+                </p>
+            {% endif %}
+            <div class="mb-4 flex items-center justify-between gap-4">
+                <p class="inline-flex items-center gap-2 font-medium" aria-live="polite">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="text-app-primary" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Question <span data-current-question>1</span> of {{ attempt.questions|length }}
+                </p>
+                <div class="h-2 w-40 overflow-hidden rounded-full bg-app-quinary/50" aria-hidden="true">
+                    <div class="h-full w-0 rounded-full bg-app-primary transition-all" data-progress></div>
+                </div>
+            </div>
+
+            {% for question in attempt.questions %}
+                <section class="rounded-xl border border-app-divider bg-white p-6 shadow-sm"
+                         data-question-index="{{ loop.index0 }}"
+                         {% if not loop.first %}hidden{% endif %}>
+                    <h2 class="mb-6 text-xl font-medium">{{ question.question_text }}</h2>
+                    <fieldset class="space-y-3">
+                        <legend class="sr-only">Choose one answer</legend>
+                        {% for option in question.options %}
+                            <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-app-divider p-4 transition-colors hover:border-app-secondary hover:bg-app-background has-[:checked]:border-app-primary has-[:checked]:bg-app-ternary/20 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-app-primary">
+                                <input class="mt-1 h-4 w-4 accent-app-primary focus:outline-none"
+                                       type="radio"
+                                       name="answer_{{ question.question_id }}"
+                                       value="{{ option.option_id }}"
+                                       data-question-id="{{ question.question_id }}"
+                                       {% if option.option_id == question.selected_option_id %}checked{% endif %}>
+                                <span>{{ option.option_text }}</span>
+                            </label>
+                        {% endfor %}
+                    </fieldset>
+                </section>
+            {% endfor %}
+
+            <p class="mt-3 flex min-h-6 items-center gap-2 text-sm text-slate-600" data-save-status role="status">
+                <svg xmlns="http://www.w3.org/2000/svg" class="text-green-700" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-save-icon="saved" hidden><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="text-red-700" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-save-icon="error" hidden><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span data-save-text></span>
+            </p>
+            <div class="mt-3 flex flex-wrap justify-between gap-3">
+                <button class="hidden items-center gap-2 rounded-lg border border-app-quaternary bg-white px-5 py-3 font-medium text-text-primary hover:bg-app-background focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                        type="button" data-previous hidden>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+                    Previous
+                </button>
+                <div class="flex gap-3">
+                    <button class="hidden items-center gap-2 rounded-lg bg-app-secondary px-5 py-3 font-medium text-text-primary hover:bg-app-ternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                            type="button" data-next hidden>
+                        Next question
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                    <button class="hidden items-center gap-2 rounded-lg bg-app-primary px-5 py-3 font-medium text-white hover:bg-app-quaternary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-primary"
+                            type="submit" data-submit hidden>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        Submit test
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        (() => {
+            const form = document.querySelector("[data-test-form]");
+            const questions = Array.from(form.querySelectorAll("[data-question-index]"));
+            const previousButton = form.querySelector("[data-previous]");
+            const nextButton = form.querySelector("[data-next]");
+            const submitButton = form.querySelector("[data-submit]");
+            const currentQuestion = form.querySelector("[data-current-question]");
+            const progress = form.querySelector("[data-progress]");
+            const saveText = form.querySelector("[data-save-text]");
+            const savedIcon = form.querySelector('[data-save-icon="saved"]');
+            const errorIcon = form.querySelector('[data-save-icon="error"]');
+            const setSaveStatus = (message, isError) => {
+                saveText.textContent = message;
+                savedIcon.hidden = isError;
+                errorIcon.hidden = !isError;
+            };
+            const pendingSaves = new Map();
+            let currentIndex = 0;
+            let submitting = false;
+            let timeExpired = false;
+
+            const setButtonVisible = (button, isVisible) => {
+                button.hidden = !isVisible;
+                button.classList.toggle("hidden", !isVisible);
+                button.classList.toggle("inline-flex", isVisible);
+            };
+
+            const showQuestion = (index) => {
+                if (index < 0 || index >= questions.length) return;
+                currentIndex = index;
+                questions.forEach((question, questionIndex) => {
+                    question.hidden = questionIndex !== currentIndex;
+                });
+                currentQuestion.textContent = String(currentIndex + 1);
+                progress.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+                setButtonVisible(previousButton, currentIndex > 0);
+                setButtonVisible(nextButton, currentIndex < questions.length - 1);
+                setButtonVisible(submitButton, currentIndex === questions.length - 1);
+            };
+
+            previousButton.addEventListener("click", () => showQuestion(currentIndex - 1));
+            nextButton.addEventListener("click", () => showQuestion(currentIndex + 1));
+
+            form.querySelectorAll('input[type="radio"]').forEach((input) => {
+                input.addEventListener("change", () => {
+                    const payload = {
+                        question_id: input.dataset.questionId,
+                        option_id: input.value,
+                    };
+                    const save = fetch(form.dataset.saveUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                    }).then((response) => {
+                        if (!response.ok) {
+                            throw new Error("Your answer could not be saved.");
+                        }
+                        setSaveStatus("Answer saved.", false);
+                    }).catch((error) => {
+                        setSaveStatus(error.message, true);
+                    });
+                    pendingSaves.set(payload.question_id, save);
+                    save.finally(() => {
+                        if (pendingSaves.get(payload.question_id) === save) {
+                            pendingSaves.delete(payload.question_id);
+                        }
+                    });
+                });
+            });
+
+            form.addEventListener("submit", (event) => {
+                if (submitting) return;
+                event.preventDefault();
+                if (!timeExpired) {
+                    const unanswered = questions
+                        .map((question, index) => (question.querySelector('input[type="radio"]:checked') ? null : index))
+                        .filter((index) => index !== null);
+                    if (unanswered.length) {
+                        setSaveStatus(
+                            `Answer every question before submitting. Unanswered: ${unanswered.map((index) => index + 1).join(", ")}.`,
+                            true,
+                        );
+                        showQuestion(unanswered[0]);
+                        return;
+                    }
+                }
+                Promise.all(Array.from(pendingSaves.values())).then(() => {
+                    submitting = true;
+                    form.requestSubmit();
+                });
+            });
+
+            const timer = document.querySelector("[data-countdown]");
+            if (timer) {
+                const display = timer.querySelector("[data-countdown-display]");
+                const label = timer.querySelector("[data-countdown-label]");
+                let seconds = Number(timer.dataset.countdown);
+                const updateCountdown = () => {
+                    const minutes = Math.floor(seconds / 60);
+                    const remainingSeconds = seconds % 60;
+                    display.textContent = `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+                    if (seconds <= 60 && !timer.hasAttribute("data-low-time")) {
+                        timer.setAttribute("data-low-time", "");
+                        label.textContent = "Time almost up";
+                    }
+                    if (seconds <= 0) {
+                        timeExpired = true;
+                        form.requestSubmit();
+                        return;
+                    }
+                    seconds -= 1;
+                    window.setTimeout(updateCountdown, 1000);
+                };
+                updateCountdown();
+            }
+
+            showQuestion(0);
+        })();
+    </script>
+{% endblock %}

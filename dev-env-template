@@ -4,7 +4,8 @@ DATABASE_NAME=WS381566_bluesharklabs_nonprod
 DATABASE_USER=WS381566_nonprod_admin
 PASSWORD=
 
-#Session secret (signs the login session cookie)
+#Session secret (signs the login session cookie and encrypts MFA secrets;
+#changing it turns MFA off for existing users, who are asked to set it up again)
 SECRET_KEY=
 
 #Local dev runs over http, so the session cookie can't be Secure-only

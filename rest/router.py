@@ -12,12 +12,27 @@ from types import SimpleNamespace
 
 from rest.dashboard.admin_dashboard import admin_dashboard_route
 from rest.dashboard.lecturer_dashboard import lecturer_dashboard_route
-from rest.dashboard.student_dashboard import student_dashboard_route
+from rest.dashboard.leaderboards import leaderboards
+from rest.dashboard.student_dashboard import (
+    student_dashboard_route as student_home_route,
+)
 from rest.landing_page.routes import landing_page
 from rest.login.login import login_route
 from rest.login.logout import logout_route
+from rest.login.mfa import mfa_verify_route
 from rest.login.register import register_route
-from rest.student_dashboard.student_dashboard import student_tests_route
+from rest.student_dashboard.student_dashboard import (
+    student_dashboard_route,
+    student_statistics_export_route,
+    student_statistics_route,
+)
+from rest.student_dashboard.student_dashboard import student_dashboard_route
+from rest.administrator.routes import administrator
+from rest.student_dashboard.testing import (
+    save_test_answer_route,
+    submit_test_route,
+    take_test_route,
+)
 from rest.sidebar_navigation import get_sidebar_navigation
 
 student_dashboard = Blueprint(
@@ -25,17 +40,57 @@ student_dashboard = Blueprint(
     __name__,
     url_prefix="/student-dashboard",
 )
+student_dashboard.add_url_rule("/", view_func=student_dashboard_route, methods=["GET"])
 student_dashboard.add_url_rule(
-    "/", endpoint="student_dashboard_route", view_func=student_tests_route, methods=["GET"]
+    "/tests/<uuid:test_id>",
+    endpoint="take_test",
+    view_func=take_test_route,
+    methods=["GET"],
 )
-
+student_dashboard.add_url_rule(
+    "/tests/<uuid:test_id>/attempts/<uuid:attempt_id>/answers",
+    endpoint="save_test_answer",
+    view_func=save_test_answer_route,
+    methods=["POST"],
+)
+student_dashboard.add_url_rule(
+    "/tests/<uuid:test_id>/attempts/<uuid:attempt_id>/submit",
+    endpoint="submit_test",
+    view_func=submit_test_route,
+    methods=["POST"],
+)
+statistics = Blueprint(
+    "statistics",
+    __name__,
+    url_prefix="/statistics",
+)
+statistics.add_url_rule(
+    "",
+    view_func=student_statistics_route,
+    methods=["GET"],
+)
+statistics.add_url_rule(
+    "/export.csv",
+    view_func=student_statistics_export_route,
+    methods=["GET"],
+)
 
 def root_route():
     return redirect(url_for("login_route"))
+
+
+pr_block = Blueprint("pr_block", __name__, url_prefix="/pr-block")
+pr_block.add_url_rule(
+    "/",
+    endpoint="pr_block_route",
+    view_func=student_home_route,
+    methods=["GET"],
+)
+
 from rest.administrator.routes import administrator
-from rest.sidebar_navigation import get_sidebar_navigation
 
 from rest.lecturer.routes import lecturer
+from rest.account.routes import account
 from database.connection import PostgresConnectionProvider
 load_dotenv()
 
@@ -59,22 +114,20 @@ def create_app():
     )
 
     app.add_url_rule("/login", view_func=login_route, methods=["GET", "POST"])
+    app.add_url_rule("/login/mfa", view_func=mfa_verify_route, methods=["GET", "POST"])
     app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
-    app.add_url_rule("/dashboard/student", view_func=student_dashboard_route, methods=["GET"])
+    app.add_url_rule("/dashboard/student", view_func=student_home_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
+    app.register_blueprint(pr_block)
     app.register_blueprint(student_dashboard)
+    app.register_blueprint(statistics)
+    app.register_blueprint(leaderboards)
 
-    @app.before_request
-    def load_session_user():
-        g.user = (
-            SimpleNamespace(role=session.get("role"), user_id=session.get("user_id"))
-            if "user_id" in session
-            else None
-        )
     app.register_blueprint(administrator)
     app.register_blueprint(lecturer)
+    app.register_blueprint(account)
 
     @app.before_request
     def load_session_user():
@@ -87,7 +140,7 @@ def create_app():
         with connection_provider.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT first_name, last_name, role
+                SELECT first_name, last_name, role, is_disabled
                 FROM users
                 WHERE user_id = %s
                 """,
@@ -95,16 +148,19 @@ def create_app():
             )
             user = cursor.fetchone()
 
-        if user:
-            first_name = user[0]
-            last_name = user[1]
-            g.user = SimpleNamespace(
-                name=f"{first_name} {last_name}",
-                role=user[2]
-            )
-        else:
+        is_disabled = bool(user[3]) if user and len(user) > 3 else False
+        if not user or is_disabled:
             g.user = None
+            return
 
+        first_name = user[0]
+        last_name = user[1]
+        g.user = SimpleNamespace(
+            name=f"{first_name} {last_name}",
+            role=user[2],
+            user_id=session["user_id"],
+        )
+    
     @app.context_processor
     def inject_sidebar_navigation():
         # g is Flasks global context for the current request, it can be used to store user information
@@ -126,7 +182,11 @@ def create_app():
         def prepare_item(item):
             endpoint = item.get("endpoint")
             item["active"] = endpoint == request.endpoint
-            item["href"] = url_for(endpoint) if endpoint in app.view_functions else "#"
+            item["href"] = (
+                url_for(endpoint)
+                if endpoint in app.view_functions
+                else None
+            )
             item["children"] = [prepare_item(child) for child in item.get("children", [])]
             item["active"] = item["active"] or any(child["active"] for child in item["children"])
             return item

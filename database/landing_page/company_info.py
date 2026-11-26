@@ -1,6 +1,16 @@
 # Query functions for the company_info table (landing page product + contact info).
 
-from database.helpers.database_helpers import row_to_company_info
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class CompanyInfo:
+    product_name: str
+    product_description: str
+    contact_email: str
+    contact_phone: str
+    contact_address: str
+
 
 SELECT_COMPANY_INFO = """
     SELECT product_name, product_description, contact_email, contact_phone, contact_address
@@ -14,4 +24,4 @@ def get_company_info(connection_provider):
     with connection_provider.cursor() as cur:
         cur.execute(SELECT_COMPANY_INFO)
         row = cur.fetchone()
-    return row_to_company_info(row)
+    return CompanyInfo(*row)

@@ -1,0 +1,14 @@
+{
+  "tests": [
+    { "key": "algebra-practice", "testId": "00000000-0000-4000-8000-000000000020", "subject": "mathematics", "title": "Algebra Practice", "questionCount": 10, "timeLimitMinutes": 20 },
+    { "key": "introduction-to-computing", "testId": "00000000-0000-4000-8000-000000000021", "subject": "computer-science", "title": "Introduction to Computing", "questionCount": 5, "timeLimitMinutes": 15 },
+    { "key": "algebra-fundamentals", "testId": "00000000-0000-4000-8000-000000000022", "subject": "mathematics", "title": "Algebra Fundamentals", "questionCount": 10, "timeLimitMinutes": 20 },
+    { "key": "functions-and-graphs", "testId": "00000000-0000-4000-8000-000000000023", "subject": "mathematics", "title": "Functions and Graphs", "questionCount": 10, "timeLimitMinutes": 20 },
+    { "key": "calculus-basics", "testId": "00000000-0000-4000-8000-000000000024", "subject": "mathematics", "title": "Calculus Basics", "questionCount": 10, "timeLimitMinutes": 20 },
+    { "key": "statistics-practice", "testId": "00000000-0000-4000-8000-000000000025", "subject": "mathematics", "title": "Statistics Practice", "questionCount": 10, "timeLimitMinutes": 20 },
+    { "key": "programming-fundamentals", "testId": "00000000-0000-4000-8000-000000000026", "subject": "computer-science", "title": "Programming Fundamentals", "questionCount": 5, "timeLimitMinutes": 15 },
+    { "key": "data-structures", "testId": "00000000-0000-4000-8000-000000000027", "subject": "computer-science", "title": "Data Structures", "questionCount": 5, "timeLimitMinutes": 15 },
+    { "key": "computer-systems", "testId": "00000000-0000-4000-8000-000000000028", "subject": "computer-science", "title": "Computer Systems", "questionCount": 5, "timeLimitMinutes": 15 },
+    { "key": "database-concepts", "testId": "00000000-0000-4000-8000-000000000029", "subject": "computer-science", "title": "Database Concepts", "questionCount": 5, "timeLimitMinutes": 15 }
+  ]
+}

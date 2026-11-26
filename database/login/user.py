@@ -1,11 +1,26 @@
 # Query functions for the users table (login authentication).
 
-from database.helpers.database_helpers import row_to_user
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class User:
+    user_id: str
+    email: str
+    password_hash: str
+    role: str
+    is_disabled: bool
+    # Only students can be unapproved; other roles are always True.
+    is_approved: bool = True
+    is_locked: bool = False
+    mfa_enabled: bool = False
+
 
 SELECT_USER_BY_EMAIL = """
     SELECT u.user_id, u.email, u.password_hash, u.role, u.is_disabled,
            COALESCE(s.is_approved, TRUE) AS is_approved,
-           COALESCE(u.locked_until > NOW(), FALSE) AS is_locked
+           COALESCE(u.locked_until > NOW(), FALSE) AS is_locked,
+           u.mfa_enabled
     FROM users u
     LEFT JOIN students s ON s.user_id = u.user_id
     WHERE u.email = %s;
@@ -41,7 +56,7 @@ def get_user_by_email(connection_provider, email):
         row = cur.fetchone()
     if row is None:
         return None
-    return row_to_user(row)
+    return User(*row)
 
 
 def record_failed_login(connection_provider, user_id, max_attempts, lockout_minutes):

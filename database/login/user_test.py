@@ -3,8 +3,7 @@
 from contextlib import contextmanager
 from unittest.mock import MagicMock
 
-from database.login.user import clear_failed_logins, get_user_by_email, record_failed_login
-from domain.entities.user import User
+from database.login.user import User, clear_failed_logins, get_user_by_email, record_failed_login
 
 
 class FakeConnectionProvider:
@@ -24,7 +23,7 @@ class TestGetUserByEmail:
 
     def test_get_user_by_email_maps_row_to_entity(self):
         # ARRANGE
-        row = ("11111111-1111-1111-1111-111111111111", "student@example.com", "hashed-password", "student", False, False, True)
+        row = ("11111111-1111-1111-1111-111111111111", "student@example.com", "hashed-password", "student", False, False, True, True)
         connection_provider = FakeConnectionProvider(row)
 
         # ACT
@@ -39,6 +38,7 @@ class TestGetUserByEmail:
             is_disabled=False,
             is_approved=False,
             is_locked=True,
+            mfa_enabled=True,
         )
         connection_provider.cursor_mock.execute.assert_called_once()
 

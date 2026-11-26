@@ -1,15 +1,19 @@
 import psycopg
-from flask import flash, redirect, render_template, request, url_for
+from flask import abort, flash, redirect, render_template, request, url_for
 from werkzeug.security import generate_password_hash
 
 from database.lecturer.students import (
     approve_student,
     create_student,
     delete_student,
+    get_class_progress_summary,
+    get_student_progress_detail,
     list_students,
+    reject_student,
     toggle_student_status,
     update_student,
 )
+from rest.helpers.notifications import send_student_approval_email
 
 
 def lecturer_management_route():
@@ -68,14 +72,22 @@ def lecturer_management_route():
             or search_query in student["email"].lower()
         ]
 
+    class_summary = get_class_progress_summary()
+    scored_students = [s["average_percentage"] for s in class_summary if s["average_percentage"] is not None]
+    avg_score_display = (
+        f"{round(sum(scored_students) / len(scored_students), 1)}%"
+        if scored_students
+        else "N/A"
+    )
+
     stats = {
         "total_students": len(rows),
         "pending_approvals": sum(
             1 for row in rows
             if row[6] is not None and row[8] is False
         ),
-        "active_tests": 12,
-        "avg_score": "74.8%",
+        "active_tests": sum(s["completed_tests"] for s in class_summary),
+        "avg_score": avg_score_display,
     }
 
     pagination = {
@@ -101,10 +113,41 @@ def lecturer_management_route():
 
 
 def approve_student_route(student_id):
-    if approve_student(student_id):
-        flash("Student approved successfully.", "success")
+    approved_student = approve_student(student_id)
+    if approved_student:
+        email_sent = send_student_approval_email(
+            approved_student["email"],
+            approved_student["first_name"],
+        )
+        if email_sent:
+            flash(
+                f"Student approved and confirmation email sent to {approved_student['email']}.",
+                "success",
+            )
+        else:
+            flash(
+                f"Student approved successfully (notification queued for {approved_student['email']}).",
+                "success",
+            )
     else:
         flash("Student profile not found.", "error")
+    return redirect(url_for("lecturer.lecturer_management_route"))
+
+
+def reject_student_route(student_id):
+    try:
+        outcome, rejected_user = reject_student(student_id)
+        if outcome == "not_found":
+            flash("Pending student registration not found.", "error")
+        elif outcome == "already_approved":
+            flash("Approved students cannot be rejected. Disable or terminate the account instead.", "error")
+        else:
+            flash(
+                f"Registration for {rejected_user[0]} {rejected_user[1]} rejected and removed.",
+                "warning",
+            )
+    except psycopg.Error:
+        flash("A database error occurred while rejecting the student registration.", "error")
     return redirect(url_for("lecturer.lecturer_management_route"))
 
 
@@ -180,17 +223,16 @@ def create_student_route():
 def delete_student_route(student_id):
     try:
         outcome, deleted_user = delete_student(student_id)
-        if outcome == "has_attempts":
+        if outcome == "anonymised":
             flash(
-                "This student has existing test attempts and cannot "
-                "be deleted. Disable the account instead.",
-                "error",
+                f"Account for {deleted_user[0]} {deleted_user[1]} terminated and PII anonymised in compliance with GDPR (historical test attempts preserved).",
+                "warning",
             )
         elif outcome == "not_found":
             flash("Student account not found.", "error")
         else:
             flash(
-                f"Account for {deleted_user[0]} {deleted_user[1]} deleted.",
+                f"Account for {deleted_user[0]} {deleted_user[1]} permanently deleted.",
                 "success",
             )
     except psycopg.errors.ForeignKeyViolation:
@@ -199,6 +241,59 @@ def delete_student_route(student_id):
             "error",
         )
     except psycopg.Error:
-        flash("A database error occurred while deleting the student.", "error")
+        flash("A database error occurred while terminating the student account.", "error")
 
     return redirect(url_for("lecturer.lecturer_management_route"))
+
+
+def student_progress_route():
+    """FR-63: Aggregate class list showing cumulative points and overall average percentages."""
+    class_list = get_class_progress_summary()
+    search_query = request.args.get("q", "").strip().lower()
+    if search_query:
+        class_list = [
+            s for s in class_list
+            if search_query in s["name"].lower()
+            or search_query in s["student_number"].lower()
+            or search_query in s["course_title"].lower()
+        ]
+
+    scored = [s["average_percentage"] for s in class_list if s["average_percentage"] is not None]
+    class_stats = {
+        "total_students": len(class_list),
+        "total_completed_tests": sum(s["completed_tests"] for s in class_list),
+        "total_points": sum(s["cumulative_points"] for s in class_list),
+        "class_average": f"{round(sum(scored) / len(scored), 1)}%" if scored else "N/A",
+    }
+
+    return render_template(
+        "lecturer/student_progress.html",
+        class_list=class_list,
+        class_stats=class_stats,
+        selected_student=None,
+        search=request.args.get("q", ""),
+    )
+
+
+def student_progress_detail_route(student_id):
+    """FR-64 & FR-65: Individual student test history and performance trajectory chart."""
+    detail = get_student_progress_detail(student_id)
+    if detail is None:
+        abort(404)
+
+    class_list = get_class_progress_summary()
+    scored = [s["average_percentage"] for s in class_list if s["average_percentage"] is not None]
+    class_stats = {
+        "total_students": len(class_list),
+        "total_completed_tests": sum(s["completed_tests"] for s in class_list),
+        "total_points": sum(s["cumulative_points"] for s in class_list),
+        "class_average": f"{round(sum(scored) / len(scored), 1)}%" if scored else "N/A",
+    }
+
+    return render_template(
+        "lecturer/student_progress.html",
+        class_list=class_list,
+        class_stats=class_stats,
+        selected_student=detail,
+        search="",
+    )
