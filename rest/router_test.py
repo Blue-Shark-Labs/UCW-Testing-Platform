@@ -104,6 +104,17 @@ class TestCreateApp:
         assert response.status_code == 200
         assert visible_item in response.data
         assert hidden_item not in response.data
+        assert b'href="/privacy"' in response.data
+        assert b">Privacy</span>" in response.data
+
+    def test_privacy_policy_route_renders(self, client):
+        response = client.get("/privacy")
+
+        assert response.status_code == 200
+        assert b"Privacy Policy" in response.data
+        assert b"Information We Collect" in response.data
+        assert b"Main Menu" not in response.data
+        assert b'href="/"' in response.data
 
     def test_sidebar_supported_items_are_full_row_links(
         self, client, monkeypatch

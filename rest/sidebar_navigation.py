@@ -9,7 +9,7 @@ _NAVIGATION_BY_ROLE = {
         {"label": "Statistics", "icon": "chart", "endpoint": "statistics.student_statistics_route"},
         {"label": "Settings", "icon": "sliders", "endpoint": "settings_route"},
         {"label": "Security", "icon": "lock", "endpoint": "account.security_settings_route"},
-        {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
+        {"label": "Privacy", "icon": "privacy", "endpoint": "privacy_policy_route"},
     ],
     "lecturer": [
         {"label": "Home", "icon": "home", "endpoint": "lecturer_dashboard_route"},
@@ -36,14 +36,13 @@ _NAVIGATION_BY_ROLE = {
         },
         {"label": "Student Progress", "icon": "chart", "endpoint": "lecturer.student_progress_route"},
         {"label": "Security", "icon": "lock", "endpoint": "account.security_settings_route"},
-        {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
+        {"label": "Privacy", "icon": "privacy", "endpoint": "privacy_policy_route"},
     ],
     "admin": [
         {"label": "Subjects", "icon": "book", "endpoint": "administrator.administrator_view_subjects_route"},
         {"label": "User Management", "icon": "users", "endpoint": "administrator.administrator_view_users_route"},
-        {"label": "System Settings", "icon": "sliders", "endpoint": "system_settings_route"},
         {"label": "Security", "icon": "lock", "endpoint": "account.security_settings_route"},
-        {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
+        {"label": "Privacy", "icon": "privacy", "endpoint": "privacy_policy_route"},
     ],
 }
 
