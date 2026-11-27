@@ -20,8 +20,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16835D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             <p class="text-xs font-semibold text-slate-700">{{ (user_role or "student") | capitalize }}</p>
         </div>
-        <div class="flex h-8 w-8 items-center justify-center rounded-full border border-text-primary bg-app-background" aria-hidden="true">
-            <span class="text-sm font-extrabold text-text-primary">{{ profile_initials }}</span>
+        <div class="flex items-center justify-center bg-app-primary/20 rounded-full h-8 w-8">
+            <h4 class="text-text-primary text-sm font-extrabold">{{ profile_initials }}</h4>
         </div>
     </div>
 </div>

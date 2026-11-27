@@ -4,9 +4,8 @@ from uuid import UUID
 
 from database.connection import PostgresConnectionProvider
 
-
-def list_lecturer_subjects(lecturer_id: UUID | str, search: str = "") -> list[dict]:
-    """Return all subjects assigned to the specified lecturer, filtered by optional search text."""
+def list_lecturer_subjects(lecturer_id: UUID | str, search: str = "", assigned_only: bool = False) -> list[dict]:
+    """Return subjects visible to the lecturer, optionally restricted to assigned ones."""
     pattern = f"%{search.strip()}%"
     provider = PostgresConnectionProvider()
 
@@ -18,6 +17,7 @@ def list_lecturer_subjects(lecturer_id: UUID | str, search: str = "") -> list[di
                 s.name,
                 COALESCE(s.description, '') AS description,
                 s.is_active,
+                (sl_me.user_id IS NOT NULL) AS is_assigned,
                 COALESCE(
                     (
                         SELECT array_agg(
@@ -42,15 +42,16 @@ def list_lecturer_subjects(lecturer_id: UUID | str, search: str = "") -> list[di
                     WHERE t.subject_id = s.subject_id
                 ) AS quiz_count
             FROM subjects AS s
-            JOIN subject_lecturers AS sl_me
+            LEFT JOIN subject_lecturers AS sl_me
               ON sl_me.subject_id = s.subject_id
              AND sl_me.user_id = %s
-            WHERE (%s = ''
+            WHERE (%s = FALSE OR sl_me.user_id IS NOT NULL)
+              AND (%s = ''
                OR s.name ILIKE %s
                OR COALESCE(s.description, '') ILIKE %s)
-            ORDER BY s.is_active DESC, LOWER(s.name), s.subject_id;
+            ORDER BY is_assigned DESC, s.is_active DESC, LOWER(s.name), s.subject_id;
             """,
-            (str(lecturer_id), search.strip(), pattern, pattern),
+            (str(lecturer_id), assigned_only, search.strip(), pattern, pattern),
         )
         rows = cur.fetchall()
 
@@ -60,9 +61,10 @@ def list_lecturer_subjects(lecturer_id: UUID | str, search: str = "") -> list[di
             "name": row[1],
             "description": row[2],
             "is_active": bool(row[3]),
-            "lecturer_names": row[4] or [],
-            "question_count": int(row[5] or 0),
-            "quiz_count": int(row[6] or 0),
+            "is_assigned": bool(row[4]),
+            "lecturer_names": row[5] or [],
+            "question_count": int(row[6] or 0),
+            "quiz_count": int(row[7] or 0),
         }
         for row in rows
     ]

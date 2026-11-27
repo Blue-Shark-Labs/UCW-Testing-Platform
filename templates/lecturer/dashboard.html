@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block page_section %}Lecturer Portal{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block header_page_specific_content %}
+{% endblock %}
+
+{% block content %}
+<!-- Top Header & Quick Actions -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 w-full">
+    <div>
+        <h1 class="text-3xl font-extrabold text-slate-900">Lecturer Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-1">Welcome back, {{ lecturer_name }}. Here is an overview of your classes, quizzes, and pending approvals.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2.5">
+        <a href="{{ url_for('lecturer.lecturer_management_route') }}"
+           class="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-all no-underline">
+            <span>Student Roster</span>
+        </a>
+        <a href="{{ url_for('lecturer.quiz_management_route') }}"
+           class="inline-flex items-center justify-center gap-2 bg-app-primary hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-md transition-all no-underline">
+            <span>Manage Quizzes</span>
+        </a>
+    </div>
+</div>
+
+<!-- Overview Stat Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 w-full">
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Pending Approvals</p>
+        <p class="text-2xl font-bold {% if stats.pending_approvals > 0 %}text-amber-600{% else %}text-slate-900{% endif %} mt-1">{{ stats.pending_approvals }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">{{ stats.total_students }} total student accounts</p>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Active Quizzes</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1">{{ stats.active_quizzes }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">{{ stats.total_quizzes }} total • {{ stats.total_questions }} pool questions</p>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Assigned Subjects</p>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ stats.assigned_subjects }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">{{ stats.total_subjects }} total subjects on platform</p>
+    </div>
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Class Average</p>
+        <p class="text-2xl font-bold text-blue-600 mt-1">{{ stats.class_average }}</p>
+        <p class="text-[11px] text-slate-400 mt-1">{{ stats.total_attempts }} completed quiz attempts</p>
+    </div>
+</div>
+
+<!-- Quick Navigation Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 w-full">
+    <a href="{{ url_for('lecturer.lecturer_management_route') }}"
+       class="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all no-underline">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900 group-hover:text-app-primary">Student Roster</h2>
+            <span class="text-xs font-semibold text-app-primary">Open →</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1.5">Review pending student registrations, edit profiles, or toggle account access.</p>
+    </a>
+
+    <a href="{{ url_for('lecturer.quiz_management_route') }}"
+       class="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all no-underline">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900 group-hover:text-app-primary">Quiz & Question Pool</h2>
+            <span class="text-xs font-semibold text-app-primary">Open →</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1.5">Build subject question pools, configure timed assessments, and inspect quiz stats.</p>
+    </a>
+
+    <a href="{{ url_for('lecturer.student_progress_route') }}"
+       class="group bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all no-underline">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900 group-hover:text-app-primary">Student Progress</h2>
+            <span class="text-xs font-semibold text-app-primary">Open →</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1.5">Track cumulative class points, average percentages, and individual trajectories.</p>
+    </a>
+</div>
+
+<!-- Two-Column Summary Panels -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+    <!-- Pending Student Registrations -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-md font-bold text-slate-900">Pending Student Approvals</h2>
+                <p class="text-xs text-slate-500">Registrations waiting for lecturer review.</p>
+            </div>
+            <a href="{{ url_for('lecturer.lecturer_management_route') }}" class="text-xs font-semibold text-app-primary hover:underline no-underline">
+                View All
+            </a>
+        </div>
+
+        <div class="rounded-lg border border-slate-200 overflow-hidden">
+            <table class="w-full border-collapse text-left">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-3 py-2.5 text-xs font-semibold text-slate-500">Student</th>
+                        <th class="px-3 py-2.5 text-xs font-semibold text-slate-500">Course</th>
+                        <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-500">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                    {% for student in pending_students %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-3 py-2.5">
+                            <div class="text-xs font-semibold text-slate-900">{{ student.name }}</div>
+                            <div class="text-[11px] text-slate-400">ID: {{ student.student_number }}</div>
+                        </td>
+                        <td class="px-3 py-2.5 text-xs text-slate-600">{{ student.course }}</td>
+                        <td class="px-3 py-2.5 text-right">
+                            <form method="POST" action="{{ url_for('lecturer.approve_student_route', student_id=student.student_id) }}">
+                                <button type="submit" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+                                    Approve
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-8 text-center text-xs text-slate-400">No pending student approvals right now.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Configured Quizzes Overview -->
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-md font-bold text-slate-900">Configured Quizzes</h2>
+                <p class="text-xs text-slate-500">Quick status check across recent assessments.</p>
+            </div>
+            <a href="{{ url_for('lecturer.quiz_management_route') }}" class="text-xs font-semibold text-app-primary hover:underline no-underline">
+                Manage Quizzes
+            </a>
+        </div>
+
+        <div class="rounded-lg border border-slate-200 overflow-hidden">
+            <table class="w-full border-collapse text-left">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-3 py-2.5 text-xs font-semibold text-slate-500">Quiz</th>
+                        <th class="px-3 py-2.5 text-xs font-semibold text-slate-500">Attempts</th>
+                        <th class="px-3 py-2.5 text-right text-xs font-semibold text-slate-500">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 bg-white">
+                    {% for quiz in recent_quizzes %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-3 py-2.5">
+                            <div class="text-xs font-semibold text-slate-900">{{ quiz.title }}</div>
+                            <div class="text-[11px] text-slate-400">{{ quiz.subject_name }}</div>
+                        </td>
+                        <td class="px-3 py-2.5 text-xs font-medium text-slate-700">{{ quiz.attempt_count }}</td>
+                        <td class="px-3 py-2.5 text-right">
+                            {% if quiz.is_active %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">Active</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">Hidden</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-8 text-center text-xs text-slate-400">No quizzes configured yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/footer.html' %}
+{% endblock %}

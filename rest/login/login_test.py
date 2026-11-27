@@ -55,7 +55,7 @@ class TestLoginRoute:
 
         # ASSERT
         assert response.status_code == 302
-        assert "/dashboard/lecturer" in response.location
+        assert response.location == "/lecturer/dashboard"
 
     @patch("rest.login.login.PostgresConnectionProvider")
     @patch("rest.login.login.authenticate_user")
