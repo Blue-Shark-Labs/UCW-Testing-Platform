@@ -10,7 +10,7 @@
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 w-full">
     <div>
         <h1 class="text-3xl font-extrabold text-slate-900">Student Progress & Class Analytics</h1>
-        <p class="text-sm text-slate-500 mt-1">Monitor cumulative points, overall averages, and individual student performance trajectories.</p>
+        <p class="text-sm text-slate-600 mt-1">Monitor cumulative points, overall averages, and individual student performance trajectories.</p>
     </div>
     {% if selected_student %}
         <a href="{{ url_for('lecturer.student_progress_route') }}"
@@ -23,20 +23,20 @@
 <!-- Class Overview Cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 w-full">
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Approved Students</p>
+        <p class="text-xs font-medium text-slate-600 uppercase tracking-wider">Approved Students</p>
         <p class="text-2xl font-bold text-slate-900 mt-1">{{ class_stats.total_students }}</p>
     </div>
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Completed Attempts</p>
+        <p class="text-xs font-medium text-slate-600 uppercase tracking-wider">Completed Attempts</p>
         <p class="text-2xl font-bold text-slate-900 mt-1">{{ class_stats.total_completed_tests }}</p>
     </div>
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Cumulative Class Points</p>
-        <p class="text-2xl font-bold text-emerald-600 mt-1">{{ class_stats.total_points }}</p>
+        <p class="text-xs font-medium text-slate-600 uppercase tracking-wider">Cumulative Class Points</p>
+        <p class="text-2xl font-bold text-emerald-700 mt-1">{{ class_stats.total_points }}</p>
     </div>
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Overall Class Average</p>
-        <p class="text-2xl font-bold text-blue-600 mt-1">{{ class_stats.class_average }}</p>
+        <p class="text-xs font-medium text-slate-600 uppercase tracking-wider">Overall Class Average</p>
+        <p class="text-2xl font-bold text-blue-700 mt-1">{{ class_stats.class_average }}</p>
     </div>
 </div>
 
@@ -46,18 +46,20 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
         <div>
             <h2 class="text-lg font-bold text-slate-900">{{ selected_student.student.name }}</h2>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="text-xs text-slate-600 mt-0.5">
                 ID: {{ selected_student.student.student_number }} • {{ selected_student.student.course_title }} • {{ selected_student.student.email }}
             </p>
         </div>
         <div class="flex items-center gap-4">
             <div class="text-right">
-                <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Cumulative Points</span>
-                <span class="text-lg font-bold text-emerald-600">{{ selected_student.student.cumulative_points }}</span>
+                <span class="block text-[11px] uppercase tracking-wider text-slate-600 font-semibold">Cumulative Points</span>
+                <span class="text-lg font-bold {% if selected_student.student.cumulative_points >= 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                    {{ selected_student.student.cumulative_points }}
+                </span>
             </div>
             <div class="text-right">
-                <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Overall Average</span>
-                <span class="text-lg font-bold text-blue-600">
+                <span class="block text-[11px] uppercase tracking-wider text-slate-600 font-semibold">Overall Average</span>
+                <span class="text-lg font-bold text-blue-700">
                     {{ selected_student.student.average_percentage ~ '%' if selected_student.student.average_percentage is not none else 'N/A' }}
                 </span>
             </div>
@@ -66,21 +68,21 @@
 
     <!-- FR-65: Visual Performance Trajectory Chart Over Time -->
     <div class="mb-8">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Performance Trajectory Over Time</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">Performance Trajectory Over Time</h3>
         {% if selected_student.trajectory %}
             <div class="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4">
                 <svg id="trajectoryChart" viewBox="0 0 760 220" class="w-full h-56 overflow-visible" role="img" aria-label="Student performance trajectory over time">
                     <!-- Horizontal Grid Lines (0%, 25%, 50%, 75%, 100%) -->
                     {% for pct, y in [(100, 20), (75, 60), (50, 100), (25, 140), (0, 180)] %}
                         <line x1="50" y1="{{ y }}" x2="730" y2="{{ y }}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4 4"/>
-                        <text x="40" y="{{ y + 4 }}" text-anchor="end" class="fill-slate-400 text-[10px]">{{ pct }}%</text>
+                        <text x="40" y="{{ y + 4 }}" text-anchor="end" class="fill-slate-600 text-[10px]">{{ pct }}%</text>
                     {% endfor %}
                     <polyline id="trajectoryLine" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points=""/>
                     <g id="trajectoryPoints"></g>
                 </svg>
             </div>
         {% else %}
-            <div class="rounded-xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-400">
+            <div class="rounded-xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-600">
                 No completed attempts yet to plot a performance trajectory.
             </div>
         {% endif %}
@@ -88,17 +90,17 @@
 
     <!-- FR-64: Detailed Test History Table -->
     <div>
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Detailed Test History</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">Detailed Test History</h3>
         <div class="w-full rounded-lg border border-slate-200 overflow-hidden">
             <table class="w-full border-collapse text-left">
                 <thead class="bg-slate-50 border-b border-slate-200">
                     <tr>
-                        <th class="px-3 py-3 text-xs font-semibold text-slate-500">Test Name</th>
-                        <th class="px-3 py-3 text-xs font-semibold text-slate-500">Subject</th>
-                        <th class="px-3 py-3 text-xs font-semibold text-slate-500">Completion Date</th>
-                        <th class="px-3 py-3 text-xs font-semibold text-slate-500">Questions</th>
-                        <th class="px-3 py-3 text-xs font-semibold text-slate-500">Score %</th>
-                        <th class="px-3 py-3 text-right text-xs font-semibold text-slate-500">Points Earned</th>
+                        <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Test Name</th>
+                        <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Subject</th>
+                        <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Completion Date</th>
+                        <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Questions</th>
+                        <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Score %</th>
+                        <th scope="col" class="px-3 py-3 text-right text-xs font-semibold text-slate-600">Points Earned</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
@@ -106,16 +108,16 @@
                     <tr class="hover:bg-slate-50 transition">
                         <td class="px-3 py-3 text-xs font-semibold text-slate-900">{{ item.test_name }}</td>
                         <td class="px-3 py-3 text-xs text-slate-600">{{ item.subject_name }}</td>
-                        <td class="px-3 py-3 text-xs text-slate-500 whitespace-nowrap">{{ item.completed_date_str }}</td>
+                        <td class="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">{{ item.completed_date_str }}</td>
                         <td class="px-3 py-3 text-xs text-slate-700">{{ item.question_count }}</td>
-                        <td class="px-3 py-3 text-xs font-semibold text-blue-600">{{ '%.1f'|format(item.percentage) }}%</td>
-                        <td class="px-3 py-3 text-right text-xs font-bold {% if item.total_points >= 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                        <td class="px-3 py-3 text-xs font-semibold text-blue-700">{{ '%.1f'|format(item.percentage) }}%</td>
+                        <td class="px-3 py-3 text-right text-xs font-bold {% if item.total_points >= 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">
                             {{ item.total_points }}
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-xs text-slate-400">No completed tests recorded for this student.</td>
+                        <td colspan="6" class="px-4 py-8 text-center text-xs text-slate-600">No completed tests recorded for this student.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -130,11 +132,11 @@
     <div class="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
             <h2 class="text-md font-bold text-slate-900">Aggregate Class Performance</h2>
-            <p class="text-xs text-slate-500">Cumulative points and overall average percentages across all approved students.</p>
+            <p class="text-xs text-slate-600">Cumulative points and overall average percentages across all approved students.</p>
         </div>
         <form method="GET" action="{{ url_for('lecturer.student_progress_route') }}" onsubmit="return false;" class="relative w-full sm:w-72">
-            <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke-width="1.5"/><path d="m16 16 4 4" stroke-width="1.5"/></svg>
-            <input type="search" id="classSearchInput" oninput="filterClassTableLive()" name="q" value="{{ search }}" placeholder="Filter class by name, ID, or course..." class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
+            <svg aria-hidden="true" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke-width="1.5"/><path d="m16 16 4 4" stroke-width="1.5"/></svg>
+            <input type="search" id="classSearchInput" aria-label="Filter class by name, ID, or course" oninput="filterClassTableLive()" name="q" value="{{ search }}" placeholder="Filter class by name, ID, or course..." class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-800 outline-none placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
         </form>
     </div>
 
@@ -142,12 +144,12 @@
         <table class="w-full border-collapse text-left">
             <thead class="bg-slate-50 border-b border-slate-200">
                 <tr>
-                    <th class="px-3 py-3 text-xs font-semibold text-slate-500">Student</th>
-                    <th class="px-3 py-3 text-xs font-semibold text-slate-500">Course</th>
-                    <th class="px-3 py-3 text-xs font-semibold text-slate-500">Completed Tests</th>
-                    <th class="px-3 py-3 text-xs font-semibold text-slate-500">Cumulative Points</th>
-                    <th class="px-3 py-3 text-xs font-semibold text-slate-500">Overall Average</th>
-                    <th class="px-3 py-3 text-right text-xs font-semibold text-slate-500">Details</th>
+                    <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Student</th>
+                    <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Course</th>
+                    <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Completed Tests</th>
+                    <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Cumulative Points</th>
+                    <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Overall Average</th>
+                    <th scope="col" class="px-3 py-3 text-right text-xs font-semibold text-slate-600">Details</th>
                 </tr>
             </thead>
             <tbody id="classTableBody" class="divide-y divide-slate-200 bg-white">
@@ -155,12 +157,14 @@
                 <tr class="hover:bg-slate-50 transition">
                     <td class="px-3 py-3">
                         <div class="text-xs font-semibold text-slate-900">{{ student.name }}</div>
-                        <div class="text-[11px] text-slate-400">ID: {{ student.student_number }} • {{ student.email }}</div>
+                        <div class="text-[11px] text-slate-600">ID: {{ student.student_number }} • {{ student.email }}</div>
                     </td>
                     <td class="px-3 py-3 text-xs text-slate-600">{{ student.course_title }}</td>
                     <td class="px-3 py-3 text-xs font-medium text-slate-700">{{ student.completed_tests }}</td>
-                    <td class="px-3 py-3 text-xs font-bold text-emerald-600">{{ student.cumulative_points }} pts</td>
-                    <td class="px-3 py-3 text-xs font-semibold text-blue-600">
+                    <td class="px-3 py-3 text-xs font-bold {% if student.cumulative_points >= 0 %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                        {{ student.cumulative_points }} pts
+                    </td>
+                    <td class="px-3 py-3 text-xs font-semibold text-blue-700">
                         {{ student.average_percentage ~ '%' if student.average_percentage is not none else 'No attempts' }}
                     </td>
                     <td class="px-3 py-3 text-right">
@@ -172,11 +176,11 @@
                 </tr>
                 {% else %}
                 <tr id="noClassRecordsRow">
-                    <td colspan="6" class="px-4 py-10 text-center text-xs text-slate-400">No approved student records found.</td>
+                    <td colspan="6" class="px-4 py-10 text-center text-xs text-slate-600">No approved student records found.</td>
                 </tr>
                 {% endfor %}
                 <tr id="noClassResultsRow" style="display: none;">
-                 <td colspan="6" class="px-4 py-10 text-center text-xs text-slate-400">No students match your search criteria.</td>
+                    <td colspan="6" class="px-4 py-10 text-center text-xs text-slate-600">No students match your search criteria.</td>
                 </tr>
             </tbody>
         </table>
@@ -229,7 +233,7 @@
             text.setAttribute("x", p.x.toFixed(1));
             text.setAttribute("y", "202");
             text.setAttribute("text-anchor", "middle");
-            text.setAttribute("class", "fill-slate-500 text-[10px]");
+            text.setAttribute("class", "fill-slate-600 text-[10px]");
             text.textContent = p.label;
             pointsGroup.appendChild(text);
         });

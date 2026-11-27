@@ -11,12 +11,12 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 w-full">
         <div class="flex flex-col items-start justify-center">
             <h1 class="mb-2 text-3xl font-extrabold text-text-primary">Subjects</h1>
-            <p class="text-text-primary/50">View available subjects across the platform, teaching teams, question pool sizes, and linked assessments.</p>
+            <p class="text-slate-600">View available subjects across the platform, teaching teams, question pool sizes, and linked assessments.</p>
         </div>
         <a href="{{ url_for('lecturer.quiz_management_route') }}"
            class="inline-flex items-center justify-center gap-2 bg-app-primary hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-md shadow-md shadow-blue-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
             <span>Go to Quiz Management</span>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
         </a>
@@ -34,14 +34,14 @@
 
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     <a href="{{ url_for('lecturer.lecturer_view_subjects_route', q=search, assigned=None if assigned_only else '1') }}"
-                       aria-pressed="{{ 'true' if assigned_only else 'false' }}"
+                       {% if assigned_only %}aria-current="page"{% endif %}
                        class="inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors whitespace-nowrap no-underline
                               {% if assigned_only %}
                                   border-blue-300 bg-blue-50 text-app-primary
                               {% else %}
-                                  border-slate-200 bg-white text-slate-600 hover:bg-slate-50
+                                  border-slate-200 bg-white text-slate-700 hover:bg-slate-50
                               {% endif %}">
-                        <span class="h-2 w-2 rounded-full {{ 'bg-app-primary' if assigned_only else 'bg-slate-300' }}"></span>
+                        <span aria-hidden="true" class="h-2 w-2 rounded-full {{ 'bg-app-primary' if assigned_only else 'bg-slate-400' }}"></span>
                         <span>Assigned to Me</span>
                     </a>
 
@@ -49,18 +49,19 @@
                         {% if assigned_only %}
                             <input type="hidden" name="assigned" value="1">
                         {% endif %}
-                        <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg aria-hidden="true" class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="7" stroke-width="1.5"/>
                             <path d="m16 16 4 4" stroke-width="1.5"/>
                         </svg>
                         <input
                             type="search"
                             id="subjectSearchInput"
+                            aria-label="Search by name or description"
                             oninput="filterSubjectsTableLive()"
                             name="q"
                             value="{{ search }}"
                             placeholder="Search by name or description"
-                             class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                            class="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-800 outline-none placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                         >
                     </form>
                 </div>
@@ -70,13 +71,13 @@
                 <table class="w-full min-w-[750px] border-collapse text-left">
                     <thead class="bg-slate-50">
                         <tr class="border-b border-slate-200">
-                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Subject name</th>
-                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Description</th>
-                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Teaching Team</th>
-                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Question Pool</th>
-                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Quizzes</th>
-                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Status</th>
-                            <th class="px-3 py-3 text-right text-xs font-semibold text-slate-500">Action</th>
+                            <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Subject name</th>
+                            <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Description</th>
+                            <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Teaching Team</th>
+                            <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Question Pool</th>
+                            <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Quizzes</th>
+                            <th scope="col" class="px-3 py-3 text-xs font-semibold text-slate-600">Status</th>
+                            <th scope="col" class="px-3 py-3 text-right text-xs font-semibold text-slate-600">Action</th>
                         </tr>
                     </thead>
                     <tbody id="subjectsTableBody" class="divide-y divide-slate-200 bg-white">
@@ -92,8 +93,8 @@
                                     {% endif %}
                                 </div>
                             </td>
-                            <td class="px-3 py-4 text-sm text-slate-500">{{ subject.description or "No description provided." }}</td>
-                            <td class="px-3 py-4 text-sm text-slate-500">{{ subject.lecturer_names | join(", ") if subject.lecturer_names else "Unassigned" }}</td>
+                            <td class="px-3 py-4 text-sm text-slate-600">{{ subject.description or "No description provided." }}</td>
+                            <td class="px-3 py-4 text-sm text-slate-600">{{ subject.lecturer_names | join(", ") if subject.lecturer_names else "Unassigned" }}</td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-700">
                                 <span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
                                     {{ subject.question_count }} {{ 'question' if subject.question_count == 1 else 'questions' }}
@@ -105,9 +106,9 @@
                                 </span>
                             </td>
                             <td class="px-3 py-4">
-                                <div class="flex items-center justify-start px-2 py-1 rounded-md w-fit {% if subject.is_active %}text-green-500 bg-green-500/10{% else %}text-red-500 bg-red-500/10{% endif %}">
-                                    <div class="h-2 w-2 mr-2 rounded-sm {% if subject.is_active %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
-                                    <span class="text-sm font-medium">{% if subject.is_active %}Active{% else %}Archived{% endif %}</span>
+                                <div class="flex items-center justify-start px-2.5 py-1 rounded-md w-fit border {% if subject.is_active %}bg-emerald-50 text-emerald-700 border-emerald-200{% else %}bg-rose-50 text-rose-700 border-rose-200{% endif %}">
+                                    <div aria-hidden="true" class="h-2 w-2 mr-2 rounded-sm {% if subject.is_active %}bg-emerald-600{% else %}bg-rose-600{% endif %}"></div>
+                                    <span class="text-xs font-semibold">{% if subject.is_active %}Active{% else %}Archived{% endif %}</span>
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-right">
@@ -119,7 +120,7 @@
                         </tr>
                         {% else %}
                         <tr id="noSubjectRecordsRow">
-                            <td colspan="7" class="px-4 py-10 text-center text-xs text-slate-400">
+                            <td colspan="7" class="px-4 py-10 text-center text-xs text-slate-600">
                                 {% if search and assigned_only %}
                                     No assigned subjects match "{{ search }}".
                                 {% elif search %}
@@ -133,7 +134,7 @@
                         </tr>
                         {% endfor %}
                         <tr id="noSubjectResultsRow" style="display: none;">
-                            <td colspan="7" class="px-4 py-10 text-center text-xs text-slate-400">No subjects match your search criteria.</td>
+                            <td colspan="7" class="px-4 py-10 text-center text-xs text-slate-600">No subjects match your search criteria.</td>
                         </tr>
                     </tbody>
                 </table>
