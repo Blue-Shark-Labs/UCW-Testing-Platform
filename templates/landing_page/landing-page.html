@@ -31,7 +31,7 @@
             <div class="flex shrink-0 items-center gap-2 sm:gap-3">
                 <div class="hidden items-center gap-2 rounded-full border border-app-divider px-3 py-2 md:flex">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16835D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                    <span class="text-xs font-semibold text-slate-500">Guest</span>
+                    <span class="text-xs font-semibold text-slate-500">{{ signed_in_user.name if signed_in_user else 'Guest' }}</span>
                 </div>
                 {% if signed_in_user %}
                 <a href="{{ app_home_url }}" class="whitespace-nowrap rounded-full bg-app-primary px-3 py-2 text-sm font-semibold text-white no-underline sm:px-4">Return to App</a>
