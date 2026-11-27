@@ -51,6 +51,30 @@ Layered architecture — dependencies point inward (REST → database):
 └── .env.example
 ```
 
+## 7. Testing accounts
+
+The below accounts are examples which can be used to login to the application for testing
+
+Dev:
+  **STUDENT**
+  Tom Baker tom.baker@ucw.com Password123
+
+  **LECTURER**
+  Emilia Carter amelia.carter@ucw.com Password123
+
+  **ADMIN**
+  Sophie Williams sophie.williams@ucw.com Password123
+
+Production:
+  **STUDENT**
+  Samuel Vychodni samuel.vychodni@ucw.com Password123
+
+  **LECTURER**
+  Hannah Roberts hannah.roberts@ucw.com Password123
+
+  **ADMIN**
+  Thomas Reed thomas.reed@ucw.com Password123
+
 ---
 
 ## Dev Instructions
