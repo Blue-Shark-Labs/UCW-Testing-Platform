@@ -1,6 +1,7 @@
 # To Run: pytest rest/router_test.py
 
 import re
+from types import SimpleNamespace
 
 import pytest
 
@@ -166,6 +167,58 @@ class TestCreateApp:
             response.data,
             re.DOTALL,
         )
+
+    @pytest.mark.parametrize(
+        ("role", "path", "expected_active_items"),
+        [
+            (
+                "student",
+                "/student-dashboard/tests/11111111-1111-1111-1111-111111111111",
+                {"Tests"},
+            ),
+            (
+                "lecturer",
+                "/lecturer/student-progress/11111111-1111-1111-1111-111111111111",
+                {"Student Progress"},
+            ),
+            (
+                "admin",
+                "/lecturer/student-progress/11111111-1111-1111-1111-111111111111",
+                {"Students & Tests", "Student Progress"},
+            ),
+            (
+                "lecturer",
+                "/lecturer/quiz/11111111-1111-1111-1111-111111111111/statistics",
+                {"Management", "Quiz Management"},
+            ),
+            (
+                "admin",
+                "/lecturer/quiz/11111111-1111-1111-1111-111111111111/statistics",
+                {"Students & Tests", "Quiz Management"},
+            ),
+        ],
+    )
+    def test_sidebar_keeps_parent_item_active_on_related_routes(
+        self, app, role, path, expected_active_items
+    ):
+        from flask import g
+
+        with app.test_request_context(path):
+            g.user = SimpleNamespace(name="Test User", role=role)
+            context = {}
+            app.update_template_context(context)
+
+            def active_item_labels(items):
+                labels = set()
+                for item in items:
+                    if item["active"]:
+                        labels.add(item["label"])
+                    labels.update(active_item_labels(item["children"]))
+                return labels
+
+            assert expected_active_items.issubset(
+                active_item_labels(context["sidebar_items"])
+            )
 
     def test_session_cookie_is_secure_by_default(self, monkeypatch):
         # ARRANGE
