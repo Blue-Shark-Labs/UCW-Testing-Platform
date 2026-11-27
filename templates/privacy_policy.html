@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Privacy Policy — UCW Reinforcement Testing Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="bg-app-background text-slate-900 font-roboto">
+    <div class="flex min-h-screen flex-col">
+        <header class="relative z-20 flex min-h-16 w-full shrink-0 items-center justify-between gap-3 border-b-2 border-app-divider bg-white px-4 py-2 sm:px-6">
+            <a href="{{ url_for('landing_page.landing_page_route') }}" class="flex min-w-0 items-center gap-3 text-text-primary no-underline sm:gap-4">
+                <img
+                    class="h-10 w-10 rounded-md object-contain"
+                    src="{{ url_for('static', filename='branding/blue_shark_labs_logo_vector_graphic.svg') }}"
+                    alt="Blue Shark Labs logo"
+                >
+                <span class="hidden flex-col sm:flex">
+                    <span class="text-lg font-extrabold leading-none">Blue Shark</span>
+                    <span class="text-sm font-semibold uppercase text-app-primary">Labs</span>
+                </span>
+            </a>
+            <h1 class="hidden text-center text-lg font-extrabold text-text-primary lg:block">UCW Reinforcement Testing Platform</h1>
+            <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+                {% if signed_in_user %}
+                <div class="hidden items-center gap-2 rounded-full border border-app-divider px-3 py-2 md:flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16835D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    <h4 class="text-xs font-semibold text-slate-500">{{ signed_in_user.name }}</h4>
+                </div>
+                <a href="{{ app_home_url }}" class="whitespace-nowrap rounded-full bg-app-primary px-3 py-2 text-sm font-semibold text-white no-underline sm:px-4">Return to App</a>
+                {% else %}
+                <a href="{{ url_for('landing_page.landing_page_route') }}" class="whitespace-nowrap rounded-full border border-app-primary px-3 py-2 text-sm font-semibold text-app-primary no-underline sm:px-4">Home</a>
+                <a href="{{ url_for('login_route') }}" class="whitespace-nowrap rounded-full border border-app-primary px-3 py-2 text-sm font-semibold text-app-primary no-underline sm:px-4">Log In</a>
+                <a href="{{ url_for('register_route') }}" class="whitespace-nowrap rounded-full bg-app-primary px-3 py-2 text-sm font-semibold text-white no-underline sm:px-4">Sign Up</a>
+                {% endif %}
+            </div>
+        </header>
+        <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+            <section class="mb-6 rounded-lg border border-app-divider bg-gradient-to-br from-app-primary to-app-secondary px-6 py-8 text-white sm:px-8">
+                <h2 class="text-2xl font-extrabold sm:text-3xl">Privacy Policy</h2>
+                <p class="mt-2 max-w-2xl text-sm text-white/90">
+                    Learn how Blue Shark Labs collects, uses, stores and protects your personal information.
+                </p>
+            </section>
+            <article class="min-h-64 rounded-lg border border-app-divider bg-white p-6 shadow-sm sm:p-8">
+                <div class="space-y-6 text-sm leading-6 text-slate-700">
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">1. Introduction</h3>
+                        <p>
+                            Blue Shark Labs provides an educational reinforcement testing platform
+                            designed to help students practise subject material through multiple-choice
+                            tests, monitor their academic progress and participate in subject leaderboards.
+                            This privacy policy explains how personal information is handled when
+                            using our platform.
+                        </p>
+                        <p class="mt-2">
+                            We aim to handle personal information responsibly and in accordance
+                            with applicable data protection legislation, including the UK General
+                            Data Protection Regulation (UK GDPR) and the Data Protection Act 2018.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">2. Information We Collect</h3>
+                        <p>Depending on your role and use of the platform, we may collect the following information:</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            <li>Student number and account username.</li>
+                            <li>First name and last name.</li>
+                            <li>Course title and associated subjects.</li>
+                            <li>Account credentials, including securely hashed passwords.</li>
+                            <li>Test attempts, answers, scores, points and completion dates.</li>
+                            <li>Academic progress, average scores and leaderboard information.</li>
+                            <li>Account status, approval status and last login time.</li>
+                            <li>Lecturer and administrator account information.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">3. How We Use Your Information</h3>
+                        <p>We use personal information to operate and maintain Blue Shark Labs, including to:</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            <li>Create, authenticate and manage user accounts.</li>
+                            <li>Allow students to complete tests and view their results.</li>
+                            <li>Calculate scores, points, averages and academic progress.</li>
+                            <li>Display subject leaderboards.</li>
+                            <li>Allow lecturers to manage student accounts and monitor progression.</li>
+                            <li>Allow administrators to manage subjects and lecturer accounts.</li>
+                            <li>Maintain platform security and prevent unauthorised access.</li>
+                            <li>Maintain historical test results and academic records.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">4. Passwords and Account Security</h3>
+                        <p>
+                            User passwords are not intended to be stored in plain text. The platform
+                            uses password hashing to protect stored credentials. Access to platform
+                            functionality is restricted according to user roles, such as student,
+                            lecturer and administrator.
+                        </p>
+                        <p class="mt-2">
+                            Users should keep their login credentials confidential and contact
+                            Blue Shark Labs if they believe their account has been compromised.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">5. Data Access and Sharing</h3>
+                        <p>
+                            Personal information is accessible only to users with appropriate
+                            permissions within the platform.
+                        </p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            <li>Students can view their own test results and progress.</li>
+                            <li>Lecturers can manage student accounts and view student progression.</li>
+                            <li>Administrators can manage subjects and lecturer accounts.</li>
+                        </ul>
+                        <p class="mt-2">
+                            Personal information is not intended to be sold or shared with third
+                            parties for advertising purposes. Information may be made available
+                            where necessary to operate the platform, meet legal obligations or
+                            protect the security of the system.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">6. Test Results and Leaderboards</h3>
+                        <p>
+                            Blue Shark Labs stores information about completed tests, including
+                            scores, percentages, points and completion dates, to support
+                            student progress tracking and lecturer monitoring.
+                        </p>
+                        <p class="mt-2">
+                            Subject leaderboards may display student names and performance-related
+                            information to compare results between students. Users should be
+                            aware that their performance information may be visible to other
+                            participants through leaderboard functionality.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">7. Data Storage and Retention</h3>
+                        <p>
+                            Personal information is stored within the platform's database and
+                            retained for as long as necessary to provide platform functionality,
+                            maintain academic records, support administration and meet applicable
+                            requirements.
+                        </p>
+                        <p class="mt-2">
+                            Subjects may be marked as redundant rather than deleted to preserve
+                            historical academic records. Test results may also be retained where
+                            necessary for progress tracking and reporting.
+                        </p>
+                        <p class="mt-2">
+                            Account deletion, disabling or retention is managed according to
+                            platform administration functionality and applicable data retention
+                            requirements.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">8. Your Privacy Rights</h3>
+                        <p>
+                            Subject to applicable data protection legislation, users may have
+                            rights regarding their personal information, including:
+                        </p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            <li>The right to request access to their personal information.</li>
+                            <li>The right to request correction of inaccurate information.</li>
+                            <li>The right to request deletion of personal information where applicable.</li>
+                            <li>The right to request restriction of processing in certain circumstances.</li>
+                            <li>The right to raise concerns about how their information is handled.</li>
+                        </ul>
+                        <p class="mt-2">
+                            Requests relating to personal information should be directed to
+                            Blue Shark Labs using the contact details provided below.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">9. Cookies and Session Data</h3>
+                        <p>
+                            Blue Shark Labs may use session cookies or similar technologies to
+                            maintain authenticated sessions, support navigation and protect
+                            account security. These technologies are used to support essential
+                            platform functionality.
+                        </p>
+                        <p class="mt-2">
+                            Users should sign out after using the platform, particularly when
+                            accessing it from shared or public devices.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">10. Changes to This Policy</h3>
+                        <p>
+                            This privacy policy may be updated when Blue Shark Labs' functionality,
+                            data handling practices or applicable legal requirements change.
+                            Any updated policy will be published on this page.
+                        </p>
+                    </section>
+                    <section>
+                        <h3 class="mb-2 text-lg font-bold text-slate-900">11. Contact Us</h3>
+                        <p>
+                            If you have questions about this privacy policy, your personal
+                            information or how it is handled, please contact us using the
+                            details below.
+                        </p>
+                        <p class="mt-2">
+                            <strong>Application:</strong> Blue Shark Labs
+                        </p>
+                        <p>
+                            <strong>Email:</strong>
+                            <a href="mailto:contact@bluesharklabs.app"
+                            class="text-blue-600 hover:underline">
+                                contact@bluesharklabs.app
+                            </a>
+                        </p>
+                    </section>
+                    <section class="border-t border-slate-200 pt-4">
+                        <p class="text-xs text-slate-500">
+                            Last updated: 26/11/2026
+                        </p>
+                    </section>
+                </div>
+            </article>
+        </main>
+        {% include './partials/footer.html' %}
+    </div>
+</body>
+</html>

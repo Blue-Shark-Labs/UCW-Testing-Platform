@@ -34,6 +34,7 @@ from rest.student_dashboard.testing import (
     take_test_route,
 )
 from rest.sidebar_navigation import get_sidebar_navigation
+from rest.privacy_policy import privacy_policy_route
 
 student_dashboard = Blueprint(
     "student_dashboard",
@@ -117,6 +118,7 @@ def create_app():
     app.add_url_rule("/login/mfa", view_func=mfa_verify_route, methods=["GET", "POST"])
     app.add_url_rule("/logout", view_func=logout_route, methods=["POST"])
     app.add_url_rule("/register", view_func=register_route, methods=["GET", "POST"])
+    app.add_url_rule("/privacy", view_func=privacy_policy_route, methods=["GET"])
     app.add_url_rule("/dashboard/student", view_func=student_home_route, methods=["GET"])
     app.add_url_rule("/dashboard/lecturer", view_func=lecturer_dashboard_route, methods=["GET"])
     app.register_blueprint(landing_page)
