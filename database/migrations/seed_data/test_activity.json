@@ -3,7 +3,7 @@
   "defaultDurationMinutes": 12,
   "students": [
     {
-      "email": "student@dev.local",
+      "email": "samuel.adeyemi@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "introduction-to-computing", "correct": 4, "completedAt": "2026-10-31T14:30:00" },
@@ -12,7 +12,7 @@
       ]
     },
     {
-      "email": "michael.james@example.test",
+      "email": "michael.james@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 9, "completedAt": "2026-11-01T09:30:00" },
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "email": "priya.patel@example.test",
+      "email": "priya.patel@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 8, "completedAt": "2026-11-01T10:20:00" },
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "email": "tom.baker@example.test",
+      "email": "tom.baker@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 9, "completedAt": "2026-11-01T11:15:00" },
@@ -44,7 +44,7 @@
       ]
     },
     {
-      "email": "aisha.khan@example.test",
+      "email": "aisha.khan@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 10, "completedAt": "2026-11-02T09:40:00" },
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "email": "grace.okafor@example.test",
+      "email": "grace.okafor@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 7, "completedAt": "2026-11-02T13:10:00" },
@@ -66,7 +66,7 @@
       ]
     },
     {
-      "email": "owen.hughes@example.test",
+      "email": "owen.hughes@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 6, "completedAt": "2026-11-03T15:00:00" },
@@ -75,14 +75,14 @@
       ]
     },
     {
-      "email": "ben.carter@example.test",
+      "email": "ben.carter@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 5, "completedAt": "2026-11-03T16:30:00" }
       ]
     },
     {
-      "email": "chloe.evans@example.test",
+      "email": "chloe.evans@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "introduction-to-computing", "correct": 5, "completedAt": "2026-11-01T09:50:00" },
@@ -94,7 +94,7 @@
       ]
     },
     {
-      "email": "daniel.wright@example.test",
+      "email": "daniel.wright@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 7, "completedAt": "2026-10-30T10:15:00" },
@@ -110,12 +110,12 @@
       ]
     },
     {
-      "email": "ella.thompson@example.test",
+      "email": "ella.thompson@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": []
     },
     {
-      "email": "farah.ahmed@example.test",
+      "email": "farah.ahmed@bluesharklabs.remote.ac",
       "assignedTests": ["algebra-practice", "algebra-fundamentals", "functions-and-graphs", "calculus-basics", "statistics-practice"],
       "completedTests": [
         { "test": "algebra-practice", "correct": 9, "completedAt": "2026-11-04T09:20:00" },
@@ -124,7 +124,7 @@
       ]
     },
     {
-      "email": "george.lewis@example.test",
+      "email": "george.lewis@bluesharklabs.remote.ac",
       "assignedTests": ["introduction-to-computing", "programming-fundamentals", "data-structures", "computer-systems", "database-concepts"],
       "completedTests": [
         { "test": "introduction-to-computing", "correct": 3, "completedAt": "2026-11-02T15:30:00" },
@@ -134,7 +134,7 @@
       ]
     },
     {
-      "email": "hannah.scott@example.test",
+      "email": "hannah.scott@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 4, "completedAt": "2026-10-31T12:00:00" },
@@ -144,7 +144,7 @@
       ]
     },
     {
-      "email": "isaac.green@example.test",
+      "email": "isaac.green@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "introduction-to-computing", "correct": 5, "completedAt": "2026-11-01T16:00:00" },
@@ -155,7 +155,7 @@
       ]
     },
     {
-      "email": "jade.robinson@example.test",
+      "email": "jade.robinson@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 8, "completedAt": "2026-11-07T14:45:00" },
@@ -164,7 +164,7 @@
       ]
     },
     {
-      "email": "kofi.mensah@example.test",
+      "email": "kofi.mensah@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 0, "completedAt": "2026-11-08T09:00:00" },
@@ -172,7 +172,7 @@
       ]
     },
     {
-      "email": "lily.walker@example.test",
+      "email": "lily.walker@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "programming-fundamentals", "correct": 5, "completedAt": "2026-11-09T11:20:00" },
@@ -181,7 +181,7 @@
       ]
     },
     {
-      "email": "mohammed.ali@example.test",
+      "email": "mohammed.ali@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 10, "completedAt": "2026-11-01T08:45:00" },
@@ -189,7 +189,7 @@
       ]
     },
     {
-      "email": "nia.roberts@example.test",
+      "email": "nia.roberts@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "calculus-basics", "correct": 3, "completedAt": "2026-11-10T13:00:00" },
@@ -198,7 +198,7 @@
       ]
     },
     {
-      "email": "oliver.hall@example.test",
+      "email": "oliver.hall@bluesharklabs.remote.ac",
       "assignedTests": "all",
       "completedTests": [
         { "test": "algebra-practice", "correct": 6, "completedAt": "2026-11-12T17:00:00" },

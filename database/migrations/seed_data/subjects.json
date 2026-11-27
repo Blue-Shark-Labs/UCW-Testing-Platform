@@ -5,14 +5,14 @@
       "subjectId": "00000000-0000-4000-8000-000000000010",
       "name": "Mathematics",
       "description": "Algebra, functions, calculus and statistics.",
-      "lecturerEmails": ["lecturer@dev.local", "thomas.reed@example.com"]
+      "lecturerEmails": ["richard.fenwick@bluesharklabs.remote.ac", "thomas.reed@bluesharklabs.remote.ac"]
     },
     {
       "key": "computer-science",
       "subjectId": "00000000-0000-4000-8000-000000000011",
       "name": "Computer Science",
       "description": "Programming, data structures, computer systems and databases.",
-      "lecturerEmails": ["lecturer@dev.local"]
+      "lecturerEmails": ["richard.fenwick@bluesharklabs.remote.ac"]
     },
     {
       "key": "ocean-sciences",
@@ -20,56 +20,56 @@
       "name": "Ocean Sciences",
       "description": "Explore ocean systems and marine environments.",
       "isActive": false,
-      "lecturerEmails": ["amelia.carter@example.com"]
+      "lecturerEmails": ["emelia.carter@bluesharklabs.remote.ac"]
     },
     {
       "key": "marine-biology",
       "subjectId": "650e8400-e29b-41d4-a716-446655440002",
       "name": "Marine Biology",
       "description": "Study marine organisms and their ecosystems.",
-      "lecturerEmails": ["oliver.bennett@example.com", "charlotte.evans@example.com", "james.wilson@example.com"]
+      "lecturerEmails": ["oliver.bennett@bluesharklabs.remote.ac", "charlotte.evans@bluesharklabs.remote.ac", "james.wilson@bluesharklabs.remote.ac"]
     },
     {
       "key": "coastal-ecology",
       "subjectId": "650e8400-e29b-41d4-a716-446655440003",
       "name": "Coastal Ecology",
       "description": "Understand coastal habitats and biodiversity.",
-      "lecturerEmails": ["hannah.roberts@example.com"]
+      "lecturerEmails": ["hannah.roberts@bluesharklabs.remote.ac"]
     },
     {
       "key": "climate-science",
       "subjectId": "650e8400-e29b-41d4-a716-446655440004",
       "name": "Climate Science",
       "description": "Discover climate systems and global change.",
-      "lecturerEmails": ["oliver.bennett@example.com"]
+      "lecturerEmails": ["oliver.bennett@bluesharklabs.remote.ac"]
     },
     {
       "key": "conservation",
       "subjectId": "650e8400-e29b-41d4-a716-446655440005",
       "name": "Conservation",
       "description": "Protect marine species and natural habitats.",
-      "lecturerEmails": ["amelia.carter@example.com", "priya.shah@example.com", "daniel.morgan@example.com"]
+      "lecturerEmails": ["emelia.carter@bluesharklabs.remote.ac", "priya.shah@bluesharklabs.remote.ac", "daniel.morgan@bluesharklabs.remote.ac"]
     },
     {
       "key": "earth-systems",
       "subjectId": "650e8400-e29b-41d4-a716-446655440006",
       "name": "Earth Systems",
       "description": "Connect the atmosphere, land and oceans.",
-      "lecturerEmails": ["charlotte.evans@example.com", "hannah.roberts@example.com"]
+      "lecturerEmails": ["charlotte.evans@bluesharklabs.remote.ac", "hannah.roberts@bluesharklabs.remote.ac"]
     },
     {
       "key": "environmental-chemistry",
       "subjectId": "650e8400-e29b-41d4-a716-446655440007",
       "name": "Environmental Chemistry",
       "description": "Investigate chemical processes in nature.",
-      "lecturerEmails": ["james.wilson@example.com"]
+      "lecturerEmails": ["james.wilson@bluesharklabs.remote.ac"]
     },
     {
       "key": "research-methods",
       "subjectId": "650e8400-e29b-41d4-a716-446655440008",
       "name": "Research Methods",
       "description": "Build practical scientific research skills.",
-      "lecturerEmails": ["priya.shah@example.com", "daniel.morgan@example.com"]
+      "lecturerEmails": ["priya.shah@bluesharklabs.remote.ac", "daniel.morgan@bluesharklabs.remote.ac"]
     }
   ]
 }
