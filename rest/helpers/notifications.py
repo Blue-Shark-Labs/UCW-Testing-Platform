@@ -26,6 +26,7 @@ def send_student_approval_email(recipient_email: str, first_name: str) -> bool:
     smtp_user = os.environ.get("SMTP_USER", "").strip()
     smtp_password = os.environ.get("SMTP_PASSWORD", "")
     sender_email = os.environ.get("SMTP_FROM", smtp_user or "noreply@bluesharklabs.app")
+    use_ssl = os.environ.get("SMTP_USE_SSL", "").strip().lower() == "true" or smtp_port == 465
 
     msg = EmailMessage()
     msg["Subject"] = "Your Reinforcement Testing Platform Account is Approved"
@@ -40,8 +41,9 @@ def send_student_approval_email(recipient_email: str, first_name: str) -> bool:
     )
 
     try:
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-            if os.environ.get("SMTP_USE_TLS", "true").strip().lower() != "false":
+        smtp_client = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
+        with smtp_client(smtp_host, smtp_port, timeout=10) as server:
+            if not use_ssl and os.environ.get("SMTP_USE_TLS", "true").strip().lower() != "false":
                 server.starttls()
             if smtp_user and smtp_password:
                 server.login(smtp_user, smtp_password)

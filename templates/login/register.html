@@ -29,21 +29,21 @@
 {% block extra_fields %}
 <div class="flex flex-col gap-1">
     <label for="student_number" class="text-xs font-semibold uppercase text-slate-500">Student Number</label>
-    <input type="text" id="student_number" name="student_number" value="{{ form.get('student_number', '') }}" required maxlength="20" autofocus class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+    <input type="text" id="student_number" name="student_number" value="{{ form.get('student_number', '') }}" required maxlength="20" autofocus class="w-full rounded-md border border-slate-500 px-3 py-2 text-base sm:text-sm">
 </div>
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <div class="flex flex-col gap-1">
         <label for="first_name" class="text-xs font-semibold uppercase text-slate-500">First Name</label>
-        <input type="text" id="first_name" name="first_name" value="{{ form.get('first_name', '') }}" required maxlength="50" autocomplete="given-name" class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+        <input type="text" id="first_name" name="first_name" value="{{ form.get('first_name', '') }}" required maxlength="50" autocomplete="given-name" class="w-full rounded-md border border-slate-500 px-3 py-2 text-base sm:text-sm">
     </div>
     <div class="flex flex-col gap-1">
         <label for="last_name" class="text-xs font-semibold uppercase text-slate-500">Last Name</label>
-        <input type="text" id="last_name" name="last_name" value="{{ form.get('last_name', '') }}" required maxlength="50" autocomplete="family-name" class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+        <input type="text" id="last_name" name="last_name" value="{{ form.get('last_name', '') }}" required maxlength="50" autocomplete="family-name" class="w-full rounded-md border border-slate-500 px-3 py-2 text-base sm:text-sm">
     </div>
 </div>
 <div class="flex flex-col gap-1">
     <label for="course_title" class="text-xs font-semibold uppercase text-slate-500">Course Title</label>
-    <input type="text" id="course_title" name="course_title" value="{{ form.get('course_title', '') }}" required maxlength="100" class="w-full rounded-md border border-app-divider px-3 py-2 text-base sm:text-sm">
+    <input type="text" id="course_title" name="course_title" value="{{ form.get('course_title', '') }}" required maxlength="100" class="w-full rounded-md border border-slate-500 px-3 py-2 text-base sm:text-sm">
 </div>
 {% endblock %}
 
@@ -56,5 +56,5 @@
 {% block submit_label %}Sign Up{% endblock %}
 
 {% block footer_link %}
-<p class="mt-4 text-center text-sm text-slate-500">Already have an account? <a href="{{ url_for('login_route') }}" class="font-medium text-app-primary no-underline">Log In</a></p>
+<p class="mt-4 text-center text-sm text-slate-600">Already have an account? <a href="{{ url_for('login_route') }}" class="font-medium text-app-primary underline">Log In</a></p>
 {% endblock %}
