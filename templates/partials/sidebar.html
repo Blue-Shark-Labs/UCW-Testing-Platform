@@ -108,7 +108,7 @@
                     {{ profile_initials }}
                 </div>
                 <span class="text-xs font-medium">{{ g.user.name if g.user else 'User' }}</span>
-            </div>
+            </button>
             <form method="post" action="{{ url_for('logout_route') }}">
                 <button type="submit"
                    id="logout-section"
