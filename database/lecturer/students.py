@@ -204,7 +204,7 @@ def delete_student(student_id: UUID) -> tuple[str, tuple[str, str] | None]:
         has_attempts = bool(cur.fetchone()[0])
 
         if has_attempts:
-            anonymised_email = f"deleted_{student_id}@anonymised.local"
+            anonymised_email = f"deleted_{str(student_id)[:24]}@anonymised.local"
             anonymised_number = f"ANON-{str(student_id)[:8].upper()}"
 
             cur.execute("""

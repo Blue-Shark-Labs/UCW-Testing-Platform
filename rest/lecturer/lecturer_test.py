@@ -399,6 +399,49 @@ class TestLecturerStudentManagementRoutes:
         assert b"20 Nov 2026, 14:30" in detail_resp.data
         assert b"trajectoryChart" in detail_resp.data
 
+    def test_delete_student_db_anonymises_email_within_varchar_50(self, monkeypatch):
+        """NFR-05: Anonymised email fits users.email VARCHAR(50) and matches exclusion filter."""
+        import database.lecturer.students as students_db
+
+        student_id = UUID("4b643816-c5e5-4b0d-b2b5-a8a50542eb8f")
+        executed = []
+
+        class FakeCursor:
+            def __init__(self):
+                self.step = 0
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, query, params=None):
+                executed.append((query, params))
+
+            def fetchone(self):
+                self.step += 1
+                if self.step == 1:
+                    return ("Farah", "Ahmed")
+                if self.step == 2:
+                    return (True,)
+                return None
+
+        class FakeProvider:
+            def cursor(self):
+                return FakeCursor()
+
+        monkeypatch.setattr(students_db, "PostgresConnectionProvider", FakeProvider)
+
+        outcome, original_name = students_db.delete_student(student_id)
+
+        assert outcome == "anonymised"
+        assert original_name == ("Farah", "Ahmed")
+        user_update_params = executed[3][1]
+        anonymised_email = user_update_params[0]
+        assert len(anonymised_email) <= 50
+        assert anonymised_email.startswith("deleted_")
+        assert anonymised_email.endswith("@anonymised.local")
 
 class TestLecturerQuizManagementRoutes:
     def test_quiz_management_renders_quizzes_and_question_pool(self, app, monkeypatch):
