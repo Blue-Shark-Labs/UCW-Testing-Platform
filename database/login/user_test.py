@@ -81,3 +81,14 @@ class TestClearFailedLogins:
         # ASSERT
         _, params = connection_provider.cursor_mock.execute.call_args.args
         assert params == ("user-1",)
+
+    def test_clear_failed_logins_records_last_login(self):
+        # ARRANGE
+        connection_provider = FakeConnectionProvider(None)
+
+        # ACT
+        clear_failed_logins(connection_provider, "user-1")
+
+        # ASSERT
+        query, _ = connection_provider.cursor_mock.execute.call_args.args
+        assert "last_login_at = NOW()" in query
