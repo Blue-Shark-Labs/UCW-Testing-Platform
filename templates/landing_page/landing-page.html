@@ -71,7 +71,7 @@
                 <div id="carousel-track" aria-live="off" class="flex transition-transform duration-300 ease-in-out motion-reduce:transition-none">
                     {% for slide in carousel_slides %}
                     <div class="w-full shrink-0 bg-gradient-to-br {{ loop.cycle('from-app-primary to-app-secondary', 'from-app-secondary to-app-ternary', 'from-app-quaternary to-app-quinary') }} px-14 pb-10 pt-8 text-white sm:p-10 sm:px-16">
-                        <h2 class="text-lg font-bold sm:text-xl">{{ slide.title }}</h2>
+                        <h3 class="text-lg font-bold sm:text-xl">{{ slide.title }}</h3>
                         <p class="mt-2 max-w-md text-sm text-white/90">{{ slide.description }}</p>
                     </div>
                     {% endfor %}
