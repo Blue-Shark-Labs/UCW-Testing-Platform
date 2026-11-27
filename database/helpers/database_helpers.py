@@ -58,6 +58,40 @@ def get_completed_tests(student_id):
 	return _fetch_rows(query, (student_id,), fields)
 
 
+def get_completed_test_result(test_id, attempt_id, student_id):
+	"""Return the stored result for one completed attempt owned by a student."""
+	fields = (
+		"test_name",
+		"question_count",
+		"correct_count",
+		"percentage",
+		"total_points",
+		"timed_out",
+	)
+	query = """
+		SELECT t.title, COUNT(answer.answer_attempt_id),
+			   COUNT(*) FILTER (WHERE answer.points_awarded > 0),
+			   attempt.percentage, attempt.total_points,
+			   (
+			       t.time_limit_minutes IS NOT NULL
+			       AND attempt.completed_at >= attempt.started_at
+			           + t.time_limit_minutes * INTERVAL '1 minute'
+			   ) AS timed_out
+		FROM test_attempts AS attempt
+		JOIN tests AS t ON t.test_id = attempt.test_id
+		LEFT JOIN attempt_answers AS answer
+		  ON answer.attempt_id = attempt.attempt_id
+		WHERE attempt.attempt_id = %s
+		  AND attempt.test_id = %s
+		  AND attempt.user_id = %s
+		  AND attempt.completed_at IS NOT NULL
+		GROUP BY attempt.attempt_id, t.title, attempt.percentage,
+		         attempt.total_points, t.time_limit_minutes
+	"""
+	rows = _fetch_rows(query, (attempt_id, test_id, student_id), fields)
+	return rows[0] if rows else None
+
+
 def start_or_resume_test_attempt(test_id, student_id):
 	"""Start or resume an assigned test with a personalized question set."""
 	with PostgresConnectionProvider().cursor() as cursor:

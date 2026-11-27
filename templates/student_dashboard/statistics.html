@@ -4,14 +4,16 @@
 
 {% block page_title %}Statistics{% endblock %}
 
-{% block header_page_specific_content %}{% endblock %}
+{% block title %}Statistics | Reinforcement Testing Platform{% endblock %}
+
+{% block header_page_specific_content %}<a class="app-skip-link" href="#student-page-main">Skip to main content</a>{% endblock %}
 
 {% block content %}
 <div class="w-full max-w-7xl">
     <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
             <p class="mb-2 text-sm font-medium text-app-primary">Your learning at a glance</p>
-            <h1 class="text-2xl font-semibold">Your statistics</h1>
+            <h1 id="student-page-main" tabindex="-1" class="app-skip-target text-2xl font-semibold">Your statistics</h1>
         </div>
         <span class="text-sm text-slate-500">{{ summary.completed_count }} completed test{% if summary.completed_count != 1 %}s{% endif %}</span>
     </div>
@@ -74,6 +76,21 @@
                         {% endfor %}
                     </svg>
                 </div>
+                <table class="sr-only">
+                    <caption>Grades chart data</caption>
+                    <thead>
+                        <tr><th scope="col">Test</th><th scope="col">Date</th><th scope="col">Score</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for point in chart_points %}
+                            <tr>
+                                <th scope="row">{{ point.test_name }}</th>
+                                <td>{{ point.date }}</td>
+                                <td>{{ '%.1f'|format(point.score) }}%</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             {% else %}
                 <div class="flex min-h-56 items-center justify-center rounded-lg border border-dashed border-app-divider bg-slate-50 px-6 text-center">
                     <div>

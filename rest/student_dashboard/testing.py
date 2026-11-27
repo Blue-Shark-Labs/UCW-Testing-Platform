@@ -4,6 +4,7 @@ from flask import abort, g, jsonify, render_template, request, url_for
 
 from database.helpers.database_helpers import (
     UnansweredQuestionsError,
+    get_completed_test_result,
     save_test_answer,
     start_or_resume_test_attempt,
     submit_test_attempt,
@@ -111,7 +112,9 @@ def submit_test_route(test_id, attempt_id):
         message = f"{UNANSWERED_ERROR} Unanswered: {', '.join(numbers)}."
         return _render_testing_page(test_id, attempt, message), 400
     if result is None:
-        abort(404)
+        result = get_completed_test_result(test_id, attempt_id, student_id)
+        if result is None:
+            abort(404)
 
     return _render_result(result["test_name"], result)
 

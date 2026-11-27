@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from types import SimpleNamespace
 from uuid import UUID
@@ -89,6 +90,14 @@ class TestStudentDashboardRoutes:
         assert b"Computing Basics" in response.data
         assert b"31 Oct 2026" in response.data
         assert b"80.0%" in response.data
+        assert b"Skip to main content" in response.data
+        assert b"id=\"student-page-main\"" in response.data
+        assert b"<nav aria-label=\"Primary\"" in response.data
+        assert b"role=\"region\" aria-label=\"Assigned tests\" tabindex=\"0\"" in response.data
+        assert b"role=\"region\" aria-label=\"Completed tests\" tabindex=\"0\"" in response.data
+        assert b"<title>Tests | Reinforcement Testing Platform</title>" in response.data
+        assert b"<h1 id=\"student-page-main\" tabindex=\"-1\"" in response.data
+        assert b">Tests</h1>" in response.data
         assert b"Assigned Tests" in response.data
         assert b"Completed Tests" in response.data
         assert b'href="/student-dashboard/"' in response.data
@@ -133,7 +142,22 @@ class TestStudentTestingRoutes:
                             {"option_id": option_id, "option_text": "4"},
                             {"option_id": UUID("00000000-0000-4000-8000-000000000004"), "option_text": "5"},
                         ],
-                    }
+                    },
+                    {
+                        "question_id": UUID("00000000-0000-4000-8000-000000000006"),
+                        "question_text": "What is 3 + 3?",
+                        "selected_option_id": None,
+                        "options": [
+                            {
+                                "option_id": UUID("00000000-0000-4000-8000-000000000007"),
+                                "option_text": "6",
+                            },
+                            {
+                                "option_id": UUID("00000000-0000-4000-8000-000000000008"),
+                                "option_text": "7",
+                            },
+                        ],
+                    },
                 ],
             },
         )
@@ -143,9 +167,19 @@ class TestStudentTestingRoutes:
         assert response.status_code == 200
         assert b"Algebra Check" in response.data
         assert b"Mathematics" in response.data
-        assert b"Question <span data-current-question>1</span> of 1" in response.data
+        assert b"Question <span data-current-question>1</span> of 2" in response.data
         assert b"What is 2 + 2?" in response.data
         assert b"data-countdown=\"299\"" in response.data
+        assert b"aria-labelledby=\"countdown-label\"" in response.data
+        assert b"data-countdown-announcement role=\"status\"" in response.data
+        assert b"<legend class=\"sr-only\">What is 2 + 2? Choose one answer</legend>" in response.data
+        assert b"<legend class=\"sr-only\">What is 3 + 3? Choose one answer</legend>" in response.data
+        assert b'id="question-panel-00000000-0000-4000-8000-000000000006"' in response.data
+        assert re.search(rb'data-question-index="1"\s+hidden', response.data)
+        assert b'id="answer-00000000-0000-4000-8000-000000000006-00000000-0000-4000-8000-000000000007"' in response.data
+        assert b'for="answer-00000000-0000-4000-8000-000000000006-00000000-0000-4000-8000-000000000007"' in response.data
+        assert b"What is 3 + 3?" in response.data
+        assert b"<span>6</span>" in response.data
         assert b"4" in response.data
         assert b"5" in response.data
 
@@ -194,6 +228,34 @@ class TestStudentTestingRoutes:
         assert b"30" in response.data
         assert submitted["answers"] == {str(question_id): option_id}
         assert submitted["student_id"] == "00000000-0000-4000-8000-000000000001"
+
+    def test_retrying_completed_submission_shows_existing_result(self, client, monkeypatch):
+        _log_in(client, "student")
+        test_id = UUID("00000000-0000-4000-8000-000000000023")
+        attempt_id = UUID("5ba6e19a-f670-4579-9ce0-61b410083584")
+        monkeypatch.setattr(testing_module, "submit_test_attempt", lambda *args: None)
+        monkeypatch.setattr(
+            testing_module,
+            "get_completed_test_result",
+            lambda submitted_test_id, submitted_attempt_id, student_id: {
+                "test_name": "Functions and Graphs",
+                "question_count": 10,
+                "correct_count": 8,
+                "percentage": 80.0,
+                "total_points": 200,
+                "timed_out": False,
+            },
+        )
+
+        response = client.post(
+            f"/student-dashboard/tests/{test_id}/attempts/{attempt_id}/submit",
+            data={},
+        )
+
+        assert response.status_code == 200
+        assert b"Functions and Graphs" in response.data
+        assert b"8 / 10" in response.data
+        assert b"200" in response.data
 
     def test_submitting_with_unanswered_questions_shows_error(self, client, monkeypatch):
         _log_in(client, "student")

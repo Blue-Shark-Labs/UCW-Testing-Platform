@@ -30,7 +30,7 @@
   }
 
   .dashboard-table th {
-    @apply bg-app-background px-4 py-3 text-xs font-medium uppercase tracking-wide text-app-quaternary;
+    @apply bg-app-background px-4 py-3 text-xs font-medium uppercase tracking-wide text-slate-700;
   }
 
   .dashboard-table td {

@@ -3,6 +3,9 @@ from copy import deepcopy
 
 _NAVIGATION_BY_ROLE = {
     "student": [
+        {"label": "Tests", "icon": "menu", "endpoint": "student_dashboard.student_dashboard_route"},
+        {"label": "Subject Leaderboards", "icon": "award", "endpoint": "leaderboards.subject_leaderboards_route"},
+        {"label": "Statistics", "icon": "chart", "endpoint": "statistics.student_statistics_route"},
         {"label": "Home", "icon": "home", "endpoint": "pr_block.pr_block_route"},
         {
             "label": "Tests",
