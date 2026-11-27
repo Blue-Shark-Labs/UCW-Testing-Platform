@@ -53,3 +53,13 @@ run:
 .PHONY: test
 test:
 	pytest -v
+
+## install-e2e: Download the Chromium browser used by the browser tests.
+.PHONY: install-e2e
+install-e2e:
+	playwright install chromium
+
+## test-e2e: Run the Playwright browser tests (add --headed to watch).
+.PHONY: test-e2e
+test-e2e:
+	pytest -v e2e
