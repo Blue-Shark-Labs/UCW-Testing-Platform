@@ -30,10 +30,13 @@ def list_users(search: str, limit: int, offset: int) -> tuple[list[dict], int]:
             """
             SELECT COUNT(*)
             FROM users
-            WHERE %s = ''
-               OR first_name ILIKE %s
-               OR last_name ILIKE %s
-               OR email ILIKE %s;
+            WHERE role IN ('lecturer', 'admin')
+              AND (
+                    %s = ''
+                    OR first_name ILIKE %s
+                    OR last_name ILIKE %s
+                    OR email ILIKE %s
+              );
             """,
             (search, pattern, pattern, pattern),
         )
@@ -45,10 +48,13 @@ def list_users(search: str, limit: int, offset: int) -> tuple[list[dict], int]:
                 u.is_disabled, s.student_number, s.course_title, u.last_login_at
             FROM users AS u
             LEFT JOIN students AS s ON s.user_id = u.user_id
-            WHERE %s = ''
-               OR u.first_name ILIKE %s
-               OR u.last_name ILIKE %s
-               OR u.email ILIKE %s
+            WHERE u.role IN ('lecturer', 'admin')
+              AND (
+                    %s = ''
+                    OR u.first_name ILIKE %s
+                    OR u.last_name ILIKE %s
+                    OR u.email ILIKE %s
+              )
             ORDER BY LOWER(u.last_name), LOWER(u.first_name), u.user_id
             LIMIT %s OFFSET %s;
             """,
@@ -117,16 +123,18 @@ def update_user(
     role: str,
     student_number: str | None,
     course_title: str | None,
+    password_hash: str | None = None,
 ) -> bool:
     provider = PostgresConnectionProvider()
     with provider.cursor() as cur:
         cur.execute(
             """
             UPDATE users
-            SET first_name = %s, last_name = %s, email = %s, role = %s
+            SET first_name = %s, last_name = %s, email = %s, role = %s,
+                password_hash = COALESCE(%s, password_hash)
             WHERE user_id = %s;
             """,
-            (first_name, last_name, email, role, user_id),
+            (first_name, last_name, email, role, password_hash, user_id),
         )
         if cur.rowcount == 0:
             return False

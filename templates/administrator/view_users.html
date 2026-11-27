@@ -2,7 +2,7 @@
 
 {% block page_section %}Administrator Portal{% endblock %}
 
-{% block page_title %}Edit & Manage Users{% endblock %}
+{% block page_title %}Edit & Manage Staff{% endblock %}
 
 <!-- Example of page-specific content in the header -->
 {% block header_page_specific_content %}
@@ -11,7 +11,7 @@
 {% block content %}
     <div class="flex items-center justify-between mb-4 w-full">
         <div class="flex flex-col items-start justify-center">
-            <h1 class="mb-2 text-3xl font-extrabold text-text-primary">Users</h1>
+            <h1 class="mb-2 text-3xl font-extrabold text-text-primary">Staff Users</h1>
             <p class="text-text-primary/80">Manage user details and control account access.</p>
         </div>
         <a href="{{ url_for('administrator.administrator_view_users_route', modal='create', q=search, page=pagination.page) }}" class="inline-flex items-center justify-center gap-2 bg-app-primary hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-md shadow-md shadow-blue-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
@@ -23,7 +23,7 @@
         <div class="mx-auto w-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div class="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div class="flex items-baseline gap-2">
-                    <h2 class="text-md font-bold text-slate-900">All users</h2>
+                    <h2 class="text-md font-bold text-slate-900">Lecturer and admin accounts</h2>
                     <span class="text-xs font-medium text-app-primary">{{ pagination.total }} users</span>
                 </div>
                 <form method="GET" action="{{ url_for('administrator.administrator_view_users_route') }}" class="relative w-full sm:w-60">
@@ -41,7 +41,7 @@
                 <table class="w-full min-w-[750px] border-collapse text-left">
                     <thead class="bg-slate-50">
                         <tr class="border-b border-slate-200">
-                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Lecturer name</th>
+                            <th class="px-3 py-3 text-xs font-semibold text-slate-500">Name</th>
                             <th class="px-3 py-3 text-xs font-semibold text-slate-500">Email</th>
                             <th class="px-3 py-3 text-xs font-semibold text-slate-500">Role</th>
                             <th class="px-3 py-3 text-xs font-semibold text-slate-500">Status</th>

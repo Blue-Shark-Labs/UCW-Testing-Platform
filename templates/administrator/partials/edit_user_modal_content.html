@@ -35,6 +35,14 @@
         {% endif %}
     </div>
     <div class="mb-4">
+        <label for="password" class="mb-2 block text-sm font-semibold text-slate-800">New password (optional)</label>
+        <input type="password" id="password" name="password" minlength="8" autocomplete="new-password" class="w-full rounded-lg border px-3 py-3 pr-9 text-sm text-slate-800 outline-none border-slate-200">
+        <p class="mt-2 text-xs text-slate-500">Leave blank to keep the current password. If provided, it must be at least 8 characters.</p>
+        {% if errors.get('password') %}
+        <p class="mt-1.5 text-xs text-red-500">{{ errors.password }}</p>
+        {% endif %}
+    </div>
+    <div class="mb-4">
         <label for="role" class="mb-2 block text-sm font-semibold text-slate-800">Role</label>
         <select id="role" name="role" required class="w-full rounded-lg border px-3 py-3 pr-9 text-sm text-slate-800 outline-none border-slate-200 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option value="student" {% if form_data.role == 'student' %}selected{% endif %}>Student</option>
