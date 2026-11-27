@@ -7,3 +7,11 @@ PASSWORD=
 #Session secret (signs the login session cookie and encrypts MFA secrets;
 #changing it turns MFA off for existing users, who are asked to set it up again)
 SECRET_KEY=
+
+#SMTP Server setup details
+SMTP_HOST=plesk.remote.ac
+SMTP_PORT=465
+SMTP_USER=noreply@bluesharklabs.remote.ac
+SMTP_PASSWORD=Accordingtothelawsofphysicsabeeshouldnotfly2026
+SMTP_FROM=noreply@bluesharklabs.remote.ac
+SMTP_USE_TLS=true

@@ -10,3 +10,11 @@ SECRET_KEY=
 
 #Local dev runs over http, so the session cookie can't be Secure-only
 SESSION_COOKIE_SECURE=false
+
+#SMTP Server setup details
+SMTP_HOST=plesk.remote.ac
+SMTP_PORT=465
+SMTP_USER=noreply@bluesharklabs.remote.ac
+SMTP_PASSWORD=Accordingtothelawsofphysicsabeeshouldnotfly2026
+SMTP_FROM=noreply@bluesharklabs.remote.ac
+SMTP_USE_TLS=true
