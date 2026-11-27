@@ -42,9 +42,10 @@ RECORD_FAILED_LOGIN = """
     WHERE user_id = %(user_id)s;
 """
 
+# Only called once a login has fully succeeded, so it also stamps the last login time.
 CLEAR_FAILED_LOGINS = """
     UPDATE users
-    SET failed_login_attempts = 0, locked_until = NULL
+    SET failed_login_attempts = 0, locked_until = NULL, last_login_at = NOW()
     WHERE user_id = %s;
 """
 
