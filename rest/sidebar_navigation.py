@@ -12,7 +12,7 @@ _NAVIGATION_BY_ROLE = {
         {"label": "Help Centre", "icon": "help", "endpoint": "help_centre_route"},
     ],
     "lecturer": [
-        {"label": "Home", "icon": "home", "endpoint": "lecturer_dashboard_route"},
+        {"label": "Dashboard", "icon": "home", "endpoint": "lecturer.lecturer_dashboard_route"},
         {
             "label": "Management",
             "icon": "sliders",
@@ -30,7 +30,7 @@ _NAVIGATION_BY_ROLE = {
             ],
         },
         {
-            "label": "Courses/Subjects",
+            "label": "Subjects",
             "endpoint": "lecturer.lecturer_view_subjects_route",
             "icon": "book",
         },

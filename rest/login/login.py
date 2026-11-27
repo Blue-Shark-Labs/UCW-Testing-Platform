@@ -13,7 +13,7 @@ LOCKOUT_MINUTES = 15
 
 ROLE_DASHBOARD_ENDPOINTS = {
     "student": "student_dashboard.student_dashboard_route",
-    "lecturer": "lecturer_dashboard_route",
+    "lecturer": "lecturer.lecturer_dashboard_route",
     "admin": "administrator.administrator_view_subjects_route",
 }
 
