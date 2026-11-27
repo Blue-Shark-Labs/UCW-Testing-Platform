@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block page_section %}Lecturer Portal{% endblock %}
+{% block page_section %}{{ 'Administrator Portal' if session.get('role') == 'admin' else 'Lecturer Portal' }}{% endblock %}
 {% block page_title %}Quiz Statistics{% endblock %}
 
 {% block header_page_specific_content %}

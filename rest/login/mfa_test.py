@@ -96,7 +96,7 @@ class TestMfaVerifyRoute:
         response = pending_client.post("/login/mfa", data={"code": "123456"})
 
         assert response.status_code == 302
-        assert "/dashboard/lecturer" in response.location
+        assert response.location == "/lecturer/dashboard"
         mock_claim.assert_called_once()
         mock_clear.assert_called_once()
         with pending_client.session_transaction() as sess:

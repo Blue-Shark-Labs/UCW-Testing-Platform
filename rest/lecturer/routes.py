@@ -25,6 +25,8 @@ from rest.lecturer.student_management import (
 
 from rest.lecturer.view_subjects import lecturer_view_subjects_route
 
+from rest.lecturer.dashboard import lecturer_dashboard_route
+
 lecturer = Blueprint(
     "lecturer",
     __name__,
@@ -66,3 +68,6 @@ lecturer.add_url_rule("/question/<uuid:question_id>/delete", view_func=delete_qu
 
 # View Subjects
 lecturer.add_url_rule("/subjects", view_func=lecturer_view_subjects_route, methods=["GET"])
+
+#Dashboard
+lecturer.add_url_rule("/dashboard", view_func=lecturer_dashboard_route, methods=["GET"])
