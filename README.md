@@ -74,9 +74,8 @@ features.
 
 ### Seeded accounts (local and production)
 
-These come from `database/migrations/seed_data/users.json`. They exist locally
-after `make migrate-dev-db`, and on <https://bluesharklabs.app> once the
-migration has been run against production.
+These come from `database/migrations/seed_data/users.json`. They exist on
+<https://bluesharklabs.app> and locally after `make migrate-dev-db`.
 
 | Role     | Name            | Email                                     | Password           |
 | -------- | --------------- | ----------------------------------------- | ------------------ |
