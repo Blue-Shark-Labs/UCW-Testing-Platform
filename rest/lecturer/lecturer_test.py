@@ -570,12 +570,13 @@ class TestLecturerSubjectsRoutes:
         monkeypatch.setattr(
             view_subjects_module,
             "list_lecturer_subjects",
-            lambda lecturer_id, search="": [
+            lambda lecturer_id, search="", assigned_only=False: [
                 {
                     "subject_id": "650e8400-e29b-41d4-a716-446655440001",
                     "name": "Marine Biology",
                     "description": "Coral reef and ocean ecosystems",
                     "is_active": True,
+                    "is_assigned": True,
                     "lecturer_names": ["Test Lecturer"],
                     "question_count": 14,
                     "quiz_count": 2,
@@ -585,7 +586,7 @@ class TestLecturerSubjectsRoutes:
 
         response = lecturer_client.get("/lecturer/subjects")
         assert response.status_code == 200
-        assert b"My Subjects" in response.data
+        assert b"Subjects" in response.data
         assert b"Marine Biology" in response.data
         assert b"14 questions" in response.data
         assert b"2 quizzes" in response.data
