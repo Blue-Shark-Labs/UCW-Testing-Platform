@@ -40,7 +40,7 @@ def require_lecturer_role():
         return redirect(url_for("login_route"))
 
     user = getattr(g, "user", None)
-    if user is None or user.role != "lecturer":
+    if user is None or user.role not in {"lecturer", "admin"}:
         abort(403)
 
 
