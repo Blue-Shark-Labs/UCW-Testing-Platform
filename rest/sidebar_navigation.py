@@ -17,7 +17,6 @@ _NAVIGATION_BY_ROLE = {
             "endpoint": "statistics.student_statistics_route",
             "active_endpoints": ["statistics.student_statistics_export_route"],
         },
-        {"label": "Settings", "icon": "sliders", "endpoint": "settings_route"},
         {"label": "Security", "icon": "lock", "endpoint": "account.security_settings_route"},
         {"label": "Privacy", "icon": "privacy", "endpoint": "privacy_policy_route"},
     ],
