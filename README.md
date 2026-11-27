@@ -59,7 +59,8 @@ features.
 
 ### How to log in
 
-1. Open the app and go to `/login` (locally: <http://127.0.0.1:5000/login>).
+1. Open the app and go to `/login` (production: <https://bluesharklabs.app/login>;
+   locally: <http://127.0.0.1:5000/login>).
 2. Enter the email and password for the role you want to test from the tables below.
 3. You are redirected to that role's home page:
 
@@ -71,32 +72,27 @@ features.
 
 4. To switch role, use **Log out** in the sidebar, then log in with a different account.
 
-### Dev accounts (local, after `make migrate-dev-db`)
+### Seeded accounts (local and production)
 
-These come from `database/migrations/seed_data/users.json`.
+These come from `database/migrations/seed_data/users.json`. They exist on
+<https://bluesharklabs.app> and locally after `make migrate-dev-db`.
 
-| Role     | Name          | Email                        | Password           |
-| -------- | ------------- | ---------------------------- | ------------------ |
-| Student  | Tom Baker     | `tom.baker@example.test`     | `StudentPass123!`  |
-| Student  | Sam Student   | `student@dev.local`          | `StudentPass123!`  |
-| Lecturer | Emelia Carter | `amelia.carter@example.com`  | `LecturerPass123!` |
-| Lecturer | Lee Lecturer  | `lecturer@dev.local`         | `LecturerPass123!` |
-| Admin    | Thomas Reed   | `thomas.reed@example.com`    | `AdminPass123!`    |
-| Admin    | Ada Admin     | `admin@dev.local`            | `AdminPass123!`    |
+| Role     | Name            | Email                                     | Password           |
+| -------- | --------------- | ----------------------------------------- | ------------------ |
+| Student  | Tom Baker       | `tom.baker@bluesharklabs.remote.ac`       | `StudentPass123!`  |
+| Student  | Samuel Adeyemi  | `samuel.adeyemi@bluesharklabs.remote.ac`  | `StudentPass123!`  |
+| Lecturer | Emelia Carter   | `emelia.carter@bluesharklabs.remote.ac`   | `LecturerPass123!` |
+| Lecturer | Richard Fenwick | `richard.fenwick@bluesharklabs.remote.ac` | `LecturerPass123!` |
+| Admin    | Thomas Reed     | `thomas.reed@bluesharklabs.remote.ac`     | `AdminPass123!`    |
+| Admin    | Margaret Hollis | `margaret.hollis@bluesharklabs.remote.ac` | `AdminPass123!`    |
 
 Accounts you **cannot** log in with, useful for checking error handling:
 
-- `sophie.williams@example.com` (admin), `priya.shah@example.com` and
-  `daniel.morgan@example.com` (lecturers) are **disabled**.
-- `ruby.clarke@example.test` (student) is **not yet approved** by a lecturer.
-
-### Production accounts
-
-| Role     | Name             | Email                        | Password      |
-| -------- | ---------------- | ---------------------------- | ------------- |
-| Student  | Samuel Vychodni  | `samuel.vychodni@ucw.com`    | `Password123` |
-| Lecturer | Hannah Roberts   | `hannah.roberts@ucw.com`     | `Password123` |
-| Admin    | Thomas Reed      | `thomas.reed@ucw.com`        | `Password123` |
+- `sophie.williams@bluesharklabs.remote.ac` (admin),
+  `priya.shah@bluesharklabs.remote.ac` and
+  `daniel.morgan@bluesharklabs.remote.ac` (lecturers) are **disabled**.
+- `ruby.clarke@bluesharklabs.remote.ac` (student) is **not yet approved** by a
+  lecturer.
 
 ### Things to know
 
