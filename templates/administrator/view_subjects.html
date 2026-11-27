@@ -12,9 +12,9 @@
     <div class="flex items-center justify-between mb-4 w-full">
         <div class="flex flex-col items-start justify-center">
             <h1 class="mb-2 text-3xl font-extrabold text-text-primary">Subjects</h1>
-            <p class="text-text-primary/50">Manage the subjects available across Blue Shark Labs.</p>
+            <p class="text-text-primary/80">Manage the subjects available across Blue Shark Labs.</p>
         </div>
-        <a href="{{ url_for('administrator.administrator_create_subject_route') }}" class="inline-flex items-center justify-center gap-2 bg-app-primary hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-md shadow-md shadow-blue-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
+        <a href="{{ url_for('administrator.administrator_view_subjects_route', modal='create', q=search, page=pagination.page) }}" class="inline-flex items-center justify-center gap-2 bg-app-primary hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-md shadow-md shadow-blue-200 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
             <span>Create subject</span>
         </a>
@@ -55,13 +55,13 @@
                             <td class="px-3 py-4 text-sm text-slate-500">{{ subject.description }}</td>
                             <td class="px-3 py-4 text-sm text-slate-500">{{ subject.lecturerNames | join(", ") if subject.lecturerNames else "No lecturers assigned" }}</td>
                             <td class="px-3 py-4">
-                                <div class="flex items-center justify-start px-2 py-1 rounded-md w-fit {% if subject.isActive %}text-green-500 bg-green-500/10{% else %}text-red-500 bg-red-500/10{% endif %}">
-                                    <div class="h-2 w-2 mr-2 rounded-sm {% if subject.isActive %}bg-green-500{% else %}bg-red-500{% endif %}"></div>
+                                <div class="flex items-center justify-start px-2 py-1 rounded-md w-fit {% if subject.isActive %}text-green-700 bg-green-500/10{% else %}text-red-700 bg-red-500/10{% endif %}">
+                                    <div class="h-2 w-2 mr-2 rounded-sm {% if subject.isActive %}bg-green-400{% else %}bg-red-500{% endif %}"></div>
                                     <h4 class="text-sm font-medium">{% if subject.isActive == true %}Active{% else %}Archived{% endif %}</h4>
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 flex items-center justify-end">
-                                <a href="{{ url_for('administrator.administrator_edit_subject_route', subject_id=subject.subjectId) }}"
+                                <a href="{{ url_for('administrator.administrator_view_subjects_route', modal='edit', subject_id=subject.subjectId, q=search, page=pagination.page) }}"
                                     class="flex flex-col items-center justify-center w-14 h-11 rounded-xl bg-transparent border border-transparent hover:bg-blue-50/80 transition-all group cursor-pointer"
                                     title="Edit Details">
                                     <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,9 +106,93 @@
             </div>
         </div>
     </div>
+    {% if modal_action %}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-800/40 p-4 sm:p-8" id="subject-modal">
+        <div class="mx-4 max-h-full w-2/3 max-w-2/3 overflow-y-auto rounded-lg bg-white p-5 shadow-xl sm:p-6">
+            <div class="mb-5 flex items-center justify-between border-b border-slate-200 pb-4">
+                <h2 class="text-sm font-semibold text-text-primary">
+                    {% if modal_action == 'create' %}Create subject{% else %}Edit subject{% endif %}
+                </h2>
+                <a href="{{ url_for('administrator.administrator_view_subjects_route', q=search, page=pagination.page) }}" class="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100" aria-label="Close dialog">&times;</a>
+            </div>
+            {% if modal_action == 'create' %}
+                {% include 'administrator/partials/create_subject_modal_content.html' %}
+            {% else %}
+                {% include 'administrator/partials/edit_subject_modal_content.html' %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
     {% include 'partials/footer.html' %}
 {% endblock %}
 
 {% block scripts %}
+    <script>
+        const lecturerPicker = document.getElementById("lecturerPicker");
+        const selectedLecturers = document.getElementById("selectedLecturers");
+        const lecturerEmptyState = document.getElementById("lecturerEmptyState");
+
+        if (lecturerPicker && selectedLecturers && lecturerEmptyState) {
+            function updateLecturerPicker() {
+                const selectedIds = new Set(
+                    Array.from(selectedLecturers.querySelectorAll("[data-user-id]"))
+                        .map((lecturer) => lecturer.dataset.userId)
+                );
+
+                Array.from(lecturerPicker.options).forEach((option) => {
+                    if (option.value) {
+                        option.disabled = selectedIds.has(option.value);
+                    }
+                });
+
+                lecturerEmptyState.hidden = selectedIds.size > 0;
+            }
+
+            lecturerPicker.addEventListener("change", () => {
+                const option = lecturerPicker.selectedOptions[0];
+                if (!option || !option.value) {
+                    return;
+                }
+
+                const lecturer = document.createElement("span");
+                lecturer.className = "inline-flex items-center gap-2 rounded-full bg-gray-200 px-3 py-1.5 text-sm font-medium text-text-primary";
+                lecturer.dataset.selectedLecturer = "";
+                lecturer.dataset.userId = option.value;
+
+                const name = document.createElement("span");
+                name.textContent = option.textContent.trim();
+
+                const hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.name = "lecturerId";
+                hiddenInput.value = option.value;
+
+                const removeButton = document.createElement("button");
+                removeButton.type = "button";
+                removeButton.className = "rounded-full text-slate-700 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-700";
+                removeButton.setAttribute("aria-label", `Remove ${name.textContent}`);
+                removeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
+                removeButton.addEventListener("click", () => {
+                    lecturer.remove();
+                    updateLecturerPicker();
+                });
+
+                lecturer.append(name, hiddenInput, removeButton);
+                selectedLecturers.append(lecturer);
+                lecturerPicker.value = "";
+                updateLecturerPicker();
+            });
+
+            selectedLecturers.addEventListener("click", (event) => {
+                const removeButton = event.target.closest("button");
+                if (removeButton) {
+                    removeButton.closest("[data-selected-lecturer]").remove();
+                    updateLecturerPicker();
+                }
+            });
+
+            updateLecturerPicker();
+        }
+    </script>
 {% endblock %}

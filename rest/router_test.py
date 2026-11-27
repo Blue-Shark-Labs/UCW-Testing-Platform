@@ -1,6 +1,7 @@
 # To Run: pytest rest/router_test.py
 
 import re
+from types import SimpleNamespace
 
 import pytest
 
@@ -50,8 +51,8 @@ class TestCreateApp:
         ("role", "page_path", "visible_item", "hidden_item"),
         [
             ("student", "/dashboard/student", b"Tests", b"User Management"),
-            ("lecturer", "/dashboard/lecturer", b"Quiz Management", b"<span>Tests</span>"),
-            ("admin", "/administrator/create-user", b"User Management", b"<span>Tests</span>"),
+            ("lecturer", "/lecturer/dashboard", b"Quiz Management", b"<span>Tests</span>"),
+            ("admin", "/administrator/users", b"User Management", b"<span>Tests</span>"),
             ("student", "/dashboard/student", b"Subject Leaderboards", b"Quiz Management"),
         ],
     )
@@ -61,6 +62,8 @@ class TestCreateApp:
     ):
         # ARRANGE
         class FakeCursor:
+            query = ""
+
             def __enter__(self):
                 return self
 
@@ -68,18 +71,33 @@ class TestCreateApp:
                 return False
 
             def execute(self, query, params=None):
-                pass
+                self.query = query.lower()
 
             def fetchone(self):
+                if "count(*)" in self.query:
+                    return (0,)
                 return ("Test", "User", role)
+
+            def fetchall(self):
+                return []
 
         class FakeConnectionProvider:
             def cursor(self):
                 return FakeCursor()
 
         monkeypatch.setattr("rest.router.PostgresConnectionProvider", FakeConnectionProvider)
+        monkeypatch.setattr(
+            "database.administrator.users.PostgresConnectionProvider",
+            FakeConnectionProvider,
+        )
         monkeypatch.setattr("rest.student_dashboard.student_dashboard.get_assigned_tests", lambda student_id: [])
         monkeypatch.setattr("rest.student_dashboard.student_dashboard.get_completed_tests", lambda student_id: [])
+        
+        monkeypatch.setattr("rest.lecturer.dashboard.list_students", lambda: [])
+        monkeypatch.setattr("rest.lecturer.dashboard.list_quizzes", lambda: [])
+        monkeypatch.setattr("rest.lecturer.dashboard.list_questions", lambda: [])
+        monkeypatch.setattr("rest.lecturer.dashboard.list_lecturer_subjects", lambda lecturer_id: [])
+        monkeypatch.setattr("rest.lecturer.dashboard.get_class_progress_summary", lambda: [])
 
         with client.session_transaction() as sess:
             sess["user_id"] = "11111111-1111-1111-1111-111111111111"
@@ -93,6 +111,17 @@ class TestCreateApp:
         assert response.status_code == 200
         assert visible_item in response.data
         assert hidden_item not in response.data
+        assert b'href="/privacy"' in response.data
+        assert b">Privacy</span>" in response.data
+
+    def test_privacy_policy_route_renders(self, client):
+        response = client.get("/privacy")
+
+        assert response.status_code == 200
+        assert b"Privacy Policy" in response.data
+        assert b"Information We Collect" in response.data
+        assert b"Main Menu" not in response.data
+        assert b'href="/"' in response.data
 
     def test_sidebar_supported_items_are_full_row_links(
         self, client, monkeypatch
@@ -144,6 +173,58 @@ class TestCreateApp:
             response.data,
             re.DOTALL,
         )
+
+    @pytest.mark.parametrize(
+        ("role", "path", "expected_active_items"),
+        [
+            (
+                "student",
+                "/student-dashboard/tests/11111111-1111-1111-1111-111111111111",
+                {"Tests"},
+            ),
+            (
+                "lecturer",
+                "/lecturer/student-progress/11111111-1111-1111-1111-111111111111",
+                {"Student Progress"},
+            ),
+            (
+                "admin",
+                "/lecturer/student-progress/11111111-1111-1111-1111-111111111111",
+                {"Students & Tests", "Student Progress"},
+            ),
+            (
+                "lecturer",
+                "/lecturer/quiz/11111111-1111-1111-1111-111111111111/statistics",
+                {"Management", "Quiz Management"},
+            ),
+            (
+                "admin",
+                "/lecturer/quiz/11111111-1111-1111-1111-111111111111/statistics",
+                {"Students & Tests", "Quiz Management"},
+            ),
+        ],
+    )
+    def test_sidebar_keeps_parent_item_active_on_related_routes(
+        self, app, role, path, expected_active_items
+    ):
+        from flask import g
+
+        with app.test_request_context(path):
+            g.user = SimpleNamespace(name="Test User", role=role)
+            context = {}
+            app.update_template_context(context)
+
+            def active_item_labels(items):
+                labels = set()
+                for item in items:
+                    if item["active"]:
+                        labels.add(item["label"])
+                    labels.update(active_item_labels(item["children"]))
+                return labels
+
+            assert expected_active_items.issubset(
+                active_item_labels(context["sidebar_items"])
+            )
 
     def test_session_cookie_is_secure_by_default(self, monkeypatch):
         # ARRANGE

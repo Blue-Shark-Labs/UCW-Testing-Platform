@@ -17,6 +17,18 @@ def json_response(message, status_code=200):
     return jsonify({"message": message}), status_code
 
 
+def get_app_home_url(user):
+    if user is None:
+        return None
+
+    endpoint = {
+        "student": "pr_block.pr_block_route",
+        "lecturer": "lecturer_dashboard_route",
+        "admin": "administrator.administrator_view_subjects_route",
+    }.get(str(getattr(user, "role", "")).lower(), "pr_block.pr_block_route")
+    return url_for(endpoint)
+
+
 def login_required(role=None):
     """Redirects to the login page unless there's an authenticated session (optionally for a specific role)."""
 
