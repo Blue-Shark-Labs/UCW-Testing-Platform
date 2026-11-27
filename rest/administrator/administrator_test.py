@@ -181,7 +181,8 @@ class TestAdministratorRoutes:
 
         assert "Ocean Sciences" in response
         assert "Ada Lecturer" in response
-        assert "Administration Panel" in response
+        assert "Administrator Portal" in response
+        assert "Edit Subjects" in response
 
     def test_create_subject_persists_database_fields(self, admin_client, monkeypatch):
         lecturer_id = "8c2c51c3-d847-4d51-8442-f46f814db3c7"
