@@ -95,17 +95,6 @@ Accounts you **cannot** log in with, useful for checking error handling:
 - `ruby.clarke@bluesharklabs.remote.ac` (student) is **not yet approved** by a
   lecturer.
 
-### Other production accounts
-
-These were created on <https://bluesharklabs.app> before the seed data and
-are not affected by the migration.
-
-| Role     | Name             | Email                        | Password      |
-| -------- | ---------------- | ---------------------------- | ------------- |
-| Student  | Samuel Vychodni  | `samuel.vychodni@ucw.com`    | `Password123` |
-| Lecturer | Hannah Roberts   | `hannah.roberts@ucw.com`     | `Password123` |
-| Admin    | Thomas Reed      | `thomas.reed@ucw.com`        | `Password123` |
-
 ### Things to know
 
 - **Lockout:** 10 wrong passwords in a row locks the account for 15 minutes.
