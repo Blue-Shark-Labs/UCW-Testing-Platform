@@ -280,6 +280,8 @@ def administrator_view_users_route():
                 errors["password"] = "Password is required."
             elif len(password) < 8:
                 errors["password"] = "Password must be at least 8 characters."
+        elif password and len(password) < 8:
+            errors["password"] = "Password must be at least 8 characters."
 
         if form_data["role"] == "student":
             if not form_data["studentNumber"]:
@@ -314,6 +316,7 @@ def administrator_view_users_route():
                         form_data["role"],
                         form_data["studentNumber"] or None,
                         form_data["courseTitle"] or None,
+                        generate_password_hash(password) if password else None,
                     )
                     if not updated:
                         return "User not found", 404

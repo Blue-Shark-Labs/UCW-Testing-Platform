@@ -340,7 +340,8 @@ class TestAdministratorRoutes:
         assert b'name="action" value="edit"' in response.data
         assert b'name="user_id"' in response.data
         assert b'value="Ada"' in response.data
-        assert b'name="password"' not in response.data
+        assert b'name="password"' in response.data
+        assert b'value="password"' not in response.data
 
     def test_edit_subject_updates_database_and_lecturer_assignment(
         self, admin_client, monkeypatch
@@ -419,6 +420,7 @@ class TestAdministratorRoutes:
                 "courseTitle": "",
             },
         )
+
         def fake_update_user(*args):
             updated["args"] = args
             return True
@@ -448,4 +450,84 @@ class TestAdministratorRoutes:
             "admin",
             None,
             None,
+            None,
         )
+
+    def test_edit_user_hashes_submitted_password(self, admin_client, monkeypatch):
+        user_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
+        updated = {}
+        monkeypatch.setattr(
+            administrator_module,
+            "get_user",
+            lambda _user_id: {
+                "userId": str(user_id),
+                "firstName": "Ada",
+                "lastName": "Lecturer",
+                "email": "ada@example.test",
+                "role": "lecturer",
+                "isDisabled": True,
+                "lastLoginAt": "",
+                "studentNumber": "",
+                "courseTitle": "",
+            },
+        )
+        def fake_update_user(*args):
+            updated["args"] = args
+            return True
+
+        monkeypatch.setattr(administrator_module, "update_user", fake_update_user)
+
+        response = admin_client.post(
+            "/administrator/users",
+            data={
+                "action": "edit",
+                "user_id": str(user_id),
+                "firstName": "Ada",
+                "lastName": "Lecturer",
+                "email": "ada@example.test",
+                "role": "lecturer",
+                "password": "new-local-password",
+            },
+        )
+
+        assert response.status_code == 302
+        assert check_password_hash(updated["args"][7], "new-local-password")
+
+    def test_edit_user_rejects_short_password(self, admin_client, monkeypatch):
+        user_id = UUID("8c2c51c3-d847-4d51-8442-f46f814db3c7")
+        monkeypatch.setattr(
+            administrator_module,
+            "list_users",
+            lambda *args: ([], 0),
+        )
+        monkeypatch.setattr(
+            administrator_module,
+            "get_user",
+            lambda _user_id: {
+                "userId": str(user_id),
+                "firstName": "Ada",
+                "lastName": "Lecturer",
+                "email": "ada@example.test",
+                "role": "lecturer",
+                "isDisabled": True,
+                "lastLoginAt": "",
+                "studentNumber": "",
+                "courseTitle": "",
+            },
+        )
+
+        response = admin_client.post(
+            "/administrator/users",
+            data={
+                "action": "edit",
+                "user_id": str(user_id),
+                "firstName": "Ada",
+                "lastName": "Lecturer",
+                "email": "ada@example.test",
+                "role": "lecturer",
+                "password": "short",
+            },
+        )
+
+        assert response.status_code == 200
+        assert b"Password must be at least 8 characters." in response.data
