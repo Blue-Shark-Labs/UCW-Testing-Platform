@@ -122,16 +122,26 @@ def _seed_catalogue(cur, subjects, tests, questions):
     )
     cur.executemany(
         """
-        INSERT INTO tests (test_id, subject_id, title, question_count, time_limit_minutes)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO tests (
+            test_id, subject_id, title, description, question_count, time_limit_minutes
+        )
+        VALUES (%s, %s, %s, %s, %s, %s)
         ON CONFLICT (test_id) DO UPDATE SET
             subject_id = EXCLUDED.subject_id,
             title = EXCLUDED.title,
+            description = EXCLUDED.description,
             question_count = EXCLUDED.question_count,
             time_limit_minutes = EXCLUDED.time_limit_minutes;
         """,
         [
-            (t["testId"], subject_ids[t["subject"]], t["title"], t["questionCount"], t["timeLimitMinutes"])
+            (
+                t["testId"],
+                subject_ids[t["subject"]],
+                t["title"],
+                t.get("description", ""),
+                t["questionCount"],
+                t["timeLimitMinutes"],
+            )
             for t in tests
         ],
     )
