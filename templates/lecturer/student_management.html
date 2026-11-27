@@ -460,8 +460,8 @@
         document.getElementById('reviewStudentEmail').textContent = button.dataset.studentEmail;
         document.getElementById('reviewStudentCourse').textContent = button.dataset.studentCourse;
 
-        document.getElementById('approveStudentForm').action = `/lecturer/student/${studentId}/approve`;
-        document.getElementById('rejectStudentForm').action = `/lecturer/student/${studentId}/reject`;
+        document.getElementById('approveStudentForm').action = `/lecturer/approve-student/${studentId}`;
+        document.getElementById('rejectStudentForm').action = `/lecturer/reject-student/${studentId}`;
 
         document.getElementById('reviewStudentModal').classList.remove('hidden');
     }
