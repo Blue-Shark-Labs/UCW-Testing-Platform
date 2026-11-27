@@ -51,29 +51,60 @@ Layered architecture — dependencies point inward (REST → database):
 └── .env.example
 ```
 
-## 7. Testing accounts
+## 7. Logging in with demo roles (for markers)
 
-The below accounts are examples which can be used to login to the application for testing
+The platform has three roles: **student**, **lecturer** and **admin**. Each role
+sees a different dashboard, so log in with one account per role to review all
+features.
 
-Dev:
-  **STUDENT**
-  Tom Baker tom.baker@ucw.com Password123
+### How to log in
 
-  **LECTURER**
-  Emilia Carter amelia.carter@ucw.com Password123
+1. Open the app and go to `/login` (locally: <http://127.0.0.1:5000/login>).
+2. Enter the email and password for the role you want to test from the tables below.
+3. You are redirected to that role's home page:
 
-  **ADMIN**
-  Sophie Williams sophie.williams@ucw.com Password123
+   | Role     | Lands on                  | What to review                                      |
+   | -------- | ------------------------- | --------------------------------------------------- |
+   | Student  | `/student-dashboard/`     | Assigned tests, taking a test, scores, leaderboards |
+   | Lecturer | `/dashboard/lecturer`     | Subjects, quiz management, student management       |
+   | Admin    | `/administrator/...`      | Subjects, users and lecturer accounts               |
 
-Production:
-  **STUDENT**
-  Samuel Vychodni samuel.vychodni@ucw.com Password123
+4. To switch role, use **Log out** in the sidebar, then log in with a different account.
 
-  **LECTURER**
-  Hannah Roberts hannah.roberts@ucw.com Password123
+### Dev accounts (local, after `make migrate-dev-db`)
 
-  **ADMIN**
-  Thomas Reed thomas.reed@ucw.com Password123
+These come from `database/migrations/seed_data/users.json`.
+
+| Role     | Name          | Email                        | Password           |
+| -------- | ------------- | ---------------------------- | ------------------ |
+| Student  | Tom Baker     | `tom.baker@example.test`     | `StudentPass123!`  |
+| Student  | Sam Student   | `student@dev.local`          | `StudentPass123!`  |
+| Lecturer | Emelia Carter | `amelia.carter@example.com`  | `LecturerPass123!` |
+| Lecturer | Lee Lecturer  | `lecturer@dev.local`         | `LecturerPass123!` |
+| Admin    | Thomas Reed   | `thomas.reed@example.com`    | `AdminPass123!`    |
+| Admin    | Ada Admin     | `admin@dev.local`            | `AdminPass123!`    |
+
+Accounts you **cannot** log in with, useful for checking error handling:
+
+- `sophie.williams@example.com` (admin), `priya.shah@example.com` and
+  `daniel.morgan@example.com` (lecturers) are **disabled**.
+- `ruby.clarke@example.test` (student) is **not yet approved** by a lecturer.
+
+### Production accounts
+
+| Role     | Name             | Email                        | Password      |
+| -------- | ---------------- | ---------------------------- | ------------- |
+| Student  | Samuel Vychodni  | `samuel.vychodni@ucw.com`    | `Password123` |
+| Lecturer | Hannah Roberts   | `hannah.roberts@ucw.com`     | `Password123` |
+| Admin    | Thomas Reed      | `thomas.reed@ucw.com`        | `Password123` |
+
+### Things to know
+
+- **Lockout:** 10 wrong passwords in a row locks the account for 15 minutes.
+  Use a different account of the same role if this happens.
+- **MFA:** the demo accounts do not have MFA turned on. If you enable it under
+  **Account > Security**, later logins will ask for a code at `/login/mfa`.
+- **New students** can sign up at `/register`, but must be approved before they can log in.
 
 ---
 
